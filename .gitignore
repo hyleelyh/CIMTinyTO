@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Cocotb / Simulation
+sim_build/
+*.vcd
+*.fst
+results.xml
+*.vvp
+
+# OpenLane / OpenROAD
+runs/
+*.log
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
