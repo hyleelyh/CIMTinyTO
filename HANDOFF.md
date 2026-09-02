@@ -1,5 +1,5 @@
 # Session Handoff
-- **Date:** 2026-08-27 21:45
+- **Date:** 2026-09-01 21:25
 - **Machine:** Ubuntu Desktop PC
 - **Branch:** main
 
@@ -8,8 +8,9 @@
 - MCP configuration updated with `cim-git` targeting `/home/juliusli/Documents/AntiG/CIMTinyTO`.
 - Added `.gitignore`, `AGENTS.md`, `PROGRESS.md`, and `HANDOFF.md`.
 - Completed architectural analysis of `cim_antigravity_project_blueprint_v2.md`.
+- Evaluated Micro-ResNet / CNN demo feasibility and provided verified literature references.
 
 ## 2. Next Steps
-- Link remote GitHub repository (when ready) and push initial commit.
-- On Linux Laptop: clone/pull repository and ensure `~/.config/Antigravity/mcp_config.json` is synced.
-- Launch `/grill-me` session to finalize hardware architecture and PE array sizing.
+- User reviewing literature references.
+- Launch `/grill-me` session to finalize hardware architecture, PE array sizing, and interface protocols.
+- Begin Python golden model implementation (`model/sim_scim.py`).
