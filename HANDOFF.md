@@ -1,7 +1,8 @@
 # Session Handoff
-- **Date:** 2026-09-07 16:58
+- **Date:** 2026-09-07 20:15
 - **Machine:** Ubuntu Desktop PC
 - **Branch:** main
+- **Sync Status:** Pushed to GitHub (`git@github.com:hyleelyh/CIMTinyTO.git`)
 
 ## 1. Completed
 - Finalized hardware architecture, silicon budget, and 5 optimizations:
@@ -13,8 +14,8 @@
   - **Throughput:** 312-cycle tile schedule ($12.48\ \mu\text{s}$ per tile at $25\text{ MHz}$).
   - **Final placement density:** **58.8%** ($\approx 18,828\ \mu\text{m}^2$), optimal for OpenLane 2 congestion-free routing.
   - **Bring-up hardware:** PYNQ-Z2 FPGA (via 3.3V PMOD) for automated bring-up and Micro-ResNet demo; DE10-Lite for optional pre-tapeout HDL emulation.
+- Registered Pedagogical Chip Design Learning Directive in `AGENTS.md` and `.agents/rules/chip_design_essentials.md`.
 
 ## 2. Next Steps
-- Implement EDA log hygiene parsers in `scripts/` (`parse_yosys_stat.py`, `parse_openlane_reports.py`).
-- Implement Gate 0 Python reference model in `model/sim_scim.py`.
-- Begin RTL implementation in `src/`.
+- On Laptop: Run `git pull origin main`.
+- In New Chat: Begin Pillar 1 (implement EDA log parsers in `scripts/` and Gate 0 Python golden model in `model/sim_scim.py`).
