@@ -3,7 +3,7 @@
 - **Machine:** Ubuntu Desktop PC / Workstation
 - **Branch:** main
 - **Checkpoint Tag:** `checkpoint-gate0-spec` (pushed to origin)
-- **Sync Status:** Ready to commit and push Gate 0 deliverables to GitHub
+- **Sync Status:** 100% Synced & Pushed to GitHub (`origin/main` at commit `2441778`)
 
 ## 1. Completed in this Session
 - Created permanent backup point tag `checkpoint-gate0-spec` and pushed to GitHub.
@@ -24,13 +24,27 @@
 - Generated and validated `model/test_vectors_gate0.json` (8 comprehensive test vectors).
 - Created detailed pedagogical walkthrough and failure-mode analysis in `walkthrough.md`.
 
-## 2. Next Steps
-1. Commit and push Pillar 1 Gate 0 deliverables to GitHub.
-2. Proceed to **Pillar 2: Parameterized Verilog RTL Implementation**:
-   - `src/lfsr8_galois.v`
-   - `src/scim_sng_bank.v`
-   - `src/scim_pe.v`
-   - `src/scim_compressor_42.v` & `src/scim_wallace_tree.v`
-   - `src/scim_accumulator.v`
-   - `src/scim_weight_mem.v`
-   - `src/tt_um_scim_core.v`
+## 2. Instructions for Pulling on PC
+When you switch to your PC terminal:
+```bash
+cd ~/Documents/AntiG/CIMTinyTO   # (or your PC repository path)
+git pull origin main
+git fetch --tags
+```
+
+To run self-tests on your PC:
+```bash
+python3 scripts/parse_yosys_stat.py --test
+python3 scripts/parse_openlane_reports.py --test
+python3 model/sim_scim.py
+```
+
+## 3. Next Steps (When Ready for Next Session)
+- Begin **Pillar 2: Parameterized Verilog RTL Implementation** (`src/`):
+  - `src/lfsr8_galois.v` (8-bit Galois LFSR)
+  - `src/scim_sng_bank.v` (16-channel comparator bank)
+  - `src/scim_pe.v` (Tri-mode PE cell)
+  - `src/scim_compressor_42.v` & `src/scim_wallace_tree.v` (4:2 compressor adder tree)
+  - `src/scim_accumulator.v` (13-bit accumulator register)
+  - `src/scim_weight_mem.v` (256-bit DFF shift chain with ICG)
+  - `src/tt_um_scim_core.v` (Top-level Tiny Tapeout pinout wrapper)
