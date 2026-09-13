@@ -82,11 +82,16 @@ We adopt a clean, friction-free toolchain that completely eliminates local Docke
   ```bash
   sudo apt update && sudo apt install -y klayout
   ```
-* **Enabling SkyWater 130nm Colors in KLayout:**
-  1. Open KLayout (`klayout`).
-  2. In the top menu, go to **Tools** $\rightarrow$ **Manage Packages** (Salt).
-  3. Search for **`sky130`** and click **Install**.
-  4. Done! All SkyWater 130nm layers (`li1`, `met1`..`met5`) will now render with standard industry colors and labels automatically.
+* **Enabling SkyWater 130nm Colors in KLayout (Two Ways):**
+  - **Method 1 (Instant CLI / Bundled):** We include the official 242 KB SkyWater 130nm layer properties file directly in [`docs/sky130.lyp`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/sky130.lyp). Simply launch:
+    ```bash
+    klayout <path_to_gds> -l docs/sky130.lyp
+    ```
+  - **Method 2 (GUI / Salt Package Manager):**
+    1. Open KLayout (`klayout`).
+    2. In the top menu, go to **Tools** $\rightarrow$ **Manage Packages** (Salt).
+    3. Search for **`sky130`** and click **Install**.
+    4. Done! All SkyWater 130nm layers (`li1`, `met1`..`met5`) will render with standard industry colors and labels automatically.
 
 ### B. Local Tiny Tapeout CLI (Python `.venv`)
 ```bash

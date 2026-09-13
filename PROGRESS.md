@@ -5,6 +5,7 @@
 - `docs/tutorial_galois_lfsr.md`: Pedagogical tutorial on Galois vs. Fibonacci LFSRs, $\text{GF}(2)$ primitive polynomial ^8 + x^6 + x^5 + x^4 + 1$ (`0xB8`), cycle-by-cycle state trace, zero-state lockup prevention, spatial stride-15 seed spacing vs. temporal phase rolling, and synthesizable Verilog implementation.
 - `docs/tutorial_wallace_tree_42_compressor.md`: Pedagogical tutorial on 16-row column reduction, 4:2 compressor Boolean equations, zero horizontal carry propagation, 4-bit vector merge adder, and SkyWater 130nm NLDM gate delay breakdown (`sky130_fd_sc_hd__fa_1` 23\text{ ps}$ carry vs. `sky130_fd_sc_hd__xor2_1` bash.15\text{ ns}$ intrinsic / bash.25\text{ ns}$ wire-loaded).
 - `docs/tools_and_execution_environment_matrix.md`: Formally adopted Native Host Front-End (Pillars 1–3: `.venv`, `verilator`, `cocotb`) + Tiny Tapeout Cloud CI (Pillars 4–6: OpenLane 2 GitHub Actions) + Native KLayout 0.30.9. Formally removed `IIC-OSIC-TOOLS` / local Docker dependencies.
+- `docs/sky130.lyp`: Official 242 KB SkyWater 130nm KLayout Layer Properties XML file for native GDSII layout visualization.
 - `model/sim_scim.py`: Clarified 12-bit dynamic range annotation for Mode 0 Unipolar AND.
 
 ### [Architecture Decisions]

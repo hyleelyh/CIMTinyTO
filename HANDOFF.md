@@ -24,6 +24,7 @@
 - Created comprehensive pedagogical tutorials:
   - `docs/tutorial_galois_lfsr.md`: Complete Galois vs Fibonacci comparison, $\text{GF}(2)$ primitive polynomial mathematics, cycle trace, zero-state lockup guardrail, and seed mechanics (spatial stride-15 vs temporal rolling).
   - `docs/tutorial_wallace_tree_42_compressor.md`: 16-row column reduction, 4:2 compressor Boolean equations, zero horizontal carry propagation, 4-bit vector merge adder, and SkyWater 130nm NLDM gate delay breakdown.
+- Bundled official 242 KB SkyWater 130nm layer properties file in `docs/sky130.lyp` for instant KLayout visualization (`klayout -l docs/sky130.lyp`).
 - Streamlined tool flow in `docs/tools_and_execution_environment_matrix.md`:
   - Formally adopted Native Host Front-End + Tiny Tapeout Cloud CI (GitHub Actions OpenLane 2) + Native KLayout 0.30.9.
   - Formally eliminated `IIC-OSIC-TOOLS` / local Docker requirements.
