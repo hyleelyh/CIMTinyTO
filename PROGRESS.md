@@ -1,31 +1,25 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-09-10 08:20
+## Last Execution Run: 2026-09-12 22:17
 ### [Built]
-- Created and tagged permanent backup checkpoint: `checkpoint-gate0-spec` on commit `f767607` pushed to GitHub.
-- Created `scripts/parse_yosys_stat.py` for automated Yosys synthesis log hygiene, DFF register preservation audit, and inferred latch detection (<30 lines output). Verified via `--test`.
-- Created `scripts/parse_openlane_reports.py` for physical sign-off and Static Timing Analysis (STA), auditing setup slack, hold slack (fatal silicon check), density (<=65%), and 0-error DRC/LVS. Verified via `--test`.
-- Created `model/sim_scim.py` (Pillar 1 Gate 0 Python Golden Reference Model):
-  - 8-bit Galois LFSR with polynomial $x^8 + x^6 + x^5 + x^4 + 1$ (`0xB8`) and zero-seed lockup guardrail.
-  - 16-channel SNG array with seed stride decorrelation ($|r_{ij}| \le 0.0259 < 0.05$).
-  - Tri-mode PE arithmetic (Mode 0: Unipolar AND, Mode 1: Bipolar XNOR, Mode 2: Hybrid ReLU with 61.7% power-saving zero suppression).
-  - Spatial 4:2 compressor tree model and 13-bit signed accumulator sizing ($16 \times 256 = 4096$).
-  - Monte Carlo convergence analyzer demonstrating monotonic $1/\sqrt{N}$ scaling across $N \in \{16, 32, 64, 128\}$ and full-period collapse at $N=256$.
-- Generated `model/test_vectors_gate0.json` containing 8 comprehensive test vectors (deterministic edge cases, saturation extremes, `0xAA55` checkerboard, and quantized Micro-ResNet layer).
+- `docs/tutorial_galois_lfsr.md`: Pedagogical tutorial on Galois vs. Fibonacci LFSRs, $\text{GF}(2)$ primitive polynomial ^8 + x^6 + x^5 + x^4 + 1$ (`0xB8`), cycle-by-cycle state trace, zero-state lockup prevention, spatial stride-15 seed spacing vs. temporal phase rolling, and synthesizable Verilog implementation.
+- `docs/tutorial_wallace_tree_42_compressor.md`: Pedagogical tutorial on 16-row column reduction, 4:2 compressor Boolean equations, zero horizontal carry propagation, 4-bit vector merge adder, and SkyWater 130nm NLDM gate delay breakdown (`sky130_fd_sc_hd__fa_1` 23\text{ ps}$ carry vs. `sky130_fd_sc_hd__xor2_1` bash.15\text{ ns}$ intrinsic / bash.25\text{ ns}$ wire-loaded).
+- `docs/tools_and_execution_environment_matrix.md`: Formally adopted Native Host Front-End (Pillars 1–3: `.venv`, `verilator`, `cocotb`) + Tiny Tapeout Cloud CI (Pillars 4–6: OpenLane 2 GitHub Actions) + Native KLayout 0.30.9. Formally removed `IIC-OSIC-TOOLS` / local Docker dependencies.
+- `model/sim_scim.py`: Clarified 12-bit dynamic range annotation for Mode 0 Unipolar AND.
 
 ### [Architecture Decisions]
-- **Galois over Fibonacci LFSR:** Galois topology distributes XOR gates between flip-flops, capping critical path at 1 XOR delay (<0.25 ns in Sky130) vs Fibonacci's 4-XOR series delay.
-- **SNG Decorrelation:** Optimal seed spacing (stride = 15) along the 255-state trajectory reduces cross-correlation from $1.0$ down to $|r_{ij}| \le 0.0259$.
-- **Accumulator Bit-Growth:** Upgraded from 12-bit signed to 13-bit signed two's complement ($[-4096, +4095]$) to ensure zero saturation distortion during worst-case bipolar/hybrid extreme saturation ($16 \times 256 = 4096$).
-- **Hybrid ReLU Power Gating:** Zero activations emit accumulator HOLD commands, freezing downstream switching and yielding $>61\%$ dynamic power reduction on typical ReLU activations.
-- **Physical Sign-Off Automation:** Automated negative hold slack check to prevent catastrophic silicon race conditions before tapeout.
+- **Tooling Strategy Finalization:** Eliminated `IIC-OSIC-TOOLS` from flow; Tiny Tapeout official GitHub Actions CI provides reproducible, pinned OpenLane 2 tapeout sign-off with zero local Docker overhead. Native KLayout (v0.30.9) with integrated GPU acceleration verified for interactive GDSII verification.
+- **Galois LFSR Seed Mechanics:** Confirmed hardwired spatial static seed offsets (stride-15) save $\sim 300$ standard cells vs. programmable shadow registers. Temporal phase shifts (+1 state per 256-cycle tile) naturally decorrelate consecutive tiles without software overhead.
+- **4:2 Compressor & Adder Timing:** Wallace tree reduces 16 inputs to sum & carry in 2 stages ( \times T_{4:2} \approx 0.8\text{ ns}$), followed by 4-bit vector merge adder ($\approx 0.42\text{ ns}$), yielding total column reduction delay of $\approx 1.22\text{ ns}$ (well within 0\text{ ns}$ clock cycle at 0\text{ MHz}$).
+- **Accumulator Bit-Growth:** Upgraded from 12-bit signed to 13-bit signed two's complement (4095$) to ensure zero saturation distortion during worst-case bipolar/hybrid extreme saturation (6 \times 256 = 4096$).
 
 ### [Current Pipeline State]
 - **Pillar 1 (Gate 0) Fully Complete & Verified:**
   - EDA hygiene scripts (`scripts/parse_yosys_stat.py`, `scripts/parse_openlane_reports.py`) functional and passing self-tests.
   - Python Golden Reference Model (`model/sim_scim.py`) functional and passing all 4 verification suites.
   - Golden stimulus/response vectors exported in `model/test_vectors_gate0.json`.
-- Ready to proceed to **Pillar 2: Parameterized Verilog RTL Implementation** (`src/`).
+  - Architectural tutorials & environment documentation finalized in `docs/`.
+- Ready to proceed to **Pillar 2: Parameterized Verilog RTL Implementation** (`src/`) upon user approval.
 
 ### [Next Steps]
 - Implement parameterized Verilog RTL submodules in `src/`:

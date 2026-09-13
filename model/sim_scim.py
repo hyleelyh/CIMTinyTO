@@ -167,7 +167,7 @@ class ProcessingElement:
     Mode 0: Unipolar AND
       - Activation a in [0, 1], Weight w in {0, 1}
       - Logic Gate: Single 2-input AND cell (sky130_fd_sc_hd__and2_0, ~6 transistors)
-      - Dynamic Range: Non-negative [0, 4096]
+      - Dynamic Range: Non-negative [0, 4096] (12-bit range)
       
     Mode 1: Bipolar XNOR
       - Activation a in [-1, +1], Weight w in {-1, +1}
