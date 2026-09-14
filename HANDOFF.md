@@ -1,56 +1,35 @@
 # Session Handoff
-- **Date:** 2026-09-12 22:17
+- **Date:** 2026-09-13 20:30
 - **Machine:** Ubuntu Desktop PC / Workstation
 - **Branch:** main
 - **Checkpoint Tag:** `checkpoint-gate0-spec` (pushed to origin)
-- **Sync Status:** 100% Synced & Ready to Push to GitHub (`origin/main`)
+- **Sync Status:** 100% Synced & Pushed to GitHub (`origin/main`)
 
-## 1. Completed in this Session
-- Implemented and verified `scripts/parse_yosys_stat.py`:
-  - Enforces <30 lines output.
-  - Audits 256 weight DFF preservation.
-  - Catches dangerous inferred latches.
-- Implemented and verified `scripts/parse_openlane_reports.py`:
-  - Enforces <30 lines output.
-  - Audits setup slack and flags negative hold slack as immediate fatal hardware violation.
-  - Checks core density (<=65%) and 0 DRC/LVS/Antenna violations.
-- Implemented and verified `model/sim_scim.py` (Gate 0 Python Golden Model):
-  - 8-bit Galois LFSR with primitive polynomial ^8 + x^6 + x^5 + x^4 + 1$ (`0xB8`).
-  - 16-channel SNG decorrelation ($|r_{ij}| \le 0.0259 < 0.05$).
-  - Tri-mode arithmetic (Unipolar, Bipolar, Hybrid ReLU with 61.7% power savings).
-  - 16-to-5 Wallace tree compressor and 13-bit signed accumulator register (preventing overflow for 6 \times 256 = 4096$).
-  - Statistical Monte Carlo convergence sweep (/\sqrt{N}$ scaling and full-period collapse at =256$).
-- Generated and validated `model/test_vectors_gate0.json` (8 comprehensive test vectors).
-- Created comprehensive pedagogical tutorials:
-  - `docs/tutorial_galois_lfsr.md`: Complete Galois vs Fibonacci comparison, $\text{GF}(2)$ primitive polynomial mathematics, cycle trace, zero-state lockup guardrail, and seed mechanics (spatial stride-15 vs temporal rolling).
-  - `docs/tutorial_wallace_tree_42_compressor.md`: 16-row column reduction, 4:2 compressor Boolean equations, zero horizontal carry propagation, 4-bit vector merge adder, and SkyWater 130nm NLDM gate delay breakdown.
-- Bundled official 242 KB SkyWater 130nm layer properties file in `docs/sky130.lyp` for instant KLayout visualization (`klayout -l docs/sky130.lyp`).
-- Streamlined tool flow in `docs/tools_and_execution_environment_matrix.md`:
-  - Formally adopted Native Host Front-End + Tiny Tapeout Cloud CI (GitHub Actions OpenLane 2) + Native KLayout 0.30.9.
-  - Formally eliminated `IIC-OSIC-TOOLS` / local Docker requirements.
-- Installed and configured standalone Antigravity IDE locally with clean-exit process supervisor and GNOME desktop launcher.
+## 1. Project State Summary
+Pillar 1 (Gate 0: System & Mathematical Modeling) is 100% complete, verified, and reviewed. All architectural decisions (Galois LFSR decorrelation, 4:2 Wallace compressor tree, 13-bit accumulator sizing, data type lifecycle, cycle budgeting, and FPGA block tiling) have been pedagogical analyzed and mathematically validated.
 
-## 2. Instructions for Pulling on Laptop / Other Machine
-When you switch to your Laptop or another machine terminal:
-```bash
-cd ~/Documents/AntiG/CIMTinyTO   # (or your repo path)
-git pull origin main
-git fetch --tags
+## 2. Prepared Files & References
+- `model/sim_scim.py`: Python Golden Reference Model (passes all 4 suites).
+- `model/test_vectors_gate0.json`: 8 golden stimulus/response vectors for RTL verification.
+- `docs/sky130.lyp`: Official SkyWater 130nm KLayout layer properties XML file.
+- `docs/tutorial_galois_lfsr.md`: LFSR tutorial & hardware equations.
+- `docs/tutorial_wallace_tree_42_compressor.md`: 4:2 compressor & Wallace tree reduction tutorial.
+- `docs/tools_and_execution_environment_matrix.md`: Tool matrix (Native Host + Tiny Tapeout Cloud CI).
+- `scripts/parse_yosys_stat.py`: Synthesis hygiene parser (<30 lines).
+- `scripts/parse_openlane_reports.py`: Physical sign-off parser (<30 lines).
+
+## 3. Starting the Next Chat (Pillar 2: Parameterized Verilog RTL)
+When you open a new chat to begin Pillar 2, simply prompt:
+```
+I am ready to begin Pillar 2: Parameterized Verilog RTL Implementation. Please review PROGRESS.md and HANDOFF.md and proceed with implementing the modular RTL submodules in src/.
 ```
 
-To run self-tests on your machine:
-```bash
-python3 scripts/parse_yosys_stat.py --test
-python3 scripts/parse_openlane_reports.py --test
-python3 model/sim_scim.py
-```
-
-## 3. Next Steps (When Ready for Next Session)
-- Begin **Pillar 2: Parameterized Verilog RTL Implementation** (`src/`):
-  - `src/lfsr8_galois.v` (8-bit Galois LFSR)
-  - `src/scim_sng_bank.v` (16-channel comparator bank)
-  - `src/scim_pe.v` (Tri-mode PE cell)
-  - `src/scim_compressor_42.v` & `src/scim_wallace_tree.v` (4:2 compressor adder tree)
-  - `src/scim_accumulator.v` (13-bit accumulator register)
-  - `src/scim_weight_mem.v` (256-bit DFF shift chain with ICG)
-  - `src/tt_um_scim_core.v` (Top-level Tiny Tapeout pinout wrapper)
+The agent will immediately:
+1. Verify the clean Git state.
+2. Implement `src/lfsr8_galois.v` and `src/scim_sng_bank.v`.
+3. Implement `src/scim_pe.v` (Tri-mode PE).
+4. Implement `src/scim_compressor_42.v` and `src/scim_wallace_tree.v`.
+5. Implement `src/scim_accumulator.v` (13-bit signed accumulator).
+6. Implement `src/scim_weight_mem.v` (256-bit shift chain with clock gating).
+7. Implement `src/tt_um_scim_core.v` (Top-level Tiny Tapeout pinout wrapper).
+8. Run local linting via `verilator --lint-only -Wall`.
