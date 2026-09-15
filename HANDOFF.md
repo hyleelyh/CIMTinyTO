@@ -1,16 +1,17 @@
 # Session Handoff
-- **Date:** 2026-09-14 20:52
+- **Date:** 2026-09-15 08:50
 - **Machine:** Ubuntu Desktop PC / Workstation
 - **Branch:** main
 - **Checkpoint Tag:** `checkpoint-gate0-spec` (pushed to origin)
 - **Sync Status:** 100% Synced & Pushed to GitHub (`origin/main`)
 
 ## 1. Project State Summary
-Pillar 1 (Gate 0: System & Mathematical Modeling) is 100% complete, verified, and thoroughly reviewed. All architectural foundations — Galois LFSR decorrelation, 4:2 Wallace compressor tree, 13-bit accumulator sizing, data type lifecycle, cycle budgeting, FPGA block tiling, Monte Carlo error convergence (/\sqrt{N}$ vs. full-period collapse), correlation/squaring problem resolution, and functional verification coverage via golden test vectors — have been rigorously formalized and validated.
+Pillar 1 (Gate 0: System & Mathematical Modeling) is 100% complete, verified, and thoroughly reviewed. All architectural foundations — Galois LFSR decorrelation, 4:2 Wallace compressor tree, 13-bit accumulator sizing, data type lifecycle, cycle budgeting, FPGA block tiling, Monte Carlo error convergence ($1/\sqrt{N}$ vs. full-period collapse), correlation/squaring problem resolution, and functional verification coverage via golden test vectors — have been rigorously formalized and validated.
 
 ## 2. Prepared Files & References
 - `model/sim_scim.py`: Python Golden Reference Model (passes all 4 suites).
 - `model/test_vectors_gate0.json`: 8 golden stimulus/response vectors for RTL verification.
+- `scripts/audit_test_vectors.py`: Standalone verification and audit CLI script for `model/test_vectors_gate0.json`.
 - `docs/sky130.lyp`: Official SkyWater 130nm KLayout layer properties XML file.
 - `docs/tutorial_galois_lfsr.md`: LFSR tutorial & hardware equations.
 - `docs/tutorial_wallace_tree_42_compressor.md`: 4:2 compressor & Wallace tree reduction tutorial.
