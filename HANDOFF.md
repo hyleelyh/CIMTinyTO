@@ -1,12 +1,12 @@
 # Session Handoff
-- **Date:** 2026-09-14 08:48
+- **Date:** 2026-09-14 20:52
 - **Machine:** Ubuntu Desktop PC / Workstation
 - **Branch:** main
 - **Checkpoint Tag:** `checkpoint-gate0-spec` (pushed to origin)
 - **Sync Status:** 100% Synced & Pushed to GitHub (`origin/main`)
 
 ## 1. Project State Summary
-Pillar 1 (Gate 0: System & Mathematical Modeling) is 100% complete, verified, and reviewed. All architectural decisions (Galois LFSR decorrelation, 4:2 Wallace compressor tree, 13-bit accumulator sizing, data type lifecycle, cycle budgeting, and FPGA block tiling) have been pedagogically analyzed and mathematically validated.
+Pillar 1 (Gate 0: System & Mathematical Modeling) is 100% complete, verified, and thoroughly reviewed. All architectural foundations — Galois LFSR decorrelation, 4:2 Wallace compressor tree, 13-bit accumulator sizing, data type lifecycle, cycle budgeting, FPGA block tiling, Monte Carlo error convergence (/\sqrt{N}$ vs. full-period collapse), correlation/squaring problem resolution, and functional verification coverage via golden test vectors — have been rigorously formalized and validated.
 
 ## 2. Prepared Files & References
 - `model/sim_scim.py`: Python Golden Reference Model (passes all 4 suites).
