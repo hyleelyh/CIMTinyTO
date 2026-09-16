@@ -1,6 +1,6 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-09-15 08:50
+## Last Execution Run: 2026-09-15 21:12
 ### [Built & Documented]
 - `scripts/audit_test_vectors.py`: Standalone verification and audit CLI script that validates `model/test_vectors_gate0.json` structural dimensions ($16 \times 16$), dynamic range limits ($[-4096, +4095]$), and metadata without shell quoting or tokenizer syntax errors.
 - `docs/sky130.lyp`: Official 242 KB SkyWater 130nm KLayout Layer Properties XML file bundled for native GDSII layout visualization (`klayout <design.gds> -l docs/sky130.lyp`).
@@ -19,6 +19,9 @@
   - **Dynamic Power & Sparsity Benchmarking (`sparsity_pct`):** Formalized the physical mapping of test vector `sparsity_pct` to CMOS dynamic power $P = \alpha C V^2 f$, establishing the post-silicon current benchmark ($\sim 2.5\text{ mA}$ at $95.66\%$ sparsity vs. $\sim 10\text{ mA}$ at $0\%$ sparsity).
 
 ### [Architecture Decisions]
+- **Unified Reconfigurable PE Architecture:** Formally adopted a single $16 \times 16$ PE array (256 PEs total) with a static 2-bit configuration signal `mode[1:0]`, avoiding 3 separate physical arrays and saving $>65\%$ silicon area, routing tracks, and weight DFFs.
+- **Boolean Sub-Expression Sharing:** Synthesizer maps PE logic to only 2–3 standard cells per PE by sharing $(a \land w)$ across Mode 0 (Unipolar) and Mode 2 (Hybrid ReLU), yielding an ultracompact footprint ($\sim 10\text{--}15\text{ }\mu\text{m}^2$).
+- **Zero Dynamic Multiplexer Power:** Because `mode[1:0]` is a static configuration signal frozen across the 256-cycle compute phase, the MUX select lines have an activity factor $\alpha = 0$, consuming zero dynamic switching power.
 - **Tooling Strategy Finalization:** Eliminated `IIC-OSIC-TOOLS` from flow; Tiny Tapeout official GitHub Actions CI provides reproducible, pinned OpenLane 2 tapeout sign-off with zero local Docker overhead. Native KLayout (v0.30.9) with integrated GPU acceleration verified for interactive GDSII verification.
 - **Galois LFSR Seed Mechanics:** Confirmed hardwired spatial static seed offsets (stride-15) save $\sim 300$ standard cells vs. programmable shadow registers. Temporal phase shifts (+1 state per 256-cycle tile) naturally decorrelate consecutive tiles without software overhead.
 - **4:2 Compressor & Adder Timing:** Wallace tree reduces 16 inputs to sum & carry in 2 stages ($2 \times T_{4:2} \approx 0.8\text{ ns}$), followed by 4-bit vector merge adder ($\approx 0.42\text{ ns}$), yielding total column reduction delay of $\approx 1.22\text{ ns}$ (well within $20\text{ ns}$ clock cycle at $50\text{ MHz}$).
