@@ -1,6 +1,6 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-09-16 22:15
+## Last Execution Run: 2026-09-16 22:20
 ### [Built & Documented]
 - `docs/microarchitecture_unified_column_delta.md`: Detailed pedagogical architectural specification proving the mathematical identity $\Delta_{\text{col}} = 2P - A$ for Mode 2 (Hybrid ReLU) and $\Delta_{\text{col}} = 2X - 16$ for Mode 1 (Bipolar XNOR), explaining physical CMOS digital wire realities ($V_{DD}/GND$), truth tables, and why sharing the central activation compressor $A = \sum a_i$ saves $\approx 855$ standard cells (~47% tree area reduction).
 - `docs/tutorial_galois_lfsr.md`: Added Section 5.1 detailing the complete 16-channel stride-15 trajectory step indices (Step 1, 16, 31, 46...) and explaining why the hardware initial seeds (`8'h5C`, `8'hF1`...) align cycle 0 with the Python golden reference model.
@@ -14,6 +14,7 @@
 - `docs/tools_and_execution_environment_matrix.md`: Formally adopted Native Host Front-End (Pillars 1–3: `.venv`, `verilator`, `cocotb`) + Tiny Tapeout Cloud CI (Pillars 4–6: OpenLane 2 GitHub Actions) + Native KLayout 0.30.9. Formally removed `IIC-OSIC-TOOLS` / local Docker dependencies.
 - `model/sim_scim.py`: Verified Python Golden Reference Model (Gate 0) with all self-tests passing.
 - `model/test_vectors_gate0.json`: 8 golden stimulus/response test vectors for downstream Gate 1–3 verification.
+- `implementation_plan.md`: Formulated comprehensive architectural implementation plan for Pillar 2 (Gate 1: Parameterized Verilog RTL & Submodules).
 
 ### [Architecture Decisions]
 - **Unified Column Delta Reduction ($\Delta = 2P - A$):** Proved algebraic identity $\text{step}_i = a_i (2w_i - 1) = 2(a_i \land w_i) - a_i$. Summing over 16 rows yields $\Delta = 2P - A$. Because activations $a[15:0]$ are broadcast to all columns, $A = \sum a_i$ is computed by a single central 16-to-5 Wallace tree for the entire macro. This cuts total chip Wallace trees from 32 down to 17, saving 15 full trees (~855 cells) and guaranteeing comfortable placement within Tiny Tapeout $1\times 2$ tile (~1,600–2,000 cells).
@@ -28,14 +29,11 @@
 - **Accumulator Bit-Growth:** Upgraded from 12-bit signed to 13-bit signed two's complement ($-4096\dots +4095$) to ensure zero saturation distortion during worst-case bipolar/hybrid extreme saturation ($16 \times 256 = 4096$).
 
 ### [Current Pipeline State]
-- **Pillar 1 (Gate 0) Fully Complete, Verified & Frozen:**
-  - EDA hygiene scripts (`scripts/parse_yosys_stat.py`, `scripts/parse_openlane_reports.py`, `scripts/audit_test_vectors.py`) functional and passing self-tests.
-  - Python Golden Reference Model (`model/sim_scim.py`) functional and passing all 4 verification suites.
-  - Golden stimulus/response vectors exported in `model/test_vectors_gate0.json` and audited with 100% pass rate.
-  - Architectural specifications, pedagogical tutorials, and layer properties in `docs/`.
+- **Pillar 1 (Gate 0) Fully Complete, Verified & Frozen.**
 - **Pillar 2 (Gate 1 Planning & Microarchitecture):**
-  - Fully planned, mathematically audited, and documented.
-  - User requested pause to review implementation plan and mathematical reductions before code implementation.
+  - Full modular implementation plan created and detailed in `implementation_plan.md`.
+  - User requested hold on code implementation to conduct architectural review.
+  - Ready to proceed with RTL coding upon user confirmation.
 
 ### [Next Steps for Pillar 2 Execution]
 1. Install native front-end tools on laptop/PC: `sudo apt update && sudo apt install -y verilator iverilog gtkwave`.
