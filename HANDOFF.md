@@ -33,9 +33,14 @@ We have fully implemented and verified **Pillar 2 (Gate 1: Parameterized Verilog
 
 ---
 
-## 2. Resuming Next Session (Pillars 3 & 4: Physical Implementation & Synthesis)
+## 2. Resuming in a New Chat (Starting Pillar 3)
 
-In the next session, we will proceed with:
+When you are ready to begin Pillar 3 in a new chat, simply prompt:
+```
+I have reviewed Pillar 2. Let's start Pillar 3: Physical Implementation, OpenLane 2 configuration, and synthesis hardening.
+```
+
+The agent in the new chat will immediately read `HANDOFF.md` and `PROGRESS.md`, and start by:
 1. Configuring Tiny Tapeout physical metadata (`info.yaml` and `docs/info.md`).
 2. Setting up OpenLane 2 / OpenROAD configuration (`config.yaml` / `config.json`) for SkyWater 130nm standard-cell tapeout.
 3. Running logic synthesis via Yosys to verify standard-cell mapping and cell count budget.
