@@ -33,8 +33,9 @@ Per user request, **no RTL code has been written yet** to allow thorough review 
    - Formulated how the 16 XNOR outputs feed the identical unsigned Wallace tree, followed by a hardwired 1-bit shift (`{X, 1'b0}`, 0 gates, 0 delay) and 6-bit subtractor.
 3. **Exhaustive 65,536-Pattern Tree Verification:**
    - Validated that the 16-to-5 Wallace tree reduction using 4:2 compressors produces bit-exact equivalence for all possible 16-bit binary inputs.
-4. **SNG Phase Alignment Verification:**
-   - Confirmed that loading Galois LFSR seeds `8'h5C`, `8'hF1`, `8'hAC`, etc. at reset reproduces the exact cycle-for-cycle stochastic bitstreams of `model/test_vectors_gate0.json`.
+4. **SNG Phase & Stride-15 Trajectory Alignment:**
+   - Clarified that stride-15 corresponds to 15 clock cycles along the Galois trajectory (Step 1, 16, 31, 46...), not arithmetic distance.
+   - Confirmed that loading Galois LFSR initial hardware seeds `8'h5C`, `8'hF1`, `8'hAC`, etc. at reset reproduces the exact cycle-for-cycle stochastic bitstreams of `model/test_vectors_gate0.json` (documented in `docs/tutorial_galois_lfsr.md` Section 5.1).
 5. **Tooling Environment Audit:**
    - Confirmed that `verilator` and `iverilog` are front-end tools installed via host `apt`.
    - Confirmed that `yosys`, `openroad`, `magic`, and `netgen` run in Tiny Tapeout Cloud CI (`tt-gds-action`), eliminating heavy local Docker setups.

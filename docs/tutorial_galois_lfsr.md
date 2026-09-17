@@ -138,6 +138,32 @@ In our architecture, seeds are **spatially static at reset**, but **temporally d
 3. **Deterministic Reset:**
    - Asserting active-low reset (`rst_n`) restores the exact starting seeds for 100% bit-exact pre-silicon verification in Cocotb and FPGA bring-up.
 
+### 5.1 Channel Seed Mapping Table & Clock Alignment ($t=0$)
+
+"Stride-15" refers to **15 clock cycles along the Galois trajectory**, not arithmetic distance:
+
+| Channel | Trajectory Step Index | Step Spacing ($\Delta$) | Seed in `sim_scim.py` | Initial Hardware Value (`src/`) |
+|:---:|:---:|:---:|:---:|:---:|
+| **Channel 0** | **Step 1** | — | `8'hB8` | **`8'h5C`** |
+| **Channel 1** | **Step 16** | **$+15$ cycles** | `8'h93` | **`8'hF1`** |
+| **Channel 2** | **Step 31** | **$+15$ cycles** | `8'h29` | **`8'hAC`** |
+| **Channel 3** | **Step 46** | **$+15$ cycles** | `8'h14` | **`8'h0A`** |
+| **Channel 4** | **Step 61** | **$+15$ cycles** | `8'h99` | **`8'hF4`** |
+| **Channel 5** | **Step 76** | **$+15$ cycles** | `8'hDD` | **`8'hD6`** |
+| **Channel 6** | **Step 91** | **$+15$ cycles** | `8'hC2` | **`8'h61`** |
+| **Channel 7** | **Step 106** | **$+15$ cycles** | `8'hF8` | **`8'h7C`** |
+| **Channel 8** | **Step 121** | **$+15$ cycles** | `8'hA1` | **`8'hE8`** |
+| **Channel 9** | **Step 136** | **$+15$ cycles** | `8'h2A` | **`8'h15`** |
+| **Channel 10** | **Step 151** | **$+15$ cycles** | `8'hED` | **`8'hCE`** |
+| **Channel 11** | **Step 166** | **$+15$ cycles** | `8'h6F` | **`8'h8F`** |
+| **Channel 12** | **Step 181** | **$+15$ cycles** | `8'hA5` | **`8'hEA`** |
+| **Channel 13** | **Step 196** | **$+15$ cycles** | `8'h07` | **`8'hBB`** |
+| **Channel 14** | **Step 211** | **$+15$ cycles** | `8'hD4` | **`8'h6A`** |
+| **Channel 15** | **Step 226** | **$+15$ cycles** | `8'hCF` | **`8'hDF`** |
+
+*Note on $t=0$ Alignment:* In `sim_scim.py`, `step()` was called at the beginning of each cycle loop before comparison, so cycle 0 compared against `step(seed)`. In synthesizable Verilog, flip-flops hold their initial `SEED` upon reset release; initializing hardware registers with `8'h5C`, `8'hF1`, etc. guarantees bit-exact cycle-0 alignment with the Gate 0 test vectors.
+
+
 ---
 
 ## 6. Critical Silicon Guardrails

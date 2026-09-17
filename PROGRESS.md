@@ -3,6 +3,7 @@
 ## Last Execution Run: 2026-09-16 22:15
 ### [Built & Documented]
 - `docs/microarchitecture_unified_column_delta.md`: Detailed pedagogical architectural specification proving the mathematical identity $\Delta_{\text{col}} = 2P - A$ for Mode 2 (Hybrid ReLU) and $\Delta_{\text{col}} = 2X - 16$ for Mode 1 (Bipolar XNOR), explaining physical CMOS digital wire realities ($V_{DD}/GND$), truth tables, and why sharing the central activation compressor $A = \sum a_i$ saves $\approx 855$ standard cells (~47% tree area reduction).
+- `docs/tutorial_galois_lfsr.md`: Added Section 5.1 detailing the complete 16-channel stride-15 trajectory step indices (Step 1, 16, 31, 46...) and explaining why the hardware initial seeds (`8'h5C`, `8'hF1`...) align cycle 0 with the Python golden reference model.
 - Automated 65,536-pattern exhaustive mathematical audit verifying that 4:2 compressor tree reduction produces 100% bit-exact equivalence for all possible 16-bit inputs.
 - Verified that all 16 SNG Galois LFSR initial reset states (`8'h5C`, `8'hF1`, `8'hAC`, etc.) generate identical stochastic streams matching `model/test_vectors_gate0.json` cycle-for-cycle.
 - Clarified EDA tooling environment: Native Host Front-End (`verilator`, `iverilog`, `gtkwave`) + Tiny Tapeout Cloud CI (`tt-gds-action` for Yosys, OpenROAD, Magic, Netgen) + `.venv` (`numpy`, `cocotb`, `pyverilog`).
