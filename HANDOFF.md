@@ -1,8 +1,8 @@
 # Session Handoff
 
-- **Date:** 2026-09-17 21:25
-- **Machine:** Ubuntu Desktop PC / Workstation (`juliusli`)
-- **Target Next Machine:** Laptop
+- **Date:** 2026-09-18 16:25
+- **Machine:** Laptop
+- **Target Next Machine:** Ubuntu Desktop PC / Workstation (`juliusli`)
 - **Branch:** main
 - **Sync Status:** 100% Synced to `origin/main` (Clean Working Tree)
 
@@ -10,35 +10,21 @@
 
 ## 1. Current State & What Was Accomplished Today
 
-1. **Pillar 1 (Gate 0 Python Golden Model):**
-   - 100% complete, verified, and frozen.
-   - `model/sim_scim.py` passes all unit tests and exports `model/test_vectors_gate0.json`.
-   - Audit scripts in `scripts/` verified.
+1. **Phase 1 (Leaf Cells) Completed:**
+   - Detailed walkthrough of `src/scim_pe.v` and `src/scim_compressor_42.v`.
+   - Analyzed single-wire PE output saving 15 Wallace trees (~855 standard cells), quasi-static MUX select lines drawing zero dynamic switching power ($\alpha = 0$), and independent $C_{\text{out}}$ breaking horizontal carry propagation.
 
-2. **Pillar 2 (Gate 1 Synthesizable Verilog RTL & Cocotb):**
-   - All synthesizable modules under `src/` implemented and verified.
-   - Verilator lint: 0 warnings, 0 errors.
-   - Cocotb regressions: `test_lfsr.py`, `test_compressor.py`, and `test_scim_core.py` (8/8 Gate 0 vectors pass with 100.00% bit-exact equivalence).
-
-3. **RTL Vulnerability Audit ("Poking Holes"):**
-   - Documented in detail in [`docs/rtl_audit_and_poking_holes.md`](docs/rtl_audit_and_poking_holes.md).
-   - Identified 6 silicon failure modes and hardening opportunities.
-
-4. **Pedagogical Review & Hardening Roadmap Created:**
-   - Documented in [`docs/pedagogical_rtl_review_roadmap.md`](docs/pedagogical_rtl_review_roadmap.md).
-   - Structured specifically for a semiconductor manufacturing / foundry interface engineer transitioning into ASIC design.
-   - Organizes the learning and hardening into 5 manageable phases:
-     - **Phase 1:** Leaf Cells (`scim_pe.v`, `scim_compressor_42.v`)
-     - **Phase 2:** Spatial Reduction & Accumulation (`scim_wallace_tree.v`, `scim_accumulator.v` + Hole #5 fix)
-     - **Phase 3:** Sequential Memory & LFSR Dynamics (`lfsr8_galois.v`, `scim_sng_bank.v`, `scim_weight_mem.v` + Hole #6 review)
-     - **Phase 4:** Top-Level Integration (`tt_um_scim_core.v` + Holes #1, #3, #4 fixes)
-     - **Phase 5:** Verification Closure & Coverage (`sim_scim.py` + Hole #2 Mode 1 expansion + 10/10 Cocotb regression)
+2. **Phase 2 (Spatial Reduction & Accumulation) Completed & Hardened:**
+   - Detailed walkthrough of `src/scim_wallace_tree.v` and `src/scim_accumulator.v`.
+   - Analyzed spurious glitch power reduction ($>70\%$) via balanced tree topology vs. ripple adders.
+   - **Applied Hole #5 Hardening Patch:** Wrapped concatenation operands in `$signed(...)` in `src/scim_accumulator.v`, enforcing strict IEEE 1364-2001 signed addition across all EDA tools.
+   - Verified clean with `verilator --lint-only -Wall` (0 warnings/errors) and `make -C test test_core` (8/8 golden vectors passing with 100.00% bit-exact match).
 
 ---
 
-## 2. Resuming Tomorrow on the Laptop
+## 2. Resuming on the PC (Phase 3: Sequential Arrays & Memory Fabric)
 
-When you open this repository on your Laptop tomorrow:
+When you open this repository on your PC:
 
 1. **Pull Latest Changes:**
    ```bash
@@ -51,9 +37,9 @@ When you open this repository on your Laptop tomorrow:
    ```
 
 3. **Start the Session:**
-   Simply prompt the assistant:
+   Prompt the assistant:
    ```
-   Let's follow Phase 1 of docs/pedagogical_rtl_review_roadmap.md: walk me through src/scim_pe.v and src/scim_compressor_42.v from a manufacturing & standard-cell perspective.
+   Let's follow Phase 3 of docs/pedagogical_rtl_review_roadmap.md: walk me through src/lfsr8_galois.v, src/scim_sng_bank.v, and src/scim_weight_mem.v from a CIM bitcell and decorrelation perspective.
    ```
 
-The assistant will pick up immediately from Phase 1, using your background in manufacturing to bridge standard-cell layouts and timing paths with Verilog RTL!
+The assistant will pick up immediately from Phase 3, examining in-memory DFF storage, serial DFT loopback, and pseudo-random spatial decorrelation!

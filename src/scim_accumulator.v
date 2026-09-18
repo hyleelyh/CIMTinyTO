@@ -37,8 +37,11 @@ module scim_accumulator #(
 );
 
     // 14-bit extended sum to detect overflow beyond 13-bit signed limits
+    // Hardening (Hole #5): IEEE 1364-2001 treats { ... } concatenations as strictly
+    // unsigned. Wrap in $signed(...) to guarantee signed arithmetic across all EDA tools.
     wire signed [WIDTH:0] sum_ext;
-    assign sum_ext = {acc_val[WIDTH-1], acc_val} + {{ (WIDTH-5){delta[5]} }, delta};
+    assign sum_ext = $signed({acc_val[WIDTH-1], acc_val}) + 
+                     $signed({{ (WIDTH-5){delta[5]} }, delta});
 
     // Limits for 13-bit signed: Max = +4095, Min = -4096
     localparam signed [WIDTH:0] MAX_POS =  14'sd4095;
