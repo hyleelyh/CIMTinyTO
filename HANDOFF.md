@@ -31,6 +31,9 @@ We have fully implemented and verified **Pillar 2 (Gate 1: Parameterized Verilog
    - `test/test_scim_core.py`: End-to-end regression verifying 8/8 Gate 0 test vectors from `model/test_vectors_gate0.json` (**PASS, 100.00% bit-exact equivalence**).
    - `test/Makefile`: Push-button test harness (`make test_all`).
 
+4. **Detailed RTL Audit & Silicon Vulnerability Analysis:**
+   - Documented 6 subtle edge cases, signed overflow traps, and defensive hardening recommendations in [`docs/rtl_audit_and_poking_holes.md`](docs/rtl_audit_and_poking_holes.md).
+
 ---
 
 ## 2. Resuming in a New Chat (Starting Pillar 3)

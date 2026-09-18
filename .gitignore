@@ -5,6 +5,8 @@ __pycache__/
 .venv/
 venv/
 ENV/
+parsetab.py
+parser.out
 
 # Cocotb / Simulation
 sim_build/

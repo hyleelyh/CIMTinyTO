@@ -1,7 +1,7 @@
 # Project Progress: CIMTinyTO
 
 ## Last Execution Run: 2026-09-17 12:30
-### [Built & Verified]
+- `docs/rtl_audit_and_poking_holes.md`: Comprehensive RTL audit documenting 6 subtle silicon failure modes, signed overflow edge cases, Mode 1 test coverage blindspots, and recommended defensive hardening patches.
 - `src/lfsr8_galois.v`: Parameterized 8-bit Galois LFSR with GF(2) polynomial $x^8 + x^6 + x^5 + x^4 + 1$ (`8'hB8`), synchronous active-low reset, and zero-state lockup prevention.
 - `src/scim_sng_bank.v`: 16-channel decorrelated SNG bank with stride-15 Galois trajectory offsets (`8'h5C`, `8'hF1`...) and digital magnitude comparators (`act >= lfsr`).
 - `src/scim_pe.v`: Single-wire unified reconfigurable PE supporting Mode 0 (Unipolar AND), Mode 1 (Bipolar XNOR), and Mode 2 (Hybrid ReLU).
