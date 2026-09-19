@@ -36,6 +36,8 @@ async def reset_core(dut):
     await RisingEdge(dut.clk)
     await RisingEdge(dut.clk)
     dut.rst_n.value = 1
+    # Wait for 2-stage synchronizer (rst_sync_0, rst_sync_1) to release core_rst_n
+    await RisingEdge(dut.clk)
     await RisingEdge(dut.clk)
 
 

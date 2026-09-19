@@ -72,6 +72,24 @@ module tt_um_scim_core #(
     // Tie off unused top-level signals to prevent lint warnings
     wire _unused_top_signals = &{ena, uio_in[3:0], 1'b0};
 
+    // ========================================================================
+    // 1A. RESET SYNCHRONIZER (Hole #3 Hardening)
+    // ========================================================================
+    // External rst_n is asynchronous. A 2-stage DFF synchronizer eliminates
+    // metastability and guarantees clean, skew-free synchronous reset release.
+    reg rst_sync_0, rst_sync_1;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            rst_sync_0 <= 1'b0;
+            rst_sync_1 <= 1'b0;
+        end else begin
+            rst_sync_0 <= 1'b1;
+            rst_sync_1 <= rst_sync_0;
+        end
+    end
+
+    wire core_rst_n = rst_sync_1;
+
     wire w_dout;                          // Serial weight output for DFT loopback
     reg  busy;                            // Compute phase active
     reg  done;                            // Compute phase complete
@@ -109,7 +127,7 @@ module tt_um_scim_core #(
     integer k;
 
     always @(posedge clk) begin
-        if (!rst_n) begin
+        if (!core_rst_n) begin
             addr      <= 4'd0;
             mode      <= 2'b00;
             byte_sel  <= 1'b0;
@@ -127,10 +145,8 @@ module tt_um_scim_core #(
                 mode      <= ui_in[5:4];
                 byte_sel  <= ui_in[6];
                 start_req <= ui_in[7];
-            end
-
-            // Handle Activation Write Strobe
-            if (wr_act && !busy) begin
+            // Hardening (Hole #4): Strict mutual exclusion prevents bus collision on addr
+            end else if (wr_act && !busy) begin
                 act_regs[addr] <= ui_in;
                 // Auto-increment address to simplify sequential loading
                 addr <= addr + 4'd1;
@@ -140,7 +156,7 @@ module tt_um_scim_core #(
 
     // FSM Compute Controller
     always @(posedge clk) begin
-        if (!rst_n) begin
+        if (!core_rst_n) begin
             state     <= FSM_IDLE;
             cycle_cnt <= 8'd0;
             busy      <= 1'b0;
@@ -221,7 +237,7 @@ module tt_um_scim_core #(
 
     scim_weight_mem u_weight_mem (
         .clk(clk),
-        .rst_n(rst_n),
+        .rst_n(core_rst_n),
         .w_shift_en(w_shift_en),
         .w_din(w_din),
         .w_dout(w_dout),
@@ -237,7 +253,7 @@ module tt_um_scim_core #(
         .SNG_SEEDS(SNG_SEEDS)
     ) u_sng_bank (
         .clk(clk),
-        .rst_n(rst_n),
+        .rst_n(core_rst_n),
         .en(sng_en),
         .act_in(act_bus),
         .sng_out(sng_activations)
@@ -286,13 +302,17 @@ module tt_um_scim_core #(
             // Mode 0 (Unipolar):    Δ = P                (Range [0, 16])
             // Mode 1 (Bipolar):     Δ = 2X - 16          (Range [-16, +16])
             // Mode 2 (Hybrid ReLU): Δ = 2P - A           (Range [-16, +16])
-            // Where 2*P is implemented as a hardwired 1-bit shift {col_sum, 1'b0}
-            wire signed [5:0] delta_mode0 = $signed({1'b0, col_sum[col]});
-            wire signed [5:0] delta_mode1 = $signed({col_sum[col], 1'b0}) - 6'sd16;
-            wire signed [5:0] delta_mode2 = $signed({col_sum[col], 1'b0}) - $signed({1'b0, shared_act_sum});
+            // Hardening (Hole #1): Zero-extend to 7 bits before subtraction to guarantee
+            // that 2*P (range [0, 32]) fits cleanly without signed overflow into bit 5.
+            wire signed [5:0] delta_mode0    = $signed({1'b0, col_sum[col]});
+            wire signed [6:0] delta_mode1_7b = $signed({1'b0, col_sum[col], 1'b0}) - 7'sd16;
+            wire signed [6:0] delta_mode2_7b = $signed({1'b0, col_sum[col], 1'b0}) - $signed({2'b00, shared_act_sum});
+
+            // Bit 6 is the redundant sign bit; tie off for lint hygiene
+            wire _unused_delta = &{delta_mode1_7b[6], delta_mode2_7b[6], 1'b0};
 
             assign col_delta[col] = (mode == 2'b00) ? delta_mode0 :
-                                    (mode == 2'b01) ? delta_mode1 : delta_mode2;
+                                    (mode == 2'b01) ? delta_mode1_7b[5:0] : delta_mode2_7b[5:0];
         end
     endgenerate
 
@@ -307,7 +327,7 @@ module tt_um_scim_core #(
         for (c_acc = 0; c_acc < 16; c_acc = c_acc + 1) begin : gen_accumulators
             scim_accumulator #(.WIDTH(13)) u_acc (
                 .clk(clk),
-                .rst_n(rst_n),
+                .rst_n(core_rst_n),
                 .clr(acc_clr),
                 .en(acc_en),
                 .delta(col_delta[c_acc]),
