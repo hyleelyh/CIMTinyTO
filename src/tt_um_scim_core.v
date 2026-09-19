@@ -38,7 +38,16 @@
 
 `default_nettype none
 
-module tt_um_scim_core (
+module tt_um_scim_core #(
+    // Stride-15 Galois trajectory seeds (precomputed from x^8 + x^6 + x^5 + x^4 + 1)
+    // Channel 0 is LSB byte (bits [7:0]); Channel 15 is MSB byte (bits [127:120]).
+    parameter [127:0] SNG_SEEDS = {
+        8'hDF, 8'h6A, 8'hBB, 8'hEA,  // Ch 15..12 (Steps 226, 211, 196, 181)
+        8'h8F, 8'hCE, 8'h15, 8'hE8,  // Ch 11..8  (Steps 166, 151, 136, 121)
+        8'h7C, 8'h61, 8'hD6, 8'hF4,  // Ch 7..4   (Steps 106,  91,  76,  61)
+        8'h0A, 8'hAC, 8'hF1, 8'h5C   // Ch 3..0   (Steps  46,  31,  16,   1)
+    }
+)(
     input  wire [7:0] ui_in,              // Dedicated inputs: 8-bit Data / Config bus
     output wire [7:0] uo_out,             // Dedicated outputs: 8-bit Accumulator readback
     input  wire [7:0] uio_in,             // IOs: Input path
@@ -224,7 +233,9 @@ module tt_um_scim_core (
     // ========================================================================
     wire [15:0] sng_activations;
 
-    scim_sng_bank u_sng_bank (
+    scim_sng_bank #(
+        .SNG_SEEDS(SNG_SEEDS)
+    ) u_sng_bank (
         .clk(clk),
         .rst_n(rst_n),
         .en(sng_en),
