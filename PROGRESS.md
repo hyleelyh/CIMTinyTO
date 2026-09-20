@@ -1,8 +1,8 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-09-19 16:15
+## Last Execution Run: 2026-09-19 20:48
 ### [Built & Hardened]
-- `src/tt_um_scim_core.v`: Applied all Phase 4 hardening patches:
+- `src/tt_um_scim_core.v`: Applied all Phase 4 defensive hardening patches:
   - **Hole #1 (High):** Replaced 6-bit delta subtraction with 7-bit zero-extended signed arithmetic (`delta_mode1_7b`, `delta_mode2_7b`), eliminating intermediate negative overflow wrap-around when $P=16$ and tool-dependent sign-extension risks.
   - **Hole #3 (Medium):** Added a standard 2-stage DFF reset synchronizer (`rst_sync_0`, `rst_sync_1` $\implies$ `core_rst_n`) to eliminate board-level reset release metastability and prevent clock-skewed partial reset releases across LFSR/accumulator flip-flops.
   - **Hole #4 (Medium):** Added strict mutual exclusion between `ctrl_strobe` and `wr_act` using `else if`, preventing bus collisions and corrupted non-blocking assignments on the internal address register (`addr`).
@@ -11,9 +11,10 @@
 - `src/scim_accumulator.v`: Applied Hole #5 hardening patch wrapping concatenation operands in `$signed(...)` per IEEE 1364-2001 rules.
 
 ### [Architecture Decisions]
+- **Phase 1 to Phase 4 Completed & Hardened:** Completed comprehensive pedagogical review connecting Verilog constructs to semiconductor layout tracks, transistor counts, dynamic switching power ($P = \alpha C V^2 f$), and timing constraints ($t_{\text{rec}} / t_{\text{rem}}$).
+- **Compile-Time SNG Seed Parameterization (Zero Silicon Cost):** Parameterized `SNG_SEEDS` [127:0] across `scim_sng_bank.v` and `tt_um_scim_core.v`. Evaluated during elaboration by Yosys with 0 extra transistors, enabling flexible seed studies for various neural network models.
 - **Phase 4 Defensive Hardening Applied:** Eliminated signed overflow traps, asynchronous reset release metastability, and control strobe race conditions directly in the top-level macro.
 - **2-Stage Synchronizer Timing Discipline:** Acknowledged the physical 2-cycle latency of `core_rst_n` deassertion, aligning testbench drivers and host SPI firmware protocols with physical silicon behavior.
-- **Compile-Time SNG Seed Parameterization (Zero Silicon Cost):** Parameterized `SNG_SEEDS` [127:0] across `scim_sng_bank.v` and `tt_um_scim_core.v`. Evaluated during elaboration by Yosys with 0 extra transistors.
 - **Hole #5 Signed Addition Enforcement:** Wrapped concatenation terms in `$signed(...)` in `src/scim_accumulator.v`.
 
 ### [Current Pipeline State]
@@ -24,11 +25,11 @@
   - Master end-to-end regression (`test_scim_core`): **8/8 golden vectors PASS with 100.00% bit-exact equivalence**.
   - "Tour & Harden" Progress: **Phase 1, Phase 2, Phase 3, and Phase 4 100% COMPLETE.**
 
-### [Next Steps: Transition to Phase 5 (Final Verification Closure)]
+### [Next Steps: Resuming Tomorrow with Phase 5]
 1. **Phase 5 (Verification Closure & Coverage Expansion):**
    - In `model/sim_scim.py`: Add 2 non-trivial Mode 1 test vectors (`bipolar_orthogonal_cancellation_mode_1` and `bipolar_negative_saturation_mode_1`) to close the Mode 1 functional verification coverage blindspot (Hole #2).
    - Re-export `model/test_vectors_gate0.json` and audit with `scripts/audit_test_vectors.py`.
    - Update `test/test_scim_core.py` and run full regression to verify **10/10 golden test vectors PASS**.
-2. **Pillar 3 (Physical ASIC Implementation):**
+2. **Pillar 3 (Physical ASIC Implementation / OpenLane 2):**
    - Create Tiny Tapeout metadata: `info.yaml` and `docs/info.md`.
-   - Configure OpenLane 2 / OpenROAD for SkyWater 130nm tapeout.
+   - Configure OpenLane 2 / OpenROAD for SkyWater 130nm standard-cell tapeout.
