@@ -1,49 +1,41 @@
 # Session Handoff
 
-- **Date:** 2026-09-19 20:48
+- **Date:** 2026-09-19 20:50
 - **Machine:** Laptop
 - **Branch:** main
 - **Sync Status:** 100% Synced to `origin/main` (Clean Working Tree)
 
 ---
 
-## 1. Accomplishments Today
+## 1. Current State
 
-1. **Phase 1 (Leaf Cells) Completed:**
-   - Detailed walkthrough of `src/scim_pe.v` and `src/scim_compressor_42.v`.
-   - Analyzed single-wire PE output saving 15 Wallace trees (~855 standard cells), quasi-static MUX select lines drawing zero dynamic switching power ($\alpha = 0$), and independent $C_{\text{out}}$ breaking horizontal carry propagation.
+1. **Phase 1, 2, & 3 Completed:**
+   - Leaf cells, Wallace reduction, Galois LFSRs, SNG bank, and CIM weight memory fully reviewed.
+   - SNG seed compile-time parameterization implemented and verified.
+   - Hole #5 ($signed concatenation) verified.
 
-2. **Phase 2 (Spatial Reduction & Accumulation) Completed & Hardened:**
-   - Detailed walkthrough of `src/scim_wallace_tree.v` and `src/scim_accumulator.v`.
-   - Full Adder bit-accounting equations and standard-cell mapping (`sky130_fd_sc_hd__fa_1`).
-   - Analyzed glitch suppression via balanced tree topology vs. ripple adders.
-   - **Verified Hole #5 Hardening Patch:** Wrapped concatenation operands in `$signed(...)` in `src/scim_accumulator.v`.
+2. **Phase 4 (Top-Level Integration & Control Hardening) — IN PROGRESS:**
+   - Applied Hole #1 (7-bit signed delta subtraction), Hole #3 (2-stage reset synchronizer), and Hole #4 (strobe mutual exclusion) to `src/tt_um_scim_core.v`.
+   - Verified 8/8 test vectors passing in Cocotb with updated 2-cycle reset timing.
+   - **Status:** **User is currently reviewing `src/tt_um_scim_core.v`. Review to continue tomorrow before moving forward.**
 
-3. **Phase 3 (Sequential Arrays & Memory Fabric) Completed & Enhanced:**
-   - Walkthrough of `src/lfsr8_galois.v`, `src/scim_sng_bank.v`, and `src/scim_weight_mem.v`.
-   - Analyzed 255-state trajectory vs. all-zero dead state, and CIM standard-cell DFF bitcells vs. custom SRAM macros.
-   - **Implemented Compile-Time SNG Seed Parameterization:** Parameterized `SNG_SEEDS` [127:0] across `src/scim_sng_bank.v` and `src/tt_um_scim_core.v` with zero silicon area overhead.
-
-4. **Phase 4 (Top-Level Integration & Control Hardening) Completed & Hardened:**
-   - Walkthrough of `src/tt_um_scim_core.v`, Control FSM, internal registers vs CIM DFFs, `_unused` lint idiom, and `4'd1` width matching.
-   - **Applied Hole #1 Hardening Patch:** 7-bit zero-extended signed arithmetic in `src/tt_um_scim_core.v`, eliminating signed overflow wrap-around when $P=16$.
-   - **Applied Hole #3 Hardening Patch:** 2-stage DFF reset synchronizer (`core_rst_n`) protecting against board-level asynchronous reset release metastability.
-   - **Applied Hole #4 Hardening Patch:** Mutual exclusion between `ctrl_strobe` and `wr_act` using `else if` to prevent address register write collisions.
-   - **Updated Testbench:** Synchronized `reset_core(dut)` in `test/test_scim_core.py` to wait 2 cycles for `core_rst_n` deassertion.
-   - **Regression Verification:** Verilator lint passed with 0 warnings/errors; Cocotb test suites (`test_lfsr`, `test_compressor`, `test_wallace`, `test_core`) all passed 100% bit-exact.
+3. **Phase 5 (Verification Closure) & Pillar 3 (Physical ASIC):**
+   - **ON HOLD** until Phase 4 review is completely finished and approved by user.
 
 ---
 
-## 2. Resuming Tomorrow: Phase 5 (Verification Closure & Coverage Expansion)
+## 2. Resuming Tomorrow: Continuing Phase 4 Review
 
-When you open Antigravity tomorrow to continue:
+When you open Antigravity tomorrow, we will pick up right where you left off with **Phase 4**:
 
 ```
-Let's start Phase 5: Verification Closure & Coverage Expansion (Hole #2).
+Let's continue the Phase 4 review of src/tt_um_scim_core.v.
 ```
 
-In Phase 5, we will:
-1. Add the 2 non-trivial Mode 1 test vectors (`bipolar_orthogonal_cancellation_mode_1` and `bipolar_negative_saturation_mode_1`) into `model/sim_scim.py` to close Hole #2.
-2. Re-export `model/test_vectors_gate0.json` and audit with `scripts/audit_test_vectors.py`.
-3. Run the expanded **10/10 golden regression** in `test/test_scim_core.py`.
-4. Transition into **Pillar 3: Physical ASIC Implementation** (OpenLane 2 / OpenROAD push-button synthesis and physical sign-off).
+We can explore any remaining lines or questions you have on:
+- The Accumulator Readback Multiplexer (`uo_out[7:0]` low byte vs. sign-extended high byte).
+- Control FSM state transitions and handshaking (`busy`, `done`).
+- The shared activation tree broadcast ($A = \sum a_i$).
+- Any other microarchitectural or standard-cell questions.
+
+Phase 5 will remain on hold until you give the green light!
