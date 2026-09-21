@@ -1,0 +1,48 @@
+name: gds
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  gds:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build GDS via OpenLane 2
+        uses: TinyTapeout/tt-gds-action@tt08
+        with:
+          flow: openlane2
+
+  precheck:
+    needs: gds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Tiny Tapeout Precheck
+        uses: TinyTapeout/tt-gds-action/precheck@tt08
+
+  gl_test:
+    needs: gds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Gate-Level Simulation Test
+        uses: TinyTapeout/tt-gds-action/gl_test@tt08
+
+  viewer:
+    needs: gds
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+    steps:
+      - name: Deploy 3D GDS Viewer to GitHub Pages
+        uses: TinyTapeout/tt-gds-action/viewer@tt08

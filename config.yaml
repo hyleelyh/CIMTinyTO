@@ -1,0 +1,54 @@
+# ==============================================================================
+# OpenLane 2 Configuration File: CIMTinyTO Macro Hardening
+# Target Shuttle: Tiny Tapeout SKY 26d (SkyWater 130nm / sky130_fd_sc_hd)
+# Footprint: 1x2 Tile (~161 um x 226 um)
+# ==============================================================================
+
+DESIGN_NAME: "tt_um_scim_core"
+
+VERILOG_FILES:
+  - "dir::src/tt_um_scim_core.v"
+  - "dir::src/lfsr8_galois.v"
+  - "dir::src/scim_sng_bank.v"
+  - "dir::src/scim_pe.v"
+  - "dir::src/scim_compressor_42.v"
+  - "dir::src/scim_wallace_tree.v"
+  - "dir::src/scim_accumulator.v"
+  - "dir::src/scim_weight_mem.v"
+
+# Timing constraints
+CLOCK_PORT: "clk"
+CLOCK_PERIOD: 20.0 # 50 MHz sign-off target
+
+# PDK & Standard Cell Library
+pdk: "sky130A"
+STD_CELL_LIBRARY: "sky130_fd_sc_hd"
+
+# Placement & Density
+# Target density 58.8% leaves 41.2% whitespace for routing channels and buffer insertion.
+PL_TARGET_DENSITY: 0.58
+PL_BASIC_PLACEMENT: false
+
+# High-Fanout Net (HFN) & Buffer Insertion Rules
+MAX_FANOUT_CONSTRAINT: 16
+SYNTH_BUFFERING: true
+SYNTH_SIZING: true
+
+# Hold Slack Margins
+# Physically forces OpenROAD resizer to insert delay buffers on fast paths
+# to guarantee T_slack,hold >= 0.10 ns across Fast-Fast (FF) corners.
+PL_RESIZER_HOLD_SLACK_MARGIN: 0.10
+GLB_RESIZER_HOLD_SLACK_MARGIN: 0.05
+
+# Clock Tree Synthesis (CTS)
+RUN_CTS: true
+CTS_TARGET_SKEW: 0.200 # Max 200 ps clock skew target
+CTS_ROOT_BUFFER: "sky130_fd_sc_hd__clkbuf_16"
+
+# Detailed Routing
+RT_MAX_LAYER: "met4"
+GRT_ALLOW_CONGESTION: true
+
+# Antenna DRC Protection
+RUN_ANTENNA_CHECKER: true
+DIODE_CELL: "sky130_fd_sc_hd__diode_2"

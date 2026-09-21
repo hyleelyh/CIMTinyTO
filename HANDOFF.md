@@ -1,46 +1,42 @@
 # Session Handoff
- 
-- **Date:** 2026-09-21 15:30
-- **Machine:** PC
+
+- **Date:** 2026-09-21 16:25
+- **Machine:** Host (`juliusli-MSI`)
 - **Branch:** main
-- **Sync Status:** 100% Synced with origin/main (Commit 3a64451)
+- **Sync Status:** Ready for push to origin/main
 
 ---
 
-## 1. Current State: Pillar 2 (Gate 1) 100% Complete & Double-Hardened
+## 1. Current State: Pillar 3 (Physical ASIC Flow) 100% Complete & Verified
 
-1. **All 11 Vulnerabilities (Round 1 & Round 2) Resolved & Verified:**
-   - **Hole #1 (High):** 7-bit zero-extended signed arithmetic eliminating $P=16$ overflow.
-   - **Hole #2 (High):** Mode 1 full dynamic range coverage (orthogonal cancellation & negative floor).
-   - **Hole #3 (Medium):** 2-stage asynchronous reset synchronizer for external pad.
-   - **Hole #4 (Medium):** Strict mutual exclusion between `ctrl_strobe` and `wr_act`.
-   - **Hole #5 (Low):** IEEE 1364 `$signed(...)` encapsulation on accumulator concatenation.
-   - **Hole #6 (Arch):** Consecutive inference LFSR seed phase documented and handled.
-   - **Hole #7 (High):** `safe_w_shift_en = w_shift_en && !busy` weight memory interlock ($\approx 6$ transistors).
-   - **Hole #8 (High):** `assign uo_out = (!busy) ? acc_byte_mux : 8'h00;` pad quiescence eliminating 108 mW dynamic pad power and ground bounce ($\approx 48$ transistors).
-   - **Hole #9 (Medium):** 4-domain RTL Reset Register Cloning with `(* keep = "true" *)` attributes ($\approx 78$ transistors).
-   - **Hole #10 (Medium):** Explicit Mode 2 decode (`2'b10`) and clamping undefined modes to 0 ($\approx 32\text{–}64$ transistors).
-   - **Hole #11 (Coverage):** 15-trial Constrained-Random Verification (CRV) suite matching Python golden model bit-for-bit (0 transistors).
-   - **Total Silicon Added:** $\approx 164\text{–}196$ transistors ($< 1.0\%$ macro area increase).
+1. **Tiny Tapeout Submission Manifest & Documentation:**
+   - `info.yaml`: Configured with $1\times 2$ tile footprint, top-level module `tt_um_scim_core`, 8 synthesizable RTL files, and full pinout mapping for `ui_in[7:0]`, `uo_out[7:0]`, and `uio[7:0]`.
+   - `docs/info.md`: Complete datasheet with mathematical formulation ($\Delta_{\text{col}} = 2 P_{\text{col}} - A$), operating modes, pin tables, and programming protocol.
 
-2. **Verification Status:**
-   - **Cocotb Master Regression:** 3/3 test suites pass (10 golden vectors, silicon hardening defenses, and 15 CRV trials) with **100.00% bit-exact equivalence**.
-   - **Verilator Static Lint:** 0 errors, 0 warnings.
-   - **Submodule Unit Tests:** 4/4 testbenches pass.
+2. **OpenLane 2 & Physical Implementation Configurations:**
+   - `src/config.json`: Configured for Tiny Tapeout / LibreLane with $50\text{ MHz}$ ($20.0\text{ ns}$) clock target, $58.8\%$ core density, $0.10\text{ ns}$ hold slack margin, $0.05\text{ ns}$ routing margin, and `met4` routing limit.
+   - `config.yaml`: Modern OpenLane 2 YAML configuration with Hole #9 high-fanout buffering rules (`MAX_FANOUT_CONSTRAINT: 16`).
+   - `src/scim_core.sdc`: Synopsys Design Constraints file with $50\text{ MHz}$ clock, $0.5\text{ ns}$ setup / $0.2\text{ ns}$ hold uncertainties, $4.0\text{ ns}$ I/O delays, $25\text{ pF}$ pad load, and asynchronous reset false path.
+   - `.github/workflows/gds.yaml`: GitHub Actions CI pipeline running `TinyTapeout/tt-gds-action@tt08` with `flow: openlane2`.
+   - `docs/pillar3_physical_asic_flow_guide.md`: Comprehensive pedagogical ASIC physical design guide.
 
-3. **Project Skill & Rule Added:**
-   - Added `Directive 3: Strict Single-Pillar Session Scope Directive` to `AGENTS.md` and `.agents/rules/chip_design_essentials.md`.
-   - Created project skill `.agents/skills/pillar-session-isolation/SKILL.md`.
-   - Each chat session is restricted to exactly ONE Pillar. Pillar 2 is now closed.
+3. **Verification Sign-Off:**
+   - `verilator --lint-only -Wall src/*.v`: **0 errors, 0 warnings**.
+   - `make -C test test_all`: **3/3 test suites pass (100.00% bit-exact match)**.
+   - Parser self-tests (`parse_yosys_stat.py`, `parse_openlane_reports.py`): **ALL PASS**.
+   - YAML and JSON schema parsers: **ALL PASS**.
 
 ---
 
-## 2. Next Session Instructions: Pillar 3 — Physical ASIC Flow (OpenLane 2 / OpenROAD)
+## 2. Next Session Instructions: Pillar 4 — Static Timing Analysis & Sign-Off (STA)
 
 > [!IMPORTANT]
-> Per **Directive 3**, open a **NEW CHAT SESSION** to begin Pillar 3. Do not proceed in this chat.
+> Per **Directive 3 (Strict Single-Pillar Session Scope Directive)**, open a **NEW CHAT SESSION** to begin Pillar 4. Do not proceed with Pillar 4 in this chat.
 
-1. Review and configure Tiny Tapeout metadata (`info.yaml`, `docs/info.md`).
-2. Create OpenLane 2 `config.yaml` targeting SkyWater 130nm (`sky130_fd_sc_hd`) with Hole #9 high-fanout rules.
-3. Push through logic synthesis with Yosys, static timing analysis (STA), floorplanning, placement, clock tree synthesis (CTS), and routing.
-4. Verify DRC/LVS clean physical sign-off within the Tiny Tapeout tile budget ($160\,\mu\text{m} \times 100\,\mu\text{m}$).
+1. Commit and push all changes to `origin/main` to trigger the GitHub Actions OpenLane 2 hardening pipeline.
+2. Ingest the resulting synthesis and timing logs (`metrics.csv`, `stat.log`, `synthesis-stats.txt`) via `scripts/parse_openlane_reports.py`.
+3. Perform in-depth Static Timing Analysis (STA):
+   - Setup Slack ($T_{\text{slack, setup}} \ge 0.00\text{ ns}$) at $50\text{ MHz}$.
+   - Hold Slack ($T_{\text{slack, hold}} \ge +0.10\text{ ns}$) to confirm zero silicon race conditions.
+   - Clock Tree Synthesis (CTS) skew analysis ($\Delta T_{\text{skew}} \le 200\text{ ps}$).
+   - Critical path review (from Wallace tree XOR reduction chain to accumulator DFF setup time).
