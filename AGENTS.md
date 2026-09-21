@@ -43,6 +43,15 @@ Whenever an agent executes a workflow, implements code, or modifies architecture
 
 * **Git Commit Standard:** Produce concise, descriptive commit messages following Conventional Commits (e.g., `feat(scim): implement parameterized XNOR PE array`, `test(cocotb): add bipolar SNG regression suite`).
 
+### 3. Strict Single-Pillar Session Scope Directive (CRITICAL)
+To maintain laser focus, clean context windows, and modular verification boundaries across the 7 ASIC Tapeout Pillars:
+* **One Pillar Per Chat Session:** Each conversation session MUST focus strictly on ONE Pillar. Implementing or transitioning between multiple Pillars within the same chat is **strictly forbidden**.
+* **Session Conclusion & Handoff:** Once all verification targets, defenses, and deliverables of the current Pillar are signed off:
+  1. Synchronize state to `PROGRESS.md` and `HANDOFF.md`.
+  2. Commit and push all changes with a Conventional Commit.
+  3. Close out the chat session by summarizing the achievements and instructing the user to open a **fresh chat session** for the next Pillar.
+* **Scope Guard:** If a user or prompt attempts to advance to the next Pillar within an existing session, the agent must decline to proceed in that chat and direct the user to launch a new chat.
+
 ---
 
 ## Code Standards & Tech Stack

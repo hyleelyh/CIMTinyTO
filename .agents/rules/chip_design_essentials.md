@@ -33,20 +33,26 @@ Whenever writing code, configuring tools, or executing flow stages, the agent MU
 ---
 
 ## 2. Chip Design Curriculum Flow
-
-We will structure our explanations around the 7 core pillars of the ASIC tapeout lifecycle:
+ 
+We structure our implementations and explanations around the 7 core pillars of the ASIC tapeout lifecycle:
 
 1. **Pillar 1: System & Mathematical Modeling (Gate 0)**
-   - Algorithm-to-silicon quantization, stochastic bitstream correlation, statistical Signal-to-Noise Ratio (SNR).
-2. **Pillar 2: Microarchitecture & Register-Transfer Level (RTL)**
-   - Datapath vs. control FSM, pipelining, weight-stationary dataflow, clock gating.
-3. **Pillar 3: Verification & Design for Testability (DFT)**
-   - Cocotb Python-driven simulation, golden vector matching, scan chains, loopback testability.
-4. **Pillar 4: Logic Synthesis & Technology Mapping (Gate 2)**
-   - RTL to G-tech netlist, cell library mapping (`sky130_fd_sc_hd`), cell budget enforcement.
-5. **Pillar 5: Static Timing Analysis (STA)**
-   - Constraining clocks, arrival times, setup/hold slack, multicycle paths, clock tree synthesis (CTS).
-6. **Pillar 6: Physical Design & Sign-Off (PnR, DRC, LVS)**
-   - Floorplanning, power rings, macro placement, detailed routing, DRC/LVS physical verification.
-7. **Pillar 7: Silicon Bring-Up & Board-Level Characterization**
-   - MicroPython carrier firmware, FPGA PMOD high-speed stimulus, live classification demo.
+   - Algorithm-to-silicon quantization, Python reference model (`sim_scim.py`), correlation metrics, statistical SNR.
+2. **Pillar 2: Microarchitecture, RTL & Verification (Gate 1)**
+   - Parameterized Verilog core (`tt_um_scim_core.v`), PEs, Wallace tree compressor, Cocotb testbenches, defensive silicon hardening (Holes #1–#11).
+3. **Pillar 3: Physical ASIC Flow (OpenLane 2 / OpenROAD)**
+   - Macro configuration (`config.yaml`), logic synthesis, high-fanout buffering, floorplanning, placement, clock tree synthesis (CTS), detailed routing, DRC/LVS physical sign-off.
+4. **Pillar 4: Static Timing Analysis & Sign-Off (STA)**
+   - SDC timing constraints, arrival times, setup/hold slack closure across PVT corners, multicycle paths, clock skew analysis.
+5. **Pillar 5: Gate-Level Simulation (GLS) & Power Analysis**
+   - Post-synthesis and post-route netlist simulation, SDF back-annotation, VCD-driven dynamic switching power estimation.
+6. **Pillar 6: Pre-Silicon Emulation (FPGA Testbench)**
+   - High-speed 50–100 MHz validation on PYNQ-Z2 (Xilinx Zynq-7020) and DE10-Lite (Intel MAX 10), MMIO AXI driver, hardware-in-the-loop testing.
+7. **Pillar 7: Post-Silicon Bring-Up & Board Characterization**
+   - Tiny Tapeout RP2040/RP2350 carrier board bring-up, lab oscilloscope characterization, end-to-end Micro-ResNet inference demonstration.
+
+---
+
+## 3. Strict Single-Pillar Session Scope Rule (CRITICAL)
+* **One Pillar Per Chat Session:** To protect context windows and ensure complete verification boundaries, each conversation session MUST focus exclusively on ONE Pillar. Implementing more than one Pillar in the same chat is strictly prohibited.
+* **Session Conclusion Protocol:** When the active Pillar is signed off, the agent must update `PROGRESS.md`, update `HANDOFF.md`, commit all files via Git, and explicitly prompt the user to start a fresh chat session for the next Pillar.
