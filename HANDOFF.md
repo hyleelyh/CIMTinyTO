@@ -1,38 +1,40 @@
 # Session Handoff
  
-- **Date:** 2026-09-21 12:57
+- **Date:** 2026-09-21 13:30
 - **Machine:** PC
 - **Branch:** main
-- **Sync Status:** 100% Synced to `origin/main` (Clean Working Tree)
+- **Sync Status:** Ready to commit & sync
 
 ---
 
-## 1. Current State: Pillar 2 (Gate 1) 100% Complete & Hardened
+## 1. Current State: Round 2 Audit & Hole #9 Implementation
 
-1. **Phases 1 through 4 (Architecture Review & Hardening) Completed:**
-   - Leaf cells, Wallace reduction, Galois LFSRs, SNG bank, CIM weight memory, and top-level macro (`tt_um_scim_core.v`) fully reviewed and hardened.
-   - All 6 potential failure modes ("holes") from `docs/rtl_audit_and_poking_holes.md` resolved:
-     - Hole #1: 7-bit zero-extended signed arithmetic in column deltas.
-     - Hole #2: Complete Mode 1 dynamic range test vector coverage.
-     - Hole #3: 2-stage DFF reset synchronizer for physical `rst_n` pad.
-     - Hole #4: Mutual exclusion between `ctrl_strobe` and `wr_act`.
-     - Hole #5: `$signed` encapsulation on accumulator concatenation operands.
-     - Hole #6: Consecutive inference LFSR seed phase documented and handled.
+1. **Round 2 Audit Documented ([`docs/rtl_audit_round2.md`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/rtl_audit_round2.md)):**
+   - Hole #7 (High): Missing weight shift interlock (`w_shift_en && !busy`).
+   - Hole #8 (High): Simultaneous switching output (SSO) pad gating (`uo_out` ground bounce).
+   - Hole #9 (Medium): High-fanout reset network (761 DFFs) $\to$ resolved via RTL Register Cloning.
+   - Hole #10 (Medium): Illegal mode (`2'b11`) negative accumulation leakage.
+   - Hole #11 (Coverage): Absence of Constrained-Random Verification (CRV).
 
-2. **Phase 5 (Verification Closure) Completed:**
-   - Added `bipolar_orthogonal_cancellation_mode_1` (net sum = 0) and `bipolar_negative_saturation_mode_1` (net sum = -4096) to `model/sim_scim.py`.
-   - Re-exported `model/test_vectors_gate0.json` (10 vectors).
-   - Validated via `scripts/audit_test_vectors.py` (10/10 PASS).
-   - Ran master regression via Cocotb + Icarus Verilog (`make -C test test_all`): **10/10 golden vectors PASS with 100.00% bit-exact match**.
-   - Ran static lint (`verilator --lint-only -Wall`): **0 errors, 0 warnings**.
+2. **Hole #9 (RTL Reset Register Cloning) Implemented & Verified:**
+   - Partitioned the single `core_rst_n` into 4 dedicated domain drivers in `src/tt_um_scim_core.v`:
+     - `rst_ctrl_n`: Control registers, FSM, and activation storage (~150 DFFs).
+     - `rst_weight_n`: 256-bit weight memory shift chain (256 DFFs).
+     - `rst_sng_n`: 16-channel Galois LFSR SNG bank (128 DFFs).
+     - `rst_acc_n`: 16x 13-bit column accumulators (224 DFFs).
+   - Tagged registers with `(* keep = "true" *)` to forbid synthesis merging.
+   - Formalized 3-tier dictations (RTL cloning, SDC constraints, and OpenLane 2 config).
+   - All 10/10 Cocotb golden vectors PASS (100.00% bit-exact).
+   - Verilator static lint: 0 errors, 0 warnings.
 
 ---
 
-## 2. Next Up: Pillar 3 — Physical ASIC Flow (OpenLane 2 / OpenROAD)
+## 2. Immediate Next Steps
 
-We are now ready to cross the physical design boundary from RTL simulation to Silicon Hardening:
-1. Review/update Tiny Tapeout physical metadata (`info.yaml`, `docs/info.md`).
-2. Create/configure OpenLane 2 `config.yaml` for SkyWater 130nm (`sky130_fd_sc_hd`).
-3. Push through logic synthesis with Yosys, static timing analysis (STA), floorplanning, placement, clock tree synthesis (CTS), and routing.
-4. Verify DRC/LVS clean sign-off within the Tiny Tapeout 1x2 or 1x1 tile footprint.
+1. Review and apply remaining Round 2 fixes:
+   - Hole #7: Add `!busy` gate to `w_shift_en`.
+   - Hole #8: Gate `uo_out` with `done` to eliminate 108 mW dynamic pad toggling and ground bounce.
+   - Hole #10: Explicitly decode `mode == 2'b10` and tie `default` to 0.
+   - Hole #11: Add 100-run Constrained-Random Verification (CRV) testbench.
+2. Transition to Pillar 3 (Physical ASIC Flow / OpenLane 2).
 

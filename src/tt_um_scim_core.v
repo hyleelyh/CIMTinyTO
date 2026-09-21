@@ -73,22 +73,42 @@ module tt_um_scim_core #(
     wire _unused_top_signals = &{ena, uio_in[3:0], 1'b0};
 
     // ========================================================================
-    // 1A. RESET SYNCHRONIZER (Hole #3 Hardening)
+    // 1A. RESET SYNCHRONIZER & REGISTER CLONING (Holes #3 & #9 Hardening)
     // ========================================================================
     // External rst_n is asynchronous. A 2-stage DFF synchronizer eliminates
     // metastability and guarantees clean, skew-free synchronous reset release.
-    reg rst_sync_0, rst_sync_1;
+    //
+    // Hardening (Hole #9): Register Cloning to mitigate High-Fanout Net (HFN).
+    // Rather than driving 761 DFFs from a single standard cell (which degrades
+    // transition slew to >8ns and risks hold violations), we clone the second
+    // synchronizer stage into 4 dedicated, domain-specific reset drivers.
+    // Attribute (* keep = "true" *) prevents Yosys/OpenLane from merging them back.
+    reg rst_sync_0;
+    (* keep = "true" *) reg rst_sync_ctrl;   // Drives control regs & FSM (~25 DFFs + 128 act_regs)
+    (* keep = "true" *) reg rst_sync_weight; // Drives weight memory (256 DFFs)
+    (* keep = "true" *) reg rst_sync_sng;    // Drives SNG LFSR bank (128 DFFs)
+    (* keep = "true" *) reg rst_sync_acc;    // Drives 16x 13-bit accumulators (224 DFFs)
+
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            rst_sync_0 <= 1'b0;
-            rst_sync_1 <= 1'b0;
+            rst_sync_0      <= 1'b0;
+            rst_sync_ctrl   <= 1'b0;
+            rst_sync_weight <= 1'b0;
+            rst_sync_sng    <= 1'b0;
+            rst_sync_acc    <= 1'b0;
         end else begin
-            rst_sync_0 <= 1'b1;
-            rst_sync_1 <= rst_sync_0;
+            rst_sync_0      <= 1'b1;
+            rst_sync_ctrl   <= rst_sync_0;
+            rst_sync_weight <= rst_sync_0;
+            rst_sync_sng    <= rst_sync_0;
+            rst_sync_acc    <= rst_sync_0;
         end
     end
 
-    wire core_rst_n = rst_sync_1;
+    wire rst_ctrl_n   = rst_sync_ctrl;
+    wire rst_weight_n = rst_sync_weight;
+    wire rst_sng_n    = rst_sync_sng;
+    wire rst_acc_n    = rst_sync_acc;
 
     wire w_dout;                          // Serial weight output for DFT loopback
     reg  busy;                            // Compute phase active
@@ -127,7 +147,7 @@ module tt_um_scim_core #(
     integer k;
 
     always @(posedge clk) begin
-        if (!core_rst_n) begin
+        if (!rst_ctrl_n) begin
             addr      <= 4'd0;
             mode      <= 2'b00;
             byte_sel  <= 1'b0;
@@ -156,7 +176,7 @@ module tt_um_scim_core #(
 
     // FSM Compute Controller
     always @(posedge clk) begin
-        if (!core_rst_n) begin
+        if (!rst_ctrl_n) begin
             state     <= FSM_IDLE;
             cycle_cnt <= 8'd0;
             busy      <= 1'b0;
@@ -237,7 +257,7 @@ module tt_um_scim_core #(
 
     scim_weight_mem u_weight_mem (
         .clk(clk),
-        .rst_n(core_rst_n),
+        .rst_n(rst_weight_n),
         .w_shift_en(w_shift_en),
         .w_din(w_din),
         .w_dout(w_dout),
@@ -253,7 +273,7 @@ module tt_um_scim_core #(
         .SNG_SEEDS(SNG_SEEDS)
     ) u_sng_bank (
         .clk(clk),
-        .rst_n(core_rst_n),
+        .rst_n(rst_sng_n),
         .en(sng_en),
         .act_in(act_bus),
         .sng_out(sng_activations)
@@ -327,7 +347,7 @@ module tt_um_scim_core #(
         for (c_acc = 0; c_acc < 16; c_acc = c_acc + 1) begin : gen_accumulators
             scim_accumulator #(.WIDTH(13)) u_acc (
                 .clk(clk),
-                .rst_n(core_rst_n),
+                .rst_n(rst_acc_n),
                 .clr(acc_clr),
                 .en(acc_en),
                 .delta(col_delta[c_acc]),
