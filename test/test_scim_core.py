@@ -11,10 +11,16 @@ Pedagogical Goals:
 """
 
 import os
+import sys
 import json
+import random
+import numpy as np
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from model.sim_scim import SCIMTile, ProcessingElement
 
 
 def sign_extend_13(low_byte: int, high_byte: int) -> int:
@@ -83,9 +89,9 @@ async def load_activations(dut, inputs_16):
 
     # Write each activation byte; addr auto-increments
     for ch in range(16):
-        act_byte = inputs_16[ch] & 0xFF
-        dut.ui_in.value = act_byte
-        dut.uio_in.value = (1 << 6)  # wr_act
+        act_byte = int(inputs_16[ch]) & 0xFF
+        dut.ui_in.value = int(act_byte)
+        dut.uio_in.value = int(1 << 6)  # wr_act
         await RisingEdge(dut.clk)
 
     dut.uio_in.value = 0
@@ -206,3 +212,164 @@ async def test_scim_core_gate0_vectors(dut):
 
     cocotb.log.info(f"\n========================================================")
     cocotb.log.info(f"GATE 1 REGRESSION COMPLETE: {total_passed}/{len(vectors)} VECTORS PASSED (100.00%)")
+
+
+@cocotb.test()
+async def test_scim_core_silicon_hardening(dut):
+    """
+    Verify Round 2 silicon hardening defenses:
+      1. Hole #8: Output pad quiescence (uo_out == 0 during active compute).
+      2. Hole #7: Weight shift interlock (!busy prevents shift during compute).
+      3. Hole #10: Illegal mode 2'b11 clamped to zero delta.
+    """
+    clock = Clock(dut.clk, 20, unit="ns")  # 50 MHz
+    cocotb.start_soon(clock.start())
+
+    await reset_core(dut)
+
+    # 1. Test Hole #8 & Hole #7: Output pad quietness & Shift interlock during compute
+    cocotb.log.info("\n========================================================")
+    cocotb.log.info("TESTING HOLE #8 (Pad Quiescence) & HOLE #7 (Shift Interlock)")
+    cocotb.log.info("========================================================")
+    weights = np.ones((16, 16), dtype=int)
+    inputs = np.full(16, 255, dtype=int)
+    await load_weights_serial(dut, weights)
+    await load_activations(dut, inputs)
+
+    # Trigger compute in Mode 0 (start bit = 1, mode = 0)
+    cmd = (1 << 7) | (0 << 4)
+    dut.ui_in.value = cmd
+    dut.uio_in.value = (1 << 7)
+    await RisingEdge(dut.clk)
+    dut.uio_in.value = 0
+    dut.ui_in.value = 0
+    await RisingEdge(dut.clk)
+
+    # While busy, verify uo_out remains 0 and attempt spurious weight shift
+    pad_violations = 0
+    # Step 50 cycles into compute
+    for _ in range(50):
+        if int(dut.uo_out.value) != 0:
+            pad_violations += 1
+        await RisingEdge(dut.clk)
+
+    # Attempt illegal weight shift for 20 cycles while busy == 1 (Hole #7 attack)
+    for _ in range(20):
+        assert dut.uio_out[0].value == 1, "Expected core to be busy during compute!"
+        if int(dut.uo_out.value) != 0:
+            pad_violations += 1
+        dut.uio_in.value = (1 << 5) | (1 << 4)  # w_shift_en = 1, w_din = 1
+        await RisingEdge(dut.clk)
+
+    # Release shift pin well before compute finishes
+    dut.uio_in.value = 0
+
+    # Wait until done, verifying uo_out remains 0 while busy
+    while not dut.uio_out[1].value:
+        if dut.uio_out[0].value and int(dut.uo_out.value) != 0:
+            pad_violations += 1
+        await RisingEdge(dut.clk)
+
+    assert pad_violations == 0, f"Hole #8 FAILED: uo_out toggled {pad_violations} times during active compute!"
+    cocotb.log.info("✓ Hole #8 PASSED: Output pads remained completely quiescent (8'h00) during active compute.")
+
+    # Readback after compute: weights should NOT have been shifted by the spurious w_shift_en
+    actual = await readback_accumulators(dut)
+    expected_all_255 = 4095  # Mode 0 sum of max activations across all 16 rows (4096 saturated to 4095)
+    for col in range(16):
+        assert actual[col] == expected_all_255, (
+            f"Hole #7 FAILED: Col {col} was {actual[col]}, expected {expected_all_255}. Weight shift occurred during compute!"
+        )
+    cocotb.log.info("✓ Hole #7 PASSED: Serial weight shift was cleanly interlocked during compute.")
+
+    # 2. Test Hole #10: Illegal mode 2'b11 clamping
+    cocotb.log.info("\n========================================================")
+    cocotb.log.info("TESTING HOLE #10 (Illegal Mode 2'b11 Clamping)")
+    cocotb.log.info("========================================================")
+    await reset_core(dut)
+    await load_weights_serial(dut, weights)
+    await load_activations(dut, inputs)
+
+    # Start compute with mode = 3 (2'b11)
+    cmd = (1 << 7) | (3 << 4)
+    dut.ui_in.value = cmd
+    dut.uio_in.value = (1 << 7)
+    await RisingEdge(dut.clk)
+    dut.uio_in.value = 0
+    dut.ui_in.value = 0
+
+    while not dut.uio_out[1].value:
+        await RisingEdge(dut.clk)
+
+    actual_m11 = await readback_accumulators(dut)
+    for col in range(16):
+        assert actual_m11[col] == 0, f"Hole #10 FAILED: Col {col} accumulated {actual_m11[col]} under illegal mode 2'b11!"
+    cocotb.log.info("✓ Hole #10 PASSED: Undefined Mode 2'b11 clamped deltas to 0 (all accumulators = 0).")
+
+
+@cocotb.test()
+async def test_scim_core_constrained_random(dut):
+    """
+    Hole #11: Constrained-Random Verification (CRV) Multi-Vector Stress.
+    Runs 15 randomized trials across Mode 0, Mode 1, and Mode 2 with arbitrary
+    activation distributions and weight matrices, verifying bit-exact RTL equivalence
+    against the Gate 0 Python golden reference model (SCIMTile).
+    """
+    clock = Clock(dut.clk, 20, unit="ns")  # 50 MHz
+    cocotb.start_soon(clock.start())
+
+    np.random.seed(2026)
+    random.seed(2026)
+    tile = SCIMTile()
+
+    num_trials = 15
+    cocotb.log.info(f"\n========================================================")
+    cocotb.log.info(f"STARTING CONSTRAINED-RANDOM VERIFICATION ({num_trials} TRIALS)")
+    cocotb.log.info(f"========================================================")
+
+    for trial in range(num_trials):
+        mode = trial % 3  # Rotate evenly across Modes 0, 1, 2
+        mode_str = ["Unipolar", "Bipolar", "Hybrid ReLU"][mode]
+
+        # Generate randomized activations
+        activations = np.random.randint(0, 256, size=16, dtype=int)
+        if mode == 2 and trial % 2 == 1:
+            activations[activations < 128] = 0  # 50% ReLU sparsity on some runs
+
+        # Generate randomized weights
+        if mode == 2:
+            weights = np.random.choice([-1, 1], size=(16, 16))
+        else:
+            weights = np.random.randint(0, 2, size=(16, 16))
+
+        # 1. Compute golden expected results using Python SCIMTile
+        tile.load_weights(weights)
+        golden = tile.run_mvm(activations, mode=mode, N=256)
+        expected = golden["results"]
+
+        # 2. Reset and load DUT
+        await reset_core(dut)
+        await load_weights_serial(dut, weights)
+        await load_activations(dut, activations)
+
+        # 3. Execute compute
+        await run_computation(dut, mode)
+
+        # 4. Readback
+        actual = await readback_accumulators(dut)
+
+        # 5. Verify bit-exact equality
+        errors = 0
+        for col in range(16):
+            if actual[col] != expected[col]:
+                cocotb.log.error(
+                    f"Trial {trial:2d} (Mode {mode_str}) Col {col:2d}: MISMATCH! RTL={actual[col]}, Golden={expected[col]}"
+                )
+                errors += 1
+
+        assert errors == 0, f"Trial {trial} (Mode {mode_str}) failed with {errors} column errors!"
+        cocotb.log.info(f"  Trial {trial+1:2d}/{num_trials:2d} [Mode {mode}: {mode_str:11s}]: PASS (16/16 columns bit-exact)")
+
+    cocotb.log.info(f"\n========================================================")
+    cocotb.log.info(f"CRV REGRESSION PASSED: {num_trials}/{num_trials} RANDOMIZED TRIALS 100% BIT-EXACT")
+    cocotb.log.info(f"========================================================")

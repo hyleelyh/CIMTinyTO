@@ -253,12 +253,15 @@ module tt_um_scim_core #(
     // ========================================================================
     // 3. WEIGHT MEMORY (256-Bit Shift Register)
     // ========================================================================
+    // Hardening (Hole #7): Interlock serial weight shifting with !busy
+    // Prevents mid-computation weight matrix scrambling if uio_in[5] pulses during compute.
+    wire safe_w_shift_en = w_shift_en && !busy;
     wire [255:0] weight_matrix;
 
     scim_weight_mem u_weight_mem (
         .clk(clk),
         .rst_n(rst_weight_n),
-        .w_shift_en(w_shift_en),
+        .w_shift_en(safe_w_shift_en),
         .w_din(w_din),
         .w_dout(w_dout),
         .weights_out(weight_matrix)
@@ -331,8 +334,11 @@ module tt_um_scim_core #(
             // Bit 6 is the redundant sign bit; tie off for lint hygiene
             wire _unused_delta = &{delta_mode1_7b[6], delta_mode2_7b[6], 1'b0};
 
+            // Hardening (Hole #10): Explicitly decode Mode 2 (2'b10) and clamp undefined
+            // modes (e.g. 2'b11) to 6'sd0, preventing spurious negative accumulation.
             assign col_delta[col] = (mode == 2'b00) ? delta_mode0 :
-                                    (mode == 2'b01) ? delta_mode1_7b[5:0] : delta_mode2_7b[5:0];
+                                    (mode == 2'b01) ? delta_mode1_7b[5:0] :
+                                    (mode == 2'b10) ? delta_mode2_7b[5:0] : 6'sd0;
         end
     endgenerate
 
@@ -369,8 +375,12 @@ module tt_um_scim_core #(
     // byte_sel == 1: Sign-extended upper bits {{3{sign}}, [12:8]}
     wire [7:0] acc_byte_low  = selected_acc[7:0];
     wire [7:0] acc_byte_high = {{3{selected_acc[12]}}, selected_acc[12:8]};
+    wire [7:0] acc_byte_mux  = (byte_sel) ? acc_byte_high : acc_byte_low;
 
-    assign uo_out = (byte_sel) ? acc_byte_high : acc_byte_low;
+    // Hardening (Hole #8): Gate external output pads during active compute (!busy)
+    // Eliminates ~108 mW dynamic pad switching power and package ground bounce (L*di/dt)
+    // while the 256-cycle compute phase is actively running.
+    assign uo_out = (!busy) ? acc_byte_mux : 8'h00;
 
 endmodule
 

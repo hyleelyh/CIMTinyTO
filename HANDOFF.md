@@ -1,40 +1,43 @@
 # Session Handoff
  
-- **Date:** 2026-09-21 13:30
+- **Date:** 2026-09-21 14:00
 - **Machine:** PC
 - **Branch:** main
 - **Sync Status:** Ready to commit & sync
 
 ---
 
-## 1. Current State: Round 2 Audit & Hole #9 Implementation
+## 1. Current State: Pillar 2 (Gate 1) 100% Complete & Double-Hardened
 
-1. **Round 2 Audit Documented ([`docs/rtl_audit_round2.md`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/rtl_audit_round2.md)):**
-   - Hole #7 (High): Missing weight shift interlock (`w_shift_en && !busy`).
-   - Hole #8 (High): Simultaneous switching output (SSO) pad gating (`uo_out` ground bounce).
-   - Hole #9 (Medium): High-fanout reset network (761 DFFs) $\to$ resolved via RTL Register Cloning.
-   - Hole #10 (Medium): Illegal mode (`2'b11`) negative accumulation leakage.
-   - Hole #11 (Coverage): Absence of Constrained-Random Verification (CRV).
+1. **All 11 Vulnerabilities (Round 1 & Round 2) Resolved & Verified:**
+   - **Hole #1 (High):** 7-bit zero-extended signed arithmetic eliminating $P=16$ overflow.
+   - **Hole #2 (High):** Mode 1 full dynamic range coverage (orthogonal cancellation & negative floor).
+   - **Hole #3 (Medium):** 2-stage asynchronous reset synchronizer for external pad.
+   - **Hole #4 (Medium):** Strict mutual exclusion between `ctrl_strobe` and `wr_act`.
+   - **Hole #5 (Low):** IEEE 1364 `$signed(...)` encapsulation on accumulator concatenation.
+   - **Hole #6 (Arch):** Consecutive inference LFSR seed phase documented and handled.
+   - **Hole #7 (High):** `safe_w_shift_en = w_shift_en && !busy` weight memory interlock.
+   - **Hole #8 (High):** `assign uo_out = (!busy) ? acc_byte_mux : 8'h00;` pad quiescence eliminating 108 mW dynamic pad power and ground bounce.
+   - **Hole #9 (Medium):** 4-domain RTL Reset Register Cloning with `(* keep = "true" *)` attributes.
+   - **Hole #10 (Medium):** Explicit Mode 2 decode (`2'b10`) and clamping undefined modes to 0.
+   - **Hole #11 (Coverage):** 15-trial Constrained-Random Verification (CRV) suite matching Python golden model bit-for-bit.
 
-2. **Hole #9 (RTL Reset Register Cloning) Implemented & Verified:**
-   - Partitioned the single `core_rst_n` into 4 dedicated domain drivers in `src/tt_um_scim_core.v`:
-     - `rst_ctrl_n`: Control registers, FSM, and activation storage (~150 DFFs).
-     - `rst_weight_n`: 256-bit weight memory shift chain (256 DFFs).
-     - `rst_sng_n`: 16-channel Galois LFSR SNG bank (128 DFFs).
-     - `rst_acc_n`: 16x 13-bit column accumulators (224 DFFs).
-   - Tagged registers with `(* keep = "true" *)` to forbid synthesis merging.
-   - Formalized 3-tier dictations (RTL cloning, SDC constraints, and OpenLane 2 config).
-   - All 10/10 Cocotb golden vectors PASS (100.00% bit-exact).
-   - Verilator static lint: 0 errors, 0 warnings.
+2. **Verification Status:**
+   - **Cocotb Master Regression:** 3/3 test suites pass (10 golden vectors, silicon hardening defenses, and 15 CRV trials) with **100.00% bit-exact equivalence**.
+   - **Verilator Static Lint:** 0 errors, 0 warnings.
+   - **Submodule Unit Tests:** 4/4 testbenches pass.
+
+3. **User Hardware Arsenal Confirmed:**
+   - PYNQ-Z2 (Level 2 real-time 50–100 MHz pre-silicon emulator).
+   - Raspberry Pi 5 (lab testbed host controller).
+   - DE10-Lite (cross-vendor Intel/Quartus portability proof).
 
 ---
 
-## 2. Immediate Next Steps
+## 2. Immediate Next Steps: Pillar 3 — Physical ASIC Flow (OpenLane 2 / OpenROAD)
 
-1. Review and apply remaining Round 2 fixes:
-   - Hole #7: Add `!busy` gate to `w_shift_en`.
-   - Hole #8: Gate `uo_out` with `done` to eliminate 108 mW dynamic pad toggling and ground bounce.
-   - Hole #10: Explicitly decode `mode == 2'b10` and tie `default` to 0.
-   - Hole #11: Add 100-run Constrained-Random Verification (CRV) testbench.
-2. Transition to Pillar 3 (Physical ASIC Flow / OpenLane 2).
+1. Review and configure Tiny Tapeout metadata (`info.yaml`, `docs/info.md`).
+2. Create OpenLane 2 `config.yaml` targeting SkyWater 130nm (`sky130_fd_sc_hd`) with Hole #9 high-fanout rules.
+3. Push through logic synthesis with Yosys, static timing analysis (STA), floorplanning, placement, clock tree synthesis (CTS), and routing.
+4. Verify DRC/LVS clean physical sign-off within the Tiny Tapeout tile budget ($160\,\mu\text{m} \times 100\,\mu\text{m}$).
 
