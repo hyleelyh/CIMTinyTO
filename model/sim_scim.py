@@ -575,6 +575,43 @@ class TestVectorGenerator:
             "sparsity_pct": res_resnet["sparsity_pct"]
         })
 
+        # Vector 7: Bipolar Orthogonal Cancellation (Mode 1 - Hole #2 Closure)
+        # Rows 0-7: weight = 1 (match, +1 step), Rows 8-15: weight = 0 (mismatch, -1 step)
+        # Exactly 8 matches and 8 mismatches on every cycle -> Delta = 2(8) - 16 = 0 -> Net sum = 0
+        a_orth = np.full(16, 255, dtype=int)
+        w_orth = np.zeros((16, 16), dtype=int)
+        w_orth[:8, :] = 1
+        tile.load_weights(w_orth)
+        res_orth = tile.run_mvm(a_orth, mode=ProcessingElement.MODE_BIPOLAR, N=256)
+        suite["vectors"].append({
+            "name": "bipolar_orthogonal_cancellation_mode_1",
+            "mode": 1,
+            "description": "Bipolar orthogonal cancellation (8 pos, 8 neg PEs -> zero sum)",
+            "inputs": a_orth.tolist(),
+            "weights": w_orth.tolist(),
+            "expected_accumulators": res_orth["results"].tolist(),
+            "true_math_expected": res_orth["true_math"].tolist(),
+            "sparsity_pct": res_orth["sparsity_pct"]
+        })
+
+        # Vector 8: Bipolar Negative Saturation (Mode 1 - Hole #2 Closure)
+        # All inputs = 0, All weights = 1 -> XNOR(0, 1) = 0 for all 16 rows on all 256 cycles
+        # Delta = 2(0) - 16 = -16 on all 256 cycles -> Net sum = -4096 (13-bit dynamic floor)
+        a_neg = np.zeros(16, dtype=int)
+        w_neg = np.ones((16, 16), dtype=int)
+        tile.load_weights(w_neg)
+        res_neg = tile.run_mvm(a_neg, mode=ProcessingElement.MODE_BIPOLAR, N=256)
+        suite["vectors"].append({
+            "name": "bipolar_negative_saturation_mode_1",
+            "mode": 1,
+            "description": "Bipolar negative saturation (all mismatches -> -4096 dynamic floor)",
+            "inputs": a_neg.tolist(),
+            "weights": w_neg.tolist(),
+            "expected_accumulators": res_neg["results"].tolist(),
+            "true_math_expected": res_neg["true_math"].tolist(),
+            "sparsity_pct": res_neg["sparsity_pct"]
+        })
+
         # Write to JSON
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         with open(output_path, "w", encoding="utf-8") as f:

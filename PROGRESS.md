@@ -1,31 +1,33 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-09-19 20:50
-### [Built & Hardened]
-- `src/tt_um_scim_core.v`: Applied all Phase 4 defensive hardening patches:
-  - **Hole #1 (High):** Replaced 6-bit delta subtraction with 7-bit zero-extended signed arithmetic (`delta_mode1_7b`, `delta_mode2_7b`), eliminating intermediate negative overflow wrap-around when $P=16$ and tool-dependent sign-extension risks.
-  - **Hole #3 (Medium):** Added a standard 2-stage DFF reset synchronizer (`rst_sync_0`, `rst_sync_1` $\implies$ `core_rst_n`) to eliminate board-level reset release metastability and prevent clock-skewed partial reset releases across LFSR/accumulator flip-flops.
-  - **Hole #4 (Medium):** Added strict mutual exclusion between `ctrl_strobe` and `wr_act` using `else if`, preventing bus collisions and corrupted non-blocking assignments on the internal address register (`addr`).
-- `test/test_scim_core.py`: Updated `reset_core(dut)` to wait 2 clock cycles after releasing `rst_n`, allowing the 2-stage synchronizer to cleanly deassert `core_rst_n` before test vector transactions begin.
-- `src/scim_sng_bank.v`: Parameterized 16-channel SNG bank with a 128-bit compile-time seed vector (`SNG_SEEDS`), replacing hardwired local constants with zero silicon area overhead.
-- `src/scim_accumulator.v`: Applied Hole #5 hardening patch wrapping concatenation operands in `$signed(...)` per IEEE 1364-2001 rules.
+## Last Execution Run: 2026-09-21 12:55
+### [Built & Verified]
+- `model/sim_scim.py`: Added 2 new golden test vectors for Mode 1 (Bipolar XNOR) closing **Hole #2** verification blindspot:
+  - `bipolar_orthogonal_cancellation_mode_1`: 8 positive, 8 negative PEs per column $\implies$ expected accumulator = $0$ on all 16 columns.
+  - `bipolar_negative_saturation_mode_1`: All inputs mismatch weights $\implies$ $\Delta = -16$ on every cycle $\implies$ expected accumulator = $-4096$ (`13'sh1000`, 13-bit dynamic floor).
+- `model/test_vectors_gate0.json`: Re-exported suite expanding coverage from 8 to 10 golden test vectors.
+- `scripts/audit_test_vectors.py`: Validated all 10 vectors against 13-bit signed boundaries and 16x16 matrix structure (10/10 PASS).
+- `test/test_scim_core.py`: Updated docstring and executed full regression across all 10 vectors.
+- `test/Makefile`: All submodule unit test targets (`test_lfsr`, `test_compressor`, `test_wallace`, `test_core`) passing.
 
-### [Architecture Decisions]
-- **Phase 4 Review in Progress:** Paired architectural walkthrough of top-level wrapper with in-line defensive hardening. Completed inspection of control register mapping, FSM control, and reset synchronization. Phase 5 is held off until the user completes the full Phase 4 review.
-- **2-Stage Synchronizer Timing Discipline:** Acknowledged the physical 2-cycle latency of `core_rst_n` deassertion, aligning testbench drivers and host SPI firmware protocols with physical silicon behavior.
-- **Compile-Time SNG Seed Parameterization (Zero Silicon Cost):** Parameterized `SNG_SEEDS` [127:0] across `scim_sng_bank.v` and `tt_um_scim_core.v`. Evaluated during elaboration by Yosys with 0 extra transistors.
-- **Hole #5 Signed Addition Enforcement:** Wrapped concatenation terms in `$signed(...)` in `src/scim_accumulator.v`.
+### [Architecture & Verification Decisions]
+- **Phase 4 (Macro Walkthrough) Completed:** Concluded in-depth pedagogical review of `tt_um_scim_core.v` (Sections 1 through 8):
+  - Physical active-low reset rationale (carrier mobility $\mu_n > \mu_p$, cross-coupled NAND vs. NOR latches, open-drain compatibility, RC power-on dynamics).
+  - Central shared activation tree ($A = \sum a_i$) saving 15 Wallace trees ($\approx 855$ standard cells).
+  - 13-bit precision sizing: Mathematical bounds $[-4096, +4095]$, $0.024\%$ saturation vs. $>3\%$ stochastic noise floor, and prevention of catastrophic two's complement sign inversion.
+  - 2-tier 208-to-8 output readback multiplexer with hardware sign extension.
+- **Phase 5 (Verification Closure / Hole #2) Completed:** Mode 1 now has complete bipolar dynamic range coverage from negative saturation ($-4096$) through zero cancellation ($0$) to positive saturation ($+4095$).
 
 ### [Current Pipeline State]
 - **Pillar 1 (Gate 0) Fully Complete, Verified & Frozen.**
-- **Pillar 2 (Gate 1 Parameterized Verilog RTL & Simulation): 100% COMPLETE, HARDENED & PASSING.**
-  - Static linting: `verilator --lint-only -Wall` passed with **0 warnings and 0 errors**.
-  - Submodule unit tests (`test_lfsr`, `test_compressor`, `test_wallace`): **ALL PASS**.
-  - Master end-to-end regression (`test_scim_core`): **8/8 golden vectors PASS with 100.00% bit-exact equivalence**.
-  - "Tour & Harden" Progress: **Phase 1, 2, 3 complete. Phase 4 review currently in progress by user. Phase 5 on hold.**
+- **Pillar 2 (Gate 1 Verilog RTL & Verification): 100% COMPLETE, HARDENED & VERIFIED.**
+  - Verilator static linting: **0 errors, 0 warnings** (`verilator --lint-only -Wall`).
+  - Cocotb regression: **10/10 test vectors PASS with 100.00% bit-exact equivalence** (0 column mismatches).
+  - Submodule testbenches: **100% pass**.
+  - All 6 holes from `docs/rtl_audit_and_poking_holes.md` resolved.
 
-### [Next Steps: Resuming Tomorrow with Phase 4 Continuation]
-1. **Continue Phase 4 Review of `src/tt_um_scim_core.v`:**
-   - Address any remaining user questions regarding readback multiplexer, FSM control, and top-level routing.
-2. **Phase 5 (Verification Closure & Coverage Expansion - ON HOLD):**
-   - Await user approval before adding the 2 non-trivial Mode 1 test vectors in `model/sim_scim.py` and expanding Cocotb regression to 10/10 vectors.
+### [Next Steps: Pillar 3 — Physical ASIC Flow (OpenLane 2 / OpenROAD)]
+1. Configure Tiny Tapeout physical metadata (`info.yaml`, `docs/info.md`).
+2. Set up OpenLane 2 / OpenROAD synthesis configuration (`config.yaml`) targeting SkyWater 130nm (`sky130_fd_sc_hd`).
+3. Run logic synthesis, static timing analysis (STA), floorplanning, placement, clock tree synthesis (CTS), and routing.
+4. Verify DRC/LVS clean physical sign-off within the Tiny Tapeout tile budget ($160\,\mu\text{m} \times 100\,\mu\text{m}$).

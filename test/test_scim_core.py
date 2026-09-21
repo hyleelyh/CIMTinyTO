@@ -151,7 +151,7 @@ async def readback_accumulators(dut) -> list:
 
 @cocotb.test()
 async def test_scim_core_gate0_vectors(dut):
-    """Run all 8 golden test vectors from model/test_vectors_gate0.json."""
+    """Run all 10 golden test vectors from model/test_vectors_gate0.json."""
     clock = Clock(dut.clk, 20, unit="ns")  # 50 MHz
     cocotb.start_soon(clock.start())
 
