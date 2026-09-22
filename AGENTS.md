@@ -70,6 +70,16 @@ To maintain laser focus, clean context windows, and modular verification boundar
 
 ---
 
+## User Laboratory Hardware Fleet & Bring-Up Platforms
+The user maintains a dedicated benchtop and embedded development laboratory for testing, emulating, and characterizing the CIMTinyTO ASIC. Detailed specifications, pinouts, and electrical safety rules are recorded in `.agents/skills/lab-hardware-inventory/SKILL.md`:
+* **Bench Power:** Korad KA3005P linear programmable DC supply (current-limited at $120\text{ mA}$ for safe Day-1 bring-up).
+* **FPGA Platforms (3.3V):** PYNQ-Z2 (Xilinx Zynq-7020) for automated Jupyter regressions; Terasic DE10-Lite (Intel MAX 10) for tactile/hex monitoring.
+* **Embedded & Sensor Platforms (3.3V):** STM32 B-U585I-IOT02A (vibration IMU + dual digital mics); Raspberry Pi 5 (live camera vision); SiFive HiFive 1 (RISC-V coprocessor).
+* **Automotive Telemetry:** OBDLink LX (Bluetooth 3.0 CAN scanner) running with external battery isolation.
+* **Electrical Safety Guardrail:** Arduino Uno R3 outputs $+5.0\text{V}$ and MUST NEVER be connected without bidirectional 3.3V level shifters.
+
+---
+
 ## Workspace Structure
 ```plaintext
 ├── AGENTS.md               <- System directive & pedagogical guidelines

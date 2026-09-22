@@ -1,15 +1,17 @@
 # Session Handoff
 
-- **Date:** 2026-09-21 21:05
-- **Machine:** Host (`juliusli`)
+- **Date:** 2026-09-22 16:05
+- **Machine:** Host (`juliusli-MSI`)
 - **Branch:** main
-- **Sync Status:** Committed and pushed to origin/main
+- **Sync Status:** Ready to commit & push
 
 ---
 
 ## 1. Current State: Pillar 3 (Physical ASIC Flow) — Placement Sizing Decision Point
 
 1. **Artifacts Built & Documented:**
+   - `.agents/skills/lab-hardware-inventory/SKILL.md`: Persistent hardware skill capturing all user bench instrumentation (Korad KA3005P), FPGAs (PYNQ-Z2, DE10-Lite), MCUs (STM32 B-U585I, RPi 5, HiFive 1), automotive CAN (OBDLink LX), and Arduino 5V guardrail.
+   - `AGENTS.md`: Updated with dedicated laboratory hardware fleet reference.
    - `docs/physical_sizing_and_tradeoff_analysis.md`: Exhaustive architectural note detailing the standard-cell area forensic audit, non-linear scaling laws ($O(N^2)$ vs. $O(N)$ vs. $O(1)$), DRAM-like banking study, and end-to-end Micro-ResNet inference speed analysis.
    - Flow files verified: `info.yaml`, `docs/info.md`, `src/config.json`, `config.yaml`, `src/scim_core.sdc`, `.github/workflows/gds.yaml`.
    - Verification baseline: Verilator lint clean (0 warnings), Cocotb 3/3 test suites pass bit-exact (100.00%).
@@ -23,7 +25,10 @@
      - $16\times 16$ Core ($2\times 2$ Tile): $\approx 80\text{ ms}$ total latency $\implies$ **$\approx 12.5\text{ FPS}$ (Real-Time Video Rate)**.
      - $8\times 8$ Core ($1\times 2$ Tile): $\approx 370\text{ ms}$ total latency (4 tiling passes) $\implies$ **$\approx 2.7\text{ FPS}$ (Interactive Edge Rate)**.
 
-3. **Pending Decision (User Reflecting on Goals):**
+3. **Multi-Platform Demo Feasibility (Zero Added Sensor Expense):**
+   - User's existing hardware fleet supports 9 distinct live demonstrations (voice KWS, vibration anomaly, camera vision, RISC-V coprocessor, tactile hex console, in-car CVT telemetry) without purchasing any new sensors.
+
+4. **Pending Decision (User Reflecting on Goals):**
    - **Option 1 ($2\times 2$ Tile):** Full $16\times 16$ core, 0 RTL changes, $12.5\text{ FPS}$ real-time video, ~$2\times$ submission cost.
    - **Option 2 ($8\times 8$ Core on $1\times 2$ Tile):** Parameterized RTL downscale, $2.7\text{ FPS}$ interactive rate, standard base submission cost.
 
