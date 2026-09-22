@@ -1,35 +1,47 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-09-21 16:22
+## Last Execution Run: 2026-09-21 17:45
 ### [Built & Verified]
-- `info.yaml`: Created official Tiny Tapeout submission manifest configuring project metadata, $1\times 2$ tile footprint, 8 synthesizable source files, and complete pinout mapping for `ui_in[7:0]`, `uo_out[7:0]`, and `uio[7:0]`.
-- `docs/info.md`: Created complete technical datasheet for Tiny Tapeout website detailing SCIM architecture, unified column delta reduction ($\Delta_{\text{col}} = 2 P_{\text{col}} - A$), operating modes, programming protocol, and pin definitions.
-- `src/config.json`: Configured OpenLane / LibreLane physical hardening parameters ($50\text{ MHz}$ / $20\text{ ns}$ clock, $58.8\%$ target density, $0.10\text{ ns}$ hold slack margin, $0.05\text{ ns}$ routing hold margin, CTS enabled, decap cells, and `met4` routing limit).
-- `config.yaml`: Configured OpenLane 2 YAML configuration with Hole #9 high-fanout buffering rules (`MAX_FANOUT_CONSTRAINT: 16`, `SYNTH_BUFFERING: true`).
-- `src/scim_core.sdc`: Created Synopsys Design Constraints file with $50\text{ MHz}$ clock, $0.5\text{ ns}$ setup / $0.2\text{ ns}$ hold clock uncertainties, $4.0\text{ ns}$ I/O delays, $25\text{ pF}$ pad load, and asynchronous reset synchronizer false path.
-- `.github/workflows/gds.yaml`: Created automated GitHub Actions CI hardening pipeline running `TinyTapeout/tt-gds-action@tt08` with `flow: openlane2`.
-- `docs/pillar3_physical_asic_flow_guide.md`: Authored foundry-level pedagogical ASIC physical design guide covering standard-cell drive strengths, floorplan density calculations, power grid IR drop, high-fanout buffering, clock tree setup/hold timing physics, plasma etch antenna effects, and DRC/LVS physical sign-off.
-- **Static Lint:** `verilator --lint-only -Wall src/*.v` $\implies$ **0 errors, 0 warnings**.
-- **Cocotb Regression:** `make -C test test_all` $\implies$ **3/3 test suites PASS (100.00% bit-exact)**.
-- **Log Hygiene Parsers:** `parse_yosys_stat.py --test` and `parse_openlane_reports.py --test` $\implies$ **ALL PASS**.
-- **Schema Validation:** Python JSON and YAML parsers verified clean syntax on all configuration files.
+- `info.yaml`: Configured Tiny Tapeout manifest with top-level `tt_um_scim_core` and pinout mapping.
+- `docs/info.md`: Authored architectural datasheet with math formulations and pinout tables.
+- `src/config.json` & `config.yaml`: Configured OpenLane 2 physical hardening parameters ($50\text{ MHz}$, CTS, decap, HFN rules).
+- `src/scim_core.sdc`: Authored timing constraints ($20\text{ ns}$ clock, setup/hold uncertainties, I/O delays, pad loads).
+- `.github/workflows/gds.yaml`: GitHub Actions CI pipeline running `TinyTapeout/tt-gds-action@tt08` with `flow: openlane2`.
+- `docs/pillar3_physical_asic_flow_guide.md`: Created pedagogical ASIC physical design and sign-off guide.
+- **Verification Sign-Off:** Verilator lint clean (0 warnings), Cocotb 3/3 test suites bit-exact pass (100%), parser self-tests clean.
 
-### [Architecture Decisions & Physical Sizing Analysis]
-- **Target Shuttle:** Selected **Tiny Tapeout SKY 26d (SkyWater 130nm / `sky130_fd_sc_hd`)** with submission deadline **November 30, 2026** (~10 weeks learning runway).
-- **Tile Footprint Allocation:** Allocated **$1\times 2$ Tile** ($\approx 161\,\mu\text{m} \times 226\,\mu\text{m}$, gross area $\approx 36,386\,\mu\text{m}^2$, core area $\approx 25,000\,\mu\text{m}^2$).
-- **Placement Density:** Set to **$58.8\%$** (`PL_TARGET_DENSITY: 0.58`), reserving $41.2\%$ whitespace for routing channels and timing buffer insertion.
-- **Clock & Timing Closure:** Set target clock period to **$20.0\text{ ns}$ ($50\text{ MHz}$)** with an aggressive hold margin of **$0.10\text{ ns}$** (`PL_RESIZER_HOLD_SLACK_MARGIN: 0.10`) to eliminate silicon race conditions across all PVT corners.
-- **HFN & Reset Domain Management (Hole #9):** Preserved 4 cloned reset driver domains (`rst_sync_ctrl`, `rst_sync_weight`, `rst_sync_sng`, `rst_sync_acc`) with `(* keep = "true" *)`, limiting maximum fanout per tree to $\le 256$ DFFs and slew to $< 1.0\text{ ns}$.
+### [Architecture Decisions & Physical Placement Audit (Forensic Discovery)]
+- **Cloud Hardening Execution Failure (`[GPL-0301]`):**
+  - During the first GitHub Actions run on commit `fc9504c`, OpenLane 2 / OpenROAD Global Placement failed at step `OpenROAD.GlobalPlacement`:
+    ```plaintext
+    [INFO GPL-0016] CoreArea: 34255353600 (34,255 µm²)
+    [INFO GPL-0007] NumPlaceInstances: 5769 cells
+    [INFO GPL-0018] PlaceInstsArea: 63548448000 (63,548 µm²)
+    [INFO GPL-0019] Util(%): 192.12%
+    [GPL-0301] Utilization 192.12% exceeds 100%.
+    ```
+- **Forensic Sizing Analysis (Front-End Gate Count vs. Physical Standard-Cell Area):**
+  - While front-end synthesis estimated ~2,882 generic logic gates, physical mapping to `sky130_fd_sc_hd` expanded the instance count to **5,769 physical cells** occupying **$63,548\,\mu\text{m}^2$**:
+    1. **16x 13-bit Saturating Accumulators:** Full adders + dual 14-bit magnitude comparators + clamping MUXes + DFFs $\approx 1,920$ physical standard cells.
+    2. **17 Wallace Trees:** 153 4:2 compressors decomposed into discrete XOR2, NAND, and inverter cells $\approx 1,224$ standard cells.
+    3. **Sequential DFFs:** 256 weight DFFs + 208 accumulator DFFs + control registers $\approx 500+$ DFFs ($\approx 9,000\,\mu\text{m}^2$).
+    4. **Well Taps & Buffers:** 618 fixed latch-up prevention well taps (`tapvpwrvgnd_1`) plus CTS/HFN repeater buffers.
+  - The $1\times 2$ tile has a core area of only **$34,255\,\mu\text{m}^2$**, resulting in $192.12\%$ utilization (exceeding physical limits).
+- **Design Fork & Trade-Off Options (Pending User Sizing Decision):**
+  - **Option 1 ($2\times 2$ Tile Allocation — 4 Tiles):** Scale floorplan to $2\times 2$ ($\approx 335\,\mu\text{m} \times 226\,\mu\text{m}$, core area $\approx 70,000\,\mu\text{m}^2$). The $63,548\,\mu\text{m}^2$ macro fits comfortably at ~64% utilization with 0 RTL modifications, full $16\times 16$ parallel throughput (100 MMAC/s), and 100% parity with trained Micro-ResNet weights. Trade-off: Higher shuttle fee (~2x tile cost).
+  - **Option 2 (Array Downscale to $8\times 8$ Core on $1\times 2$ Tile):** Parameterize PE array to $8\times 8$ (64 weights, 8 Wallace trees, 8 accumulators). Standard-cell count drops by ~65% to $\approx 2,000$ cells ($\approx 20,000\,\mu\text{m}^2$), fitting within the $1\times 2$ budget ($34,255\,\mu\text{m}^2$) at ~58% density without additional shuttle expense. Trade-off: 4x lower instantaneous compute throughput; requires matrix tiling for inference.
+  - **Option 3 (Architectural Time-Multiplexing on $1\times 2$ Tile):** Retain $16\times 16$ weights but share/time-multiplex accumulator and Wallace tree columns over sequential cycles. Trade-off: Adds FSM control complexity and lowers throughput.
 
 ### [Current Pipeline State]
-- **Pillar 1 (Gate 0 System & Mathematical Modeling): 100% COMPLETE & FROZEN.**
-- **Pillar 2 (Gate 1 Microarchitecture, RTL & Verification): 100% COMPLETE & FROZEN.**
-- **Pillar 3 (Physical ASIC Flow — OpenLane 2 / OpenROAD): 100% COMPLETE & VERIFIED.**
-  - All submission manifests, OpenLane 2 configurations, SDC timing constraints, GitHub Actions workflows, and pedagogical physical design documentation are established and verified.
+- **Pillar 1 (Mathematical Golden Model): 100% COMPLETE & FROZEN.**
+- **Pillar 2 (Microarchitecture & Verification): 100% COMPLETE & FROZEN.**
+- **Pillar 3 (Physical ASIC Flow): IN PROGRESS / PENDING SIZING DECISION.**
+  - All OpenLane 2 configs, constraints, and scripts are functional and verified.
+  - Sizing decision paused by user to evaluate shuttle cost vs. silicon footprint.
 
-### [Next Steps: Pillar 4 — Static Timing Analysis & Sign-Off (STA)]
-> [!NOTE]
-> Per **Directive 3 (Strict Single-Pillar Session Scope Directive)**, Pillar 3 is completed, sealed, and frozen in this session. Pillar 4 will be executed in a **fresh, dedicated chat session**.
-1. Push commit to `origin/main` to trigger the GitHub Actions OpenLane 2 cloud hardening run.
-2. Ingest resulting synthesis and timing logs (`metrics.csv`, `stat.log`) using `scripts/parse_openlane_reports.py`.
-3. Audit multi-corner Static Timing Analysis (STA): setup slack (WNS), hold slack (WHS), clock skew, and critical path delay chains through the Wallace trees and accumulators.
+### [Next Steps]
+1. User to evaluate cost vs. performance trade-off ($2\times 2$ tile vs. $8\times 8$ array on $1\times 2$ tile).
+2. Once the decision is confirmed:
+   - If Option 1: Update `info.yaml` to `tiles: "2x2"` and re-trigger OpenLane 2 cloud hardening.
+   - If Option 2: Parameterize RTL to $8\times 8$, re-verify Cocotb testbenches, and re-trigger hardening on $1\times 2$.
+3. Achieve physical GDS placement and routing sign-off before closing Pillar 3.
