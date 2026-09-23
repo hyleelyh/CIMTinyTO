@@ -1,28 +1,35 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-09-23 12:42
-### [Built & Verified]
-- **Silicon Verification Milestone:**
-  - `gds` (OpenLane 2 Hardening): **PASSED ✅** (Zero DRC violations, zero LVS mismatches, timing closed).
-  - `precheck`: **PASSED ✅** (Shuttle geometry, pinout, and boundary rules compliant).
-  - `gl_test`: **ALL 3 TESTS PASSED (100.00% bit-exact match across all vectors)**.
-- `test/Makefile` & `test/test_scim_core.py`:
-  - Added XML sanitization hook (`atexit` in Python + post-step in Makefile) to convert JUnit root attribute `failures="0"` to `fails="0"`.
-  - Resolves Tiny Tapeout CI check `! grep failure results.xml`, which false-alarmed on the substring `failure` in `failures="0"`.
+## Last Execution Run: 2026-09-23 15:42
+### [Built & Packaged]
+- **Physical Deliverables in `gds/`:**
+  - `gds/tt_um_scim_core.gds`: Final binary GDSII layout (16 MB).
+  - `gds/tt_um_scim_core.lef`: Macro abstract library file (15 KB).
+  - `gds/tt_um_scim_core.v`: Post-route gate-level Verilog netlist (1.6 MB, 5,769 standard cells).
+  - `gds/sky130.lyp`: KLayout layer properties file with full Sky130 layer colors and stipples.
+  - `gds/metrics.csv`: 272 physical, timing, power, and verification metrics from OpenLane 2 run.
+- `.gitignore`:
+  - Added `*.zip` and `artifacts/` to prevent raw 87MB runner logs from bloating git history while keeping all layout files cleanly tracked.
 
-### [Architecture Decisions & Physical Routing Clarity]
-- **Diagnosis of False Failure in `gl_test`:**
-  - Cocotb 2.x outputs standard JUnit XML with `failures="0"` when 0 tests fail.
-  - Tiny Tapeout's runner script executes `! grep failure results.xml` to detect failures. Because `failures="0"` contains the string `failure`, `grep` returned 0, and `!` inverted it to exit code 1.
-  - Sanitizing `failures="0"` to `fails="0"` preserves true failure detection (e.g. `<failure message="...">`) while preventing false-positive exits.
+### [Architecture Decisions & Physical Sign-Off Metrics]
+- **Multi-Corner STA Timing Closed:**
+  - Typical Corner (`nom_tt_025C_1v80`): Setup Slack = **+9.87 ns**, Hold Slack = **+0.26 ns**.
+  - Slow Corner (`nom_ss_100C_1v60`): Setup Slack = **+0.15 ns**, Hold Slack = **+0.38 ns**.
+  - Fast Corner (`nom_ff_n40C_1v95`): Setup Slack = **+13.77 ns**, Hold Slack = **+0.11 ns**.
+  - Total Negative Slack (TNS) = **0.00 ns** across ALL PVT corners. Zero setup and zero hold violations.
+- **Physical Verification Sign-Off:**
+  - Magic DRC Error Count: **0 errors** (CLEAN).
+  - Netgen LVS Device/Net/Pin Differences: **0 mismatches** (CLEAN).
+  - Inferred Latches: **0** (Strict synchronous discipline verified).
+- **Core Power:**
+  - Total core power consumption: **2.80 mW** at 25 MHz ($1.8\text{ V}$ nominal).
 
 ### [Current Pipeline State]
 - **Pillar 1 (Mathematical Golden Model): 100% COMPLETE & FROZEN.**
 - **Pillar 2 (Microarchitecture & Verification): 100% COMPLETE & FROZEN.**
-- **Pillar 3 (Physical ASIC Flow): GDS, PRECHECK, AND GL_TEST VERIFIED.**
+- **Pillar 3 (Physical ASIC Flow): HARDENED, PACKAGED & PUSHED TO GITHUB.**
 
 ### [Next Steps]
-1. Push commit `fix(ci): sanitize failures="0" in results.xml to clear Tiny Tapeout CI grep check` to `origin/main`.
-2. Toggle GitHub Pages source to "GitHub Actions" in repo settings to clear `viewer` deployment.
-3. Ingest final physical metrics (`metrics.csv`, `stat.log`) using `scripts/parse_openlane_reports.py`.
-4. Walk through the physical GDSII layout and timing results before concluding Pillar 3.
+1. User reviews `gds/tt_um_scim_core.gds` in KLayout on PC.
+2. Address any remaining physical design questions (CTS, routing layers, standard cells).
+3. Formally sign off Pillar 3 and open a fresh chat session for Pillar 4 (Multi-Corner STA & Power Sign-off).

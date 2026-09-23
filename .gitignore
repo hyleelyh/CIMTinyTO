@@ -26,3 +26,8 @@ runs/
 
 # Direnv
 .direnv/
+
+# Downloads & Archives
+*.zip
+artifacts/
+
