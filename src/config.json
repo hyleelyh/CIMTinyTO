@@ -2,10 +2,14 @@
   "//": "CIMTinyTO OpenLane / LibreLane Configuration for Tiny Tapeout",
   "//": "Target: SkyWater 130nm (sky130_fd_sc_hd) on Tiny Tapeout 2x2 Tile",
 
-  "//": "Placement Target Density: Set to 0.65 (65.0%) for optimal cell packing",
-  "//": "with 35.0% whitespace for routing channels and buffer insertion.",
-  "PL_TARGET_DENSITY": 0.65,
+  "//": "Placement Target Density: Set to 0.92 (92.0%) to accommodate",
+  "//": "89.5% standard-cell placement inside the 2x2 core with open metal tracks above.",
+  "PL_TARGET_DENSITY": 0.92,
   "SYNTH_STRATEGY": "AREA 1",
+
+  "//": "SDC Timing Constraints",
+  "PNR_SDC_FILE": "dir::scim_core.sdc",
+  "SIGNOFF_SDC_FILE": "dir::scim_core.sdc",
 
   "//": "Target Clock Period: 20 ns (50 MHz sign-off target).",
   "CLOCK_PERIOD": 20,

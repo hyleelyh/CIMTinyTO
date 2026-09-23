@@ -1,18 +1,18 @@
 # Session Handoff
 
-- **Date:** 2026-09-23 08:35
+- **Date:** 2026-09-23 08:55
 - **Machine:** Host (`juliusli-MSI`)
 - **Branch:** main
-- **Sync Status:** 2x2 Tile Hardening Configured & Ready to Commit/Push
+- **Sync Status:** 2x2 Density 0.92 Hardening Configured & Ready to Commit/Push
 
 ---
 
-## 1. Current State: Pillar 3 (Physical ASIC Flow) — 2x2 Cloud Hardening Execution
+## 1. Current State: Pillar 3 (Physical ASIC Flow) — 2x2 Cloud Hardening Re-Execution
 
-1. **Option 1 ($2\times 2$ Tile Allocation) Formally Applied:**
+1. **Option 1 ($2\times 2$ Tile Allocation) with 0.92 Density:**
    - `info.yaml`: `tiles: "2x2"` (~335 µm x 226 µm footprint, ~71,000 µm² core).
-   - `config.yaml`: `SYNTH_STRATEGY: "AREA 1"` and `PL_TARGET_DENSITY: 0.65`.
-   - `src/config.json`: Synchronized for LibreLane/OpenLane compatibility.
+   - `config.yaml` & `src/config.json`: `PL_TARGET_DENSITY: 0.92` to resolve `[GPL-0302]`.
+   - `PNR_SDC_FILE` & `SIGNOFF_SDC_FILE`: Bound to `dir::src/scim_core.sdc` / `dir::scim_core.sdc` to eliminate fallback SDC warnings.
    - Front-end immutability preserved: **Pillars 1 and 2 remain 100% frozen and untouched**.
 
 2. **Pre-Flight Verification Sign-Off:**
