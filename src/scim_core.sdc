@@ -18,8 +18,8 @@ set_clock_transition 0.250 [get_clocks clk]
 
 # I/O Constraints
 # External PCB trace delay budget: 4.0 ns max (20% of period), 1.0 ns min
-set_input_delay  -clock clk -max 4.000 [all_inputs -no_clocks]
-set_input_delay  -clock clk -min 1.000 [all_inputs -no_clocks]
+set_input_delay  -clock clk -max 4.000 [all_inputs]
+set_input_delay  -clock clk -min 1.000 [all_inputs]
 
 set_output_delay -clock clk -max 4.000 [all_outputs]
 set_output_delay -clock clk -min 1.000 [all_outputs]
@@ -30,7 +30,7 @@ set_load 25.000 [all_outputs]
 
 # External Driving Cell
 # sky130_fd_sc_hd__inv_2 models the drive strength of external I/O pad buffers
-set_driving_cell -lib_cell sky130_fd_sc_hd__inv_2 [all_inputs -no_clocks]
+set_driving_cell -lib_cell sky130_fd_sc_hd__inv_2 -pin Y [all_inputs]
 
 # False Path Declaration for Asynchronous Reset Pad
 # External rst_n is asynchronously asserted and captured by internal 2-stage synchronizer (rst_sync_0)

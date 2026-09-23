@@ -1,18 +1,18 @@
 # Session Handoff
 
-- **Date:** 2026-09-23 09:10
+- **Date:** 2026-09-23 09:23
 - **Machine:** Host (`juliusli-MSI`)
 - **Branch:** main
-- **Sync Status:** OpenSTA SDC Syntax Fix Staged & Ready to Commit/Push
+- **Sync Status:** Canonical zero-argument all_inputs fix staged
 
 ---
 
 ## 1. Current State: Pillar 3 (Physical ASIC Flow) — 2x2 Cloud Hardening Re-Execution
 
-1. **Option 1 ($2\times 2$ Tile Allocation) with 0.92 Density & OpenSTA SDC:**
+1. **Option 1 ($2\times 2$ Tile Allocation) with 0.92 Density & Canonical SDC:**
    - `info.yaml`: `tiles: "2x2"` (~335 µm x 226 µm footprint, ~71,000 µm² core).
    - `config.yaml` & `src/config.json`: `PL_TARGET_DENSITY: 0.92` to resolve `[GPL-0302]`.
-   - `src/scim_core.sdc`: Replaced Synopsys `remove_from_collection` with OpenSTA standard `[all_inputs -no_clocks]`.
+   - `src/scim_core.sdc`: Corrected `all_inputs` to zero-argument standard syntax `[all_inputs]` and added `-pin Y` to inverter driver.
    - `PNR_SDC_FILE` & `SIGNOFF_SDC_FILE`: Bound to `dir::src/scim_core.sdc` / `dir::scim_core.sdc`.
    - Front-end immutability preserved: **Pillars 1 and 2 remain 100% frozen and untouched**.
 
