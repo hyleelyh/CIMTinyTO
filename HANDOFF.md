@@ -1,18 +1,19 @@
 # Session Handoff
 
-- **Date:** 2026-09-23 08:55
+- **Date:** 2026-09-23 09:10
 - **Machine:** Host (`juliusli-MSI`)
 - **Branch:** main
-- **Sync Status:** 2x2 Density 0.92 Hardening Configured & Ready to Commit/Push
+- **Sync Status:** OpenSTA SDC Syntax Fix Staged & Ready to Commit/Push
 
 ---
 
 ## 1. Current State: Pillar 3 (Physical ASIC Flow) — 2x2 Cloud Hardening Re-Execution
 
-1. **Option 1 ($2\times 2$ Tile Allocation) with 0.92 Density:**
+1. **Option 1 ($2\times 2$ Tile Allocation) with 0.92 Density & OpenSTA SDC:**
    - `info.yaml`: `tiles: "2x2"` (~335 µm x 226 µm footprint, ~71,000 µm² core).
    - `config.yaml` & `src/config.json`: `PL_TARGET_DENSITY: 0.92` to resolve `[GPL-0302]`.
-   - `PNR_SDC_FILE` & `SIGNOFF_SDC_FILE`: Bound to `dir::src/scim_core.sdc` / `dir::scim_core.sdc` to eliminate fallback SDC warnings.
+   - `src/scim_core.sdc`: Replaced Synopsys `remove_from_collection` with OpenSTA standard `[all_inputs -no_clocks]`.
+   - `PNR_SDC_FILE` & `SIGNOFF_SDC_FILE`: Bound to `dir::src/scim_core.sdc` / `dir::scim_core.sdc`.
    - Front-end immutability preserved: **Pillars 1 and 2 remain 100% frozen and untouched**.
 
 2. **Pre-Flight Verification Sign-Off:**
