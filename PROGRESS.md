@@ -1,10 +1,10 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-09-22 16:05
+## Last Execution Run: 2026-09-22 17:55
 ### [Built & Verified]
+- `docs/physical_sizing_and_tradeoff_analysis.md`: Expanded with exhaustive architectural sections on zero-overhead native DFT (`w_dout` on `uio_out[2]`), 17th Wallace tree clarification ($A = \sum a_i$), 9-demo hardware portfolio, automotive CVT predictive telemetry via OBDLink LX with Bluetooth air-gap isolation, power vs. logic rail decoupling, and Korad KA3005P Day-1 bring-up.
 - `.agents/skills/lab-hardware-inventory/SKILL.md`: Authored dedicated project skill defining user's complete hardware lab fleet (Korad KA3005P, PYNQ-Z2, DE10-Lite, STM32 B-U585I-IOT02A, Raspberry Pi 5, SiFive HiFive 1, OBDLink LX, Arduino Uno R3), electrical safety rules, interface specs, and multi-demo matrix.
 - `AGENTS.md`: Integrated User Laboratory Hardware Fleet section permanently linking system instructions to the hardware skill.
-- `docs/physical_sizing_and_tradeoff_analysis.md`: Detailed block-by-block area audit, non-linear scaling laws, and ResNet/audio/automotive application analysis.
 - Previous baseline verified: Verilator lint clean (0 warnings), Cocotb 3/3 test suites bit-exact pass (100%), parser self-tests clean.
 
 ### [Architecture Decisions & Physical Sizing Deep-Dive]
