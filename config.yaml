@@ -40,6 +40,7 @@ PL_BASIC_PLACEMENT: false
 MAX_FANOUT_CONSTRAINT: 16
 SYNTH_BUFFERING: true
 SYNTH_SIZING: true
+PL_RESIZER_BUFFER_OUTPUT_PORTS: true
 
 # Hold Slack Margins
 # Physically forces OpenROAD resizer to insert delay buffers on fast paths

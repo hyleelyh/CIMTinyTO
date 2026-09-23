@@ -1,20 +1,23 @@
 # Session Handoff
 
-- **Date:** 2026-09-23 09:23
+- **Date:** 2026-09-23 09:47
 - **Machine:** Host (`juliusli-MSI`)
 - **Branch:** main
-- **Sync Status:** Canonical zero-argument all_inputs fix staged
+- **Sync Status:** DRC/LVS Passed! Load capacitance and output buffer fix staged
 
 ---
 
-## 1. Current State: Pillar 3 (Physical ASIC Flow) — 2x2 Cloud Hardening Re-Execution
+## 1. Current State: Pillar 3 (Physical ASIC Flow) — Timing Sign-Off
 
-1. **Option 1 ($2\times 2$ Tile Allocation) with 0.92 Density & Canonical SDC:**
-   - `info.yaml`: `tiles: "2x2"` (~335 µm x 226 µm footprint, ~71,000 µm² core).
-   - `config.yaml` & `src/config.json`: `PL_TARGET_DENSITY: 0.92` to resolve `[GPL-0302]`.
-   - `src/scim_core.sdc`: Corrected `all_inputs` to zero-argument standard syntax `[all_inputs]` and added `-pin Y` to inverter driver.
-   - `PNR_SDC_FILE` & `SIGNOFF_SDC_FILE`: Bound to `dir::src/scim_core.sdc` / `dir::scim_core.sdc`.
-   - Front-end immutability preserved: **Pillars 1 and 2 remain 100% frozen and untouched**.
+1. **Physical Layout Verified Clean:**
+   - **LVS Passed! ✅ DRC Passed! ✅**
+   - Detailed routing (TritonRoute), CTS, and GDS generation 100% complete with zero shorts and zero spacing violations on $2\times 2$ tile.
+   - Proves cell area ($63,548\,\mu\text{m}^2$) and 89.5% density cleanly closes on silicon.
+
+2. **Timing Closure Fix:**
+   - Corrected artificial $25\,\text{pF}$ off-chip load down to real Tiny Tapeout on-chip mux load $0.0334\,\text{pF}$ ($33.4\,\text{fF}$).
+   - Enabled `PL_RESIZER_BUFFER_OUTPUT_PORTS: 1` / `true` in `config.yaml` and `src/config.json`.
+   - Constrained I/O delays to $2.0\,\text{ns}$ max / $0.5\,\text{ns}$ min on `get_ports {ui_in[*] uio_in[*]}` and `all_outputs`.
 
 2. **Pre-Flight Verification Sign-Off:**
    - Verilator lint: **0 errors, 0 warnings** across all 9 source modules.
