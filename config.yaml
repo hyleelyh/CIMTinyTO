@@ -1,7 +1,7 @@
 # ==============================================================================
 # OpenLane 2 Configuration File: CIMTinyTO Macro Hardening
 # Target Shuttle: Tiny Tapeout SKY 26d (SkyWater 130nm / sky130_fd_sc_hd)
-# Footprint: 1x2 Tile (~161 um x 226 um)
+# Footprint: 2x2 Tile (~335 um x 226 um, ~71,000 um² core area)
 # ==============================================================================
 
 DESIGN_NAME: "tt_um_scim_core"
@@ -24,9 +24,14 @@ CLOCK_PERIOD: 20.0 # 50 MHz sign-off target
 pdk: "sky130A"
 STD_CELL_LIBRARY: "sky130_fd_sc_hd"
 
+# Synthesis Optimization Strategy
+# AREA 1: Prioritize compact standard cells (_1, _2) over oversized cells (_4, _8),
+# trimming macro area into the 60%-68% sweet spot with zero weak drive risk.
+SYNTH_STRATEGY: "AREA 1"
+
 # Placement & Density
-# Target density 58.8% leaves 41.2% whitespace for routing channels and buffer insertion.
-PL_TARGET_DENSITY: 0.58
+# Target density 65% leaves 35% whitespace for routing channels and buffer insertion.
+PL_TARGET_DENSITY: 0.65
 PL_BASIC_PLACEMENT: false
 
 # High-Fanout Net (HFN) & Buffer Insertion Rules

@@ -8,8 +8,8 @@ project:
   clock_hz:     50000000 # Target master clock: 50 MHz (20 ns period)
 
   # How many tiles your design occupies?
-  # A single tile is ~161x112 um. Stacking 2 tiles vertically (1 column x 2 rows) gives ~161x226 um.
-  tiles: "1x2"
+  # A 2x2 tile block occupies 2 columns x 2 rows (~335 um x 226 um, ~71,000 um² core area).
+  tiles: "2x2"
 
   # Top-level Verilog wrapper module name
   top_module:  "tt_um_scim_core"
