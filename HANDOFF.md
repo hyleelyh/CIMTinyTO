@@ -1,23 +1,22 @@
 # Session Handoff
 
-- **Date:** 2026-09-23 09:47
+- **Date:** 2026-09-23 10:35
 - **Machine:** Host (`juliusli-MSI`)
 - **Branch:** main
-- **Sync Status:** DRC/LVS Passed! Load capacitance and output buffer fix staged
+- **Sync Status:** GDS & Precheck Passed! gl_test dependency fix staged
 
 ---
 
-## 1. Current State: Pillar 3 (Physical ASIC Flow) — Timing Sign-Off
+## 1. Current State: Pillar 3 (Physical ASIC Flow) — Gate-Level Simulation Sign-Off
 
-1. **Physical Layout Verified Clean:**
-   - **LVS Passed! ✅ DRC Passed! ✅**
-   - Detailed routing (TritonRoute), CTS, and GDS generation 100% complete with zero shorts and zero spacing violations on $2\times 2$ tile.
-   - Proves cell area ($63,548\,\mu\text{m}^2$) and 89.5% density cleanly closes on silicon.
+1. **Physical Layout Hardening 100% COMPLETE:**
+   - **Job `gds`:** PASSED! GDSII layout generated with zero DRC violations, zero LVS mismatches, and timing closed.
+   - **Job `precheck`:** PASSED! Tiny Tapeout shuttle rules, pinouts, and bonding passed cleanly.
+   - **Job `gl_test`:** In progress. Adding `test/requirements.txt` to install `numpy` for the gate-level cocotb test suite.
 
-2. **Timing Closure Fix:**
-   - Corrected artificial $25\,\text{pF}$ off-chip load down to real Tiny Tapeout on-chip mux load $0.0334\,\text{pF}$ ($33.4\,\text{fF}$).
-   - Enabled `PL_RESIZER_BUFFER_OUTPUT_PORTS: 1` / `true` in `config.yaml` and `src/config.json`.
-   - Constrained I/O delays to $2.0\,\text{ns}$ max / $0.5\,\text{ns}$ min on `get_ports {ui_in[*] uio_in[*]}` and `all_outputs`.
+2. **Fix Applied:**
+   - Added `test/requirements.txt` and `requirements.txt` (`cocotb`, `numpy`, `pytest`).
+   - Added `Install test dependencies` step (`pip install -r test/requirements.txt`) in `.github/workflows/gds.yaml`.
 
 2. **Pre-Flight Verification Sign-Off:**
    - Verilator lint: **0 errors, 0 warnings** across all 9 source modules.
