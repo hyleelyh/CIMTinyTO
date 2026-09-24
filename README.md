@@ -44,3 +44,10 @@ The architecture features:
 - **Pillar 1 (Gate 0 - System & Mathematical Modeling):** 100% Verified & Frozen.
 - **Pillar 2 (Gate 1 - Microarchitecture & Verilog RTL):** 100% Complete & Passing (Verilator lint: 0 warnings; Cocotb: 8/8 vectors bit-exact).
 - **In Progress:** Pedagogical RTL Review & Defensive Hardening (Holes #1–#5) prior to Pillar 3 (Physical ASIC Implementation / OpenLane 2).
+
+---
+
+## License
+
+This project is licensed under the **Apache License, Version 2.0** — see the [LICENSE](LICENSE) file for details.
+
