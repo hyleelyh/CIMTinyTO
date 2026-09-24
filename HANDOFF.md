@@ -1,17 +1,19 @@
 # Session Handoff
 
-- **Date:** 2026-09-23 18:52
+- **Date:** 2026-09-23 19:03
 - **Machine:** Host (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Up to date with origin/main; CI paths filter active; Pillar 3 frozen
+- **Sync Status:** Up to date with origin/main; CI paths filter and concurrency cancel-in-progress active; Pillar 3 frozen
 
 ---
 
 ## 1. Current State: Pillar 3 (Physical ASIC Flow) — Signed Off & Frozen
 
-1. **Hardware-Filtered GitHub CI Trigger:**
-   - `.github/workflows/gds.yaml` updated with `paths:` filter for `src/**`, `config.yaml`, `info.yaml`, and `test/**`.
-   - Switching between PC and Laptop (pushing `HANDOFF.md`, `PROGRESS.md`, `docs/`, or layouts) will **no longer trigger redundant OpenLane/OpenROAD cloud runs**.
+1. **Hardware-Filtered GitHub CI Trigger with Concurrency Cancellation:**
+   - `.github/workflows/gds.yaml` updated with:
+     - `paths:` filter for `src/**`, `config.yaml`, `info.yaml`, and `test/**`.
+     - `concurrency: group: ${{ github.workflow }}-${{ github.ref }} cancel-in-progress: true`.
+   - Switching between PC and Laptop will **never trigger redundant runs**, and any new run will automatically cancel previous in-flight runs.
 
 2. **Physical Layout Hardening 100% COMPLETE:**
    - **Job `gds`:** PASSED! GDSII layout generated with zero DRC violations, zero LVS mismatches, and timing closed.
