@@ -1,7 +1,9 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-09-23 18:48
+## Last Execution Run: 2026-09-23 18:52
 ### [Built & Packaged]
+- **CI/CD Workflow Hardening:**
+  - `.github/workflows/gds.yaml`: Configured `on.push.paths` filter. CI now triggers strictly when hardware-related files change (`src/**`, `config.yaml`, `info.yaml`, `test/**`). Commits to `docs/`, `model/`, `PROGRESS.md`, `HANDOFF.md`, or `gds/` no longer trigger unwanted multi-minute OpenLane builds.
 - **Pedagogical Walkthrough & Layout Previews:**
   - `docs/walkthrough_pillar3_physical_asic_flow.md`: Comprehensive educational walkthrough of Pillar 3 covering standard-cell synthesis, floorplanning, placement density, CTS, detailed routing, multi-corner STA, and DRC/LVS physical sign-off.
   - `docs/layout_preview.png`: High-resolution KLayout visual render of the hardened $2\times 2$ GDSII silicon layout mask.
@@ -14,6 +16,9 @@
   - `gds/metrics.csv`: 272 physical, timing, power, and verification metrics from OpenLane 2 run.
 
 ### [Architecture Decisions & Physical Sign-Off Metrics]
+- **Hardware-Specific CI Triggers:**
+  - Standardized git path filtering to eliminate redundant cloud hardening jobs during PC <-> Laptop handoffs.
+  - Supports `[skip ci]` in commit messages for extra manual control.
 - **Multi-Corner STA Timing Closed:**
   - Typical Corner (`nom_tt_025C_1v80`): Setup Slack = **+9.87 ns**, Hold Slack = **+0.26 ns**.
   - Slow Corner (`nom_ss_100C_1v60`): Setup Slack = **+0.15 ns**, Hold Slack = **+0.38 ns**.
