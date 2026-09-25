@@ -1,6 +1,6 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-09-24 21:50
+## Last Execution Run: 2026-09-24 21:53
 ### [Built & Packaged]
 - **Open-Source Silicon Licensing:**
   - `LICENSE`: Added official Apache License Version 2.0 with copyright assigned to Julius Li and Antigravity Contributors, satisfying open silicon tapeout and aggregator requirements.
@@ -47,4 +47,6 @@
 - **Pillar 3 (Physical ASIC Flow): 100% COMPLETE, VERIFIED & FROZEN.**
 
 ### [Next Steps]
-1. User to open a **fresh chat session** to initiate **Pillar 4 (Static Timing Analysis & Power Sign-off)** per the Pillar Session Isolation Protocol.
+1. User reviewing educational walkthrough in `docs/walkthrough_pillar3_physical_asic_flow.md` and KLayout over the weekend.
+2. **Pillar 4 Execution Schedule:** Scheduled to begin **next week**, or early on **Sunday** if the walkthrough review goes smoothly.
+3. User to open a **fresh chat session** to initiate **Pillar 4 (Static Timing Analysis & Power Sign-off)** per the Pillar Session Isolation Protocol.

@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-09-24 21:50
+- **Date:** 2026-09-24 21:53
 - **Machine:** Host (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Up to date with origin/main; Pillar 3 fully signed off and frozen; ready for Pillar 4 transition
+- **Sync Status:** Up to date with origin/main; Pillar 3 fully signed off and frozen; schedule recorded for Pillar 4 next week / Sunday
 
 ---
 
@@ -28,11 +28,12 @@
 
 ---
 
-## 2. Next Session Instructions (Pillar 4 Transition)
+## 2. Next Session Instructions & Schedule
 
-1. Per our [Pillar Session Isolation Protocol](.agents/skills/pillar-session-isolation/SKILL.md), Pillar 3 is officially frozen and concluded.
-2. Open a **fresh chat session** for **Pillar 4: Static Timing Analysis & Sign-Off (STA)**.
-3. Pillar 4 will perform deep-dive audits on:
+1. **Current Focus:** User is reviewing the educational walkthrough ([`docs/walkthrough_pillar3_physical_asic_flow.md`](docs/walkthrough_pillar3_physical_asic_flow.md)) and inspecting the GDS in KLayout over the weekend.
+2. **Pillar 4 Schedule:** Scheduled for **next week**, or early on **Sunday** if the walkthrough review finishes ahead of time.
+3. **Session Protocol:** When ready to start Pillar 4, open a **fresh chat session** for **Pillar 4: Static Timing Analysis & Sign-Off (STA)** per our [Pillar Session Isolation Protocol](.agents/skills/pillar-session-isolation/SKILL.md).
+4. Pillar 4 will perform deep-dive audits on:
    - SDC timing budgets & clock uncertainty breakdown.
    - Setup and hold slack margin across all 6 OpenROAD corners.
    - Multicycle path definitions and false path exceptions.
