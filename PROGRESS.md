@@ -1,21 +1,15 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-09-24 21:53
+## Last Execution Run: 2026-09-25 17:45
 ### [Built & Packaged]
-- **Open-Source Silicon Licensing:**
-  - `LICENSE`: Added official Apache License Version 2.0 with copyright assigned to Julius Li and Antigravity Contributors, satisfying open silicon tapeout and aggregator requirements.
-  - `README.md`: Linked to `LICENSE` and updated repository status.
-- **CI/CD Concurrency & Path Filtering:**
-  - `.github/workflows/gds.yaml`: Concurrency group with `cancel-in-progress: true` and hardware paths filter verified and active.
+- **Documentation Refinement:**
+  - `docs/walkthrough_pillar3_physical_asic_flow.md`: Updated Stage 3 with detailed mathematical and physical explanation of density evolution from 89.5% initial estimate down to 80.99% hardened silicon. Clarified the interaction between Yosys `_2` cell mapping bias, OpenROAD post-placement physical resizer gate down-sizing (`_1`), and RePlAce electrostatic equilibrium.
 - **Physical Deliverables under `gds/` (Committed & Frozen):**
   - `gds/tt_um_scim_core.gds`: Final binary GDSII layout (16 MB).
   - `gds/tt_um_scim_core.lef`: Macro abstract library file (15 KB).
   - `gds/tt_um_scim_core.v`: Post-route gate-level Verilog netlist (1.6 MB, 5,769 standard cells).
   - `gds/sky130.lyp`: KLayout layer properties file with full Sky130 layer colors and stipples.
   - `gds/metrics.csv`: 272 physical, timing, power, and verification metrics from OpenLane 2 run.
-- **Pedagogical Walkthrough & Layout Previews:**
-  - `docs/walkthrough_pillar3_physical_asic_flow.md`: Comprehensive educational walkthrough of Pillar 3 covering standard-cell synthesis, floorplanning, placement density, CTS, detailed routing, multi-corner STA, and DRC/LVS physical sign-off.
-  - `docs/layout_preview.png`: High-resolution KLayout visual render of the hardened $2\times 2$ GDSII silicon layout mask.
 
 ### [Architecture Decisions & Physical Sign-Off Metrics]
 - **Physical Macro Abstraction & Hierarchical LVS:**

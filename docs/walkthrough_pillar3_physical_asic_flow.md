@@ -105,8 +105,16 @@ If $V_{\text{drop}} > 10\%$ ($>180\,\text{mV}$ on a $1.8\,\text{V}$ rail), trans
 #### Standard-Cell Area Expansion (Forensic Lesson):
 Why did ~2,800 front-end gates expand to **5,769 logic standard cells**?
 1. **16x 13-bit Saturating Accumulators ($\approx 19,200\,\mu\text{m}^2$):** To prevent catastrophic arithmetic wrap-around in two's complement, each accumulator requires a 14-bit adder, **two 14-bit magnitude comparators** (`sum > +4095`, `sum < -4096`), and a 13-bit 3-way saturation clamp MUX.
-2. **17 Wallace Trees ($\approx 15,000\,\mu\text{m}^2$):** 153 discrete 4:2 compressors decomposed into discrete XOR2, NAND, and inverter standard cells.
+2. **17 Wallace Trees ($\approx 15,000\,\mu\text{m}^2$):** 153 discrete 4:2 compressors decomposed into discrete XOR2, NAND, and inverter standard cells. (Includes the single central shared activation tree).
 3. **Weight Memory Flip-Flops ($\approx 4,800\,\mu\text{m}^2$):** Standard-cell D-flip-flops are made of 24–28 discrete transistors ($\approx 15.0\,\mu\text{m}^2$), which is $10\times$ larger than custom 6T SRAM bitcells ($\approx 1.5\,\mu\text{m}^2$).
+
+#### Density Evolution: From 89.5% Estimate to 80.99% Hardened Silicon:
+* **The 89.5% Initial Estimate ($63,548\,\mu\text{m}^2$):** 
+  The architectural savings from the single central shared Wallace tree were already included in the RTL. However, during initial logic synthesis, Yosys has no physical coordinate information and cannot know interconnect wire lengths. To protect against fanout and slew degradation, Yosys conservatively biased almost all combinational gates to **Drive Strength 2 (`_2`)** (e.g., `and2_2`, `or2_2`, `o211a_2`).
+* **OpenROAD Post-Placement Resizing ($58,770.1\,\mu\text{m}^2$):**
+  Once RePlAce placed the cells, OpenROAD evaluated true wire parasitics. Because arithmetic compressor slices were placed adjacent to one another in the same site rows, wire lengths were short ($5\text{--}10\,\mu\text{m}$, $C_{\text{wire}} < 1\,\text{fF}$). OpenROAD's physical resizer (`rsz::repair_design`) systematically down-sized hundreds of oversized `_2` gates to compact **`_1`** cells, shedding **$4,778\,\mu\text{m}^2$** of silicon.
+* **Electrostatic Spreading:** 
+  The OpenLane setting `PL_TARGET_DENSITY: 0.92` served as an electrostatic density ceiling rather than an attractive force. With a true core area of $72,564.6\,\mu\text{m}^2$, RePlAce allowed the cells to spread into a natural equilibrium density of **$80.99\%$**, leaving $19.01\%$ whitespace for clock buffers, well-taps, and routing corridors.
 
 #### Silicon Safety: CMOS Latch-Up Prevention:
 Every CMOS chip contains parasitic bipolar transistors (vertical PNP and lateral NPN) that form a parasitic PNPN thyristor structure between VDD and GND. If substrate or N-well currents create a local $0.7\,\text{V}$ drop, this thyristor turns ON, shorting VDD directly to GND and destroying the silicon in a catastrophic thermal runaway ("latch-up").
