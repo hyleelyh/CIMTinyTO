@@ -18,33 +18,18 @@ In this project:
 
 We adopt a clean, friction-free toolchain that completely eliminates local Docker version conflicts and heavy 20 GB disk downloads:
 
-1. **Front-End & Verification (Pillars 1, 2, 3):**
+1. **Front-End & Verification (Pillars 1, 2):**
    - 100% Native Host OS (`.venv`, `verilator`, `cocotb`, `iverilog`, `gtkwave`).
-   - Runs in milliseconds on both your PC and Laptop.
-2. **Physical Synthesis, STA, & PnR Sign-off (Pillars 4, 5, 6):**
-   - **Tiny Tapeout Official Cloud CI (`tt-gds-action` on GitHub Actions).**
-   - Authoritative source of truth for DRC (0 errors), LVS (0 errors), positive hold slack, and final GDSII generation.
-   - Pinned to the exact shuttle multiplexer rules.
-3. **Silicon Layout Inspection (Pillar 6):**
-   - **Native Local KLayout (v0.30.9).**
-   - Opens the downloaded GDSII artifact smoothly using your PC/Laptop integrated graphics.
-
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                   CIMTinyTO Flow Architecture                          │
-└───────────────────────────────────────────┬────────────────────────────────────────────┘
-                                            │
-               ┌────────────────────────────┴────────────────────────────┐
-               ▼                                                         ▼
-    [Pillars 1, 2, 3: Front-End]                              [Pillars 4, 5, 6: Physical]
-   • Native Host Python (.venv)                              • Tiny Tapeout Official Cloud CI
-   • Verilog RTL Editing & Lint                                (Automated PnR & GDSII Sign-Off)
-   • Local Cocotb / iverilog Simulation                                  │
-                                                                         ▼
-                                                              [Layout Inspection]
-                                                             • Native Local KLayout 0.30.9
-                                                               (Smooth Integrated GPU Viewing)
-```
+   - Mathematical modeling and bit-exact functional verification run in milliseconds.
+2. **Physical ASIC Flow (Pillar 3):**
+   - **Tiny Tapeout Official Cloud CI / OpenLane 2 / OpenROAD.**
+   - Automated synthesis, floorplanning, placement, CTS, routing, Magic DRC (0 errors), and Netgen LVS (0 errors).
+3. **Timing & Gate-Level Sign-Off (Pillars 4, 5):**
+   - Multi-corner STA timing closure across 9 PVT corners (Pillar 4).
+   - Gate-Level Simulation (GLS) with foundry PDK cells and VCD dynamic power profiling (Pillar 5).
+4. **Pre-Silicon Emulation & Bring-Up (Pillars 6, 7):**
+   - High-speed FPGA hardware-in-the-loop emulation on PYNQ-Z2 and DE10-Lite (Pillar 6).
+   - Physical carrier board post-silicon validation and bench characterization (Pillar 7).
 
 ---
 
@@ -53,12 +38,12 @@ We adopt a clean, friction-free toolchain that completely eliminates local Docke
 | Pillar | Milestone | Environment | Antigravity (Automated Actions) | You (Manual Reproduction & Learning) |
 |---|---|---|---|---|
 | **Pillar 1** *(Completed)* | **System & Mathematical Modeling (Gate 0)** | **Native Host OS:** Local Python Virtual Environment (`.venv`) | • Implements `model/sim_scim.py`<br>• Sweeps LFSR periods & seed decorrelation<br>• Verifies $1/\sqrt{N}$ convergence & SNR<br>• Generates `model/test_vectors_gate0.json`<br>• Executes parser self-tests | • In Antigravity IDE: Audits Python algorithm<br>• Terminal: Runs `.venv/bin/python model/sim_scim.py`<br>• Observes full-period collapse ($48\text{ dB}$ SNR) & $61.7\%$ power savings<br>• Inspects test vector JSON schema |
-| **Pillar 2** *(Next)* | **Microarchitecture & Parameterized RTL** | **Native Host OS:** Verilog (IEEE 1364-2001) + `verilator` linter | • Implements synthesizable Verilog in `src/`<br>• Sizes registers, 4:2 compressor trees, and ICG clock gating<br>• Runs `verilator --lint-only -Wall`<br>• Enforces synchronous active-low resets | • In Antigravity IDE: Reviews state machine FSMs<br>• Verifies zero inferred latches<br>• Audits Tiny Tapeout pinout mapping (`tt_um_*`)<br>• Analyzes datapath vs control logic trade-offs |
-| **Pillar 3** | **Verification & Design for Testability (DFT)** | **Native Host:** Python (`cocotb`, `pytest`) + Icarus Verilog (`iverilog`) | • Implements Cocotb testbenches in `test/`<br>• Ingests `test_vectors_gate0.json`<br>• Runs automated regression suites via `make`<br>• Injects corner cases (saturation, zero, checkerboard)<br>• Tests MISO shift loopback | • Terminal: Runs `make -C test`<br>• GUI: Opens `dump.vcd` in **GTKWave** or **Surfer**<br>• Traces cycle-by-cycle clock edges, compressor tree outputs, and accumulator increments<br>• Confirms 100% bit-exact match against Gate 0 |
-| **Pillar 4** | **Logic Synthesis & Technology Mapping (Gate 2)** | **Tiny Tapeout Cloud CI** + Local Hygiene Audit (`scripts/parse_yosys_stat.py`) | • Prepares `config.yaml` & cell mapping<br>• Triggers synthesis hardening CI on push<br>• Runs `scripts/parse_yosys_stat.py`<br>• Audits 256 weight DFF preservation (<30 lines) | • In Antigravity IDE: Audits cell count table<br>• Confirms no weight registers were pruned<br>• Evaluates gate count vs Tiny Tapeout $2\times 2$ tile area (~7,051 cells)<br>• Learns standard cell drive strengths (`_1`, `_2`) |
-| **Pillar 5** | **Static Timing Analysis (STA)** | **Tiny Tapeout Cloud CI** (OpenSTA / OpenROAD) | • Applies timing constraints (`sdc`) at $25\text{–}50\text{ MHz}$<br>• Analyzes Clock Tree Synthesis (CTS) skew<br>• Runs `scripts/parse_openlane_reports.py`<br>• Evaluates WNS / TNS setup & hold slacks | • Reviews STA timing tables in Antigravity IDE<br>• **Hard Silicon Check:** Confirms $T_{\text{slack, hold}} \ge 0.00\text{ ns}$<br>• Traces critical timing paths (Wallace tree XOR chain to accumulator DFF setup time)<br>• Learns PVT corner margins (slow/fast) |
-| **Pillar 6** | **Physical Design & Sign-Off (PnR, DRC, LVS)** | **Tiny Tapeout Cloud CI (PnR)** + **Native Local KLayout (Inspection)** | • Configures floorplan, power rings, and pin placements<br>• Drives automated PnR flow in CI<br>• Audits Magic DRC (0 errors) & Netgen LVS (0 errors)<br>• Downloads final tapeout GDSII | • GUI: Launches **Native KLayout 0.30.9**<br>• Inspects standard-cell placement density ($\approx 58.8\%$ target)<br>• Observes power routing (VDD/VSS rails on met4/met5)<br>• Visualizes 3D metal stack |
-| **Pillar 7** | **Silicon Bring-Up & Hardware Characterization** | **Physical Lab Bench:** RP2040 Carrier + PYNQ-Z2 FPGA via PMOD | • Generates MicroPython/C carrier test firmware<br>• Generates PYNQ-Z2 Vivado overlay bitstream & Python driver (`pynq.Overlay`)<br>• Prepares automated UART/USB test scripts | • Hardware: Plugs USB-C into RP2040 carrier board<br>• Connects 3.3V PMOD cable between PYNQ-Z2 and ASIC<br>• Runs Jupyter Notebook on PYNQ ARM Linux<br>• Logic Analyzer: Hooks PulseView/Sigrok to `uo_out`<br>• Validates live Micro-ResNet classification on silicon! |
+| **Pillar 2** *(Completed)* | **Microarchitecture, Parameterized RTL & Verification** | **Native Host OS:** Verilog (IEEE 1364-2001) + `verilator` + Cocotb / `iverilog` | • Implements synthesizable Verilog in `src/`<br>• Sizes registers, 4:2 compressor trees, and ICG clock gating<br>• Hardens against Silicon Holes #1–#11<br>• Runs automated regressions via `make test_all` | • In Antigravity IDE: Reviews state machine FSMs<br>• Verifies zero inferred latches<br>• Audits Tiny Tapeout pinout mapping (`tt_um_*`)<br>• Traces cycle-by-cycle clock edges & compressor outputs |
+| **Pillar 3** *(Completed)* | **Physical ASIC Flow (PnR, DRC, LVS)** | **OpenLane 2 / OpenROAD** + **Native Local KLayout (Inspection)** | • Configures floorplan, power rings, and pin placements<br>• Drives push-button synthesis, CTS, and detailed routing<br>• Signs off Magic DRC (0 errors) & Netgen LVS (0 errors)<br>• Hardens to $2 \times 2$ macro (~7,051 cells, 58.8% density) | • GUI: Launches **Native KLayout 0.30.9**<br>• Inspects standard-cell placement density<br>• Observes power routing (VDD/VSS rails on met4/met5)<br>• Visualizes 3D metal stack |
+| **Pillar 4** *(Completed)* | **Static Timing Analysis & Power Sign-Off (STA)** | **OpenSTA / OpenROAD** + Local Audit (`scripts/sta_power_audit.py`) | • Evaluates 9 sign-off PVT/RC corners (TT, SS, FF @ -40°C to +100°C)<br>• Audits SDC interface constraints & clock uncertainty<br>• Verifies zero hold violations across all corners ($+0.110\text{ ns}$ worst-case)<br>• Profiles static core power ($2.798\text{ mW}$) and PDN rail IR drop | • Reviews STA timing tables in Antigravity IDE<br>• Confirms positive hold margin across all corners<br>• Traces critical paths (Wallace tree XOR chain to accumulator DFF)<br>• Audits SDC interface assumptions |
+| **Pillar 5** *(Completed)* | **Gate-Level Simulation (GLS) & Dynamic Power** | **Cocotb + Icarus Verilog + Sky130 PDK** + `scripts/gls_power_audit.py` | • Simulates 7,051-cell post-route netlist with foundry library cells<br>• Validates 10/10 Gate 0 golden vectors with 100% bit-exact parity<br>• Verifies pad quiescence (Hole #8, 0 pad transitions during compute)<br>• Correlates VCD toggle activity with SPEF parasitics for dynamic power ($0.418\text{ mW}$) | • Terminal: Runs `make test_gls`<br>• GUI: Opens `test/tb.vcd` in **GTKWave**<br>• Traces physical clock tree delay and `FallingEdge` launch margin<br>• Reviews workload energy-per-MAC ($50.73\text{ pJ/MAC}$) |
+| **Pillar 6** *(Next)* | **Pre-Silicon Emulation (FPGA Testbench)** | **FPGA Platforms:** PYNQ-Z2 (Zynq-7020) & DE10-Lite (MAX 10) | • Synthesizes FPGA bitstreams for Zynq-7020 and MAX 10<br>• Builds MMIO AXI wrapper and PMOD interface<br>• Generates interactive Jupyter Notebook regressions at 50–100 MHz<br>• Implements DE10-Lite 7-segment hex accumulator display | • Connects PYNQ-Z2 via PMOD / Ethernet<br>• Runs interactive Jupyter Notebook on PYNQ ARM Linux<br>• Tests tactile switches and monitors hex display on DE10-Lite<br>• Validates hardware-in-the-loop inference |
+| **Pillar 7** | **Post-Silicon Bring-Up & Board Characterization** | **Physical Lab Bench:** RP2040 Carrier + Korad KA3005P + Oscilloscope | • Prepares MicroPython/C carrier test firmware<br>• Automates UART/USB regression test suite<br>• Characterizes frequency scaling, voltage sag, and thermal margins | • Hardware: Powers RP2040 carrier via current-limited Korad supply ($120\text{ mA}$)<br>• Hooks oscilloscope to clock, busy, and output pins<br>• Validates live Micro-ResNet inference on real silicon! |
 
 ---
 
