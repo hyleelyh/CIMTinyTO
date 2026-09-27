@@ -1,0 +1,21 @@
+{
+  "v_dd": 1.8,
+  "freq_mhz": 50.0,
+  "clock_cycles": 16388,
+  "total_dyn_switch_mw": 0.4175055686109009,
+  "static_p_switch_mw": 0.6787364254705608,
+  "total_workload_power_mw": 2.5364110322219435,
+  "energy_per_mvm_nj": 12.986424484976352,
+  "energy_per_mac_pj": 50.72822064443888,
+  "domain_power_mw": {
+    "Clock Network": 0.23557105974636683,
+    "Reset & Synchronizers": 5.7972927450476464e-05,
+    "SNG LFSR Bank": 0.012642419591017513,
+    "Weight Memory (256 DFFs)": 0.0,
+    "PE Array (16x16)": 0.006512813813470222,
+    "Wallace Tree Compressors": 0.0,
+    "Accumulators (16x 13-bit)": 0.0097829947269424,
+    "Control & IO Pads": 0.00020061855174801854,
+    "Other Core Logic": 0.15273768925390707
+  }
+}

@@ -18,7 +18,7 @@ import atexit
 import numpy as np
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import RisingEdge, FallingEdge, Timer
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from model.sim_scim import SCIMTile, ProcessingElement
@@ -58,16 +58,17 @@ def sign_extend_13(low_byte: int, high_byte: int) -> int:
 
 async def reset_core(dut):
     """Synchronous active-low reset."""
+    await FallingEdge(dut.clk)
     dut.rst_n.value = 0
     dut.ena.value = 1
     dut.ui_in.value = 0
     dut.uio_in.value = 0
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
+    await FallingEdge(dut.clk)
+    await FallingEdge(dut.clk)
     dut.rst_n.value = 1
     # Wait for 2-stage synchronizer (rst_sync_0, rst_sync_1) to release core_rst_n
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
+    await FallingEdge(dut.clk)
+    await FallingEdge(dut.clk)
 
 
 async def load_weights_serial(dut, weights_2d):
@@ -85,17 +86,18 @@ async def load_weights_serial(dut, weights_2d):
             # In hardware: positive weight -> 1, non-positive -> 0
             flat.append(1 if w > 0 else 0)
 
+    await FallingEdge(dut.clk)
     dut.uio_in.value = 0
     # Enable shift
     for idx in range(255, -1, -1):
         bit_val = flat[idx]
         # uio_in[4] = w_din, uio_in[5] = w_shift_en (1 << 5 = 0x20)
         dut.uio_in.value = (1 << 5) | ((bit_val & 1) << 4)
-        await RisingEdge(dut.clk)
+        await FallingEdge(dut.clk)
 
     # Disable shift
     dut.uio_in.value = 0
-    await RisingEdge(dut.clk)
+    await FallingEdge(dut.clk)
 
 
 async def load_activations(dut, inputs_16):
@@ -104,22 +106,23 @@ async def load_activations(dut, inputs_16):
     Uses address auto-increment with wr_act (uio_in[6]).
     """
     # First, set address to 0 using ctrl_strobe (uio_in[7])
+    await FallingEdge(dut.clk)
     dut.ui_in.value = 0x00  # addr = 0
     dut.uio_in.value = (1 << 7)  # ctrl_strobe
-    await RisingEdge(dut.clk)
+    await FallingEdge(dut.clk)
     dut.uio_in.value = 0
-    await RisingEdge(dut.clk)
+    await FallingEdge(dut.clk)
 
     # Write each activation byte; addr auto-increments
     for ch in range(16):
         act_byte = int(inputs_16[ch]) & 0xFF
         dut.ui_in.value = int(act_byte)
         dut.uio_in.value = int(1 << 6)  # wr_act
-        await RisingEdge(dut.clk)
+        await FallingEdge(dut.clk)
 
     dut.uio_in.value = 0
     dut.ui_in.value = 0
-    await RisingEdge(dut.clk)
+    await FallingEdge(dut.clk)
 
 
 async def run_computation(dut, mode: int):
@@ -128,10 +131,11 @@ async def run_computation(dut, mode: int):
     mode: 0, 1, or 2.
     """
     # Set mode and start bit (bit 7) via ctrl_strobe
+    await FallingEdge(dut.clk)
     cmd = (1 << 7) | ((mode & 0x3) << 4)
     dut.ui_in.value = cmd
     dut.uio_in.value = (1 << 7)  # ctrl_strobe
-    await RisingEdge(dut.clk)
+    await FallingEdge(dut.clk)
 
     dut.uio_in.value = 0
     dut.ui_in.value = 0
@@ -155,19 +159,21 @@ async def readback_accumulators(dut) -> list:
     results = []
     for col in range(16):
         # Read low byte: addr = col, byte_sel = 0
+        await FallingEdge(dut.clk)
         cmd_low = (0 << 6) | (col & 0xF)
         dut.ui_in.value = cmd_low
         dut.uio_in.value = (1 << 7)  # ctrl_strobe
-        await RisingEdge(dut.clk)
+        await FallingEdge(dut.clk)
         dut.uio_in.value = 0
         await Timer(1, unit="ns")
         low_byte = int(dut.uo_out.value)
 
         # Read high byte: addr = col, byte_sel = 1
+        await FallingEdge(dut.clk)
         cmd_high = (1 << 6) | (col & 0xF)
         dut.ui_in.value = cmd_high
         dut.uio_in.value = (1 << 7)  # ctrl_strobe
-        await RisingEdge(dut.clk)
+        await FallingEdge(dut.clk)
         dut.uio_in.value = 0
         await Timer(1, unit="ns")
         high_byte = int(dut.uo_out.value)
@@ -260,10 +266,11 @@ async def test_scim_core_silicon_hardening(dut):
     await load_activations(dut, inputs)
 
     # Trigger compute in Mode 0 (start bit = 1, mode = 0)
+    await FallingEdge(dut.clk)
     cmd = (1 << 7) | (0 << 4)
     dut.ui_in.value = cmd
     dut.uio_in.value = (1 << 7)
-    await RisingEdge(dut.clk)
+    await FallingEdge(dut.clk)
     dut.uio_in.value = 0
     dut.ui_in.value = 0
     await RisingEdge(dut.clk)
@@ -281,10 +288,12 @@ async def test_scim_core_silicon_hardening(dut):
         assert dut.uio_out[0].value == 1, "Expected core to be busy during compute!"
         if int(dut.uo_out.value) != 0:
             pad_violations += 1
+        await FallingEdge(dut.clk)
         dut.uio_in.value = (1 << 5) | (1 << 4)  # w_shift_en = 1, w_din = 1
         await RisingEdge(dut.clk)
 
     # Release shift pin well before compute finishes
+    await FallingEdge(dut.clk)
     dut.uio_in.value = 0
 
     # Wait until done, verifying uo_out remains 0 while busy
@@ -314,10 +323,11 @@ async def test_scim_core_silicon_hardening(dut):
     await load_activations(dut, inputs)
 
     # Start compute with mode = 3 (2'b11)
+    await FallingEdge(dut.clk)
     cmd = (1 << 7) | (3 << 4)
     dut.ui_in.value = cmd
     dut.uio_in.value = (1 << 7)
-    await RisingEdge(dut.clk)
+    await FallingEdge(dut.clk)
     dut.uio_in.value = 0
     dut.ui_in.value = 0
 

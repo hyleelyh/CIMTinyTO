@@ -1,43 +1,51 @@
 # Session Handoff
 
-- **Date:** 2026-09-26 15:30
+- **Date:** 2026-09-26 19:40
 - **Machine:** Host (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Pillar 4 signed off, documented, and verified. Ready for Pillar 5.
+- **Sync Status:** Pillar 5 signed off, documented, and verified. Ready for Pillar 6.
 
 ---
 
-## 1. Current State: Pillar 4 (Static Timing Analysis & Sign-Off) — Signed Off & Frozen
+## 1. Current State: Pillar 5 (Gate-Level Simulation & Dynamic Power) — Signed Off & Frozen
 
-1. **Multi-Corner STA Verified Across 9 Corners:**
-   - **Zero Hold Violations:** Positive hold slack (+0.110 ns to +0.388 ns) across all corners, guaranteeing silicon freedom from race conditions.
-   - **Nominal Room-Temperature Headroom:** Setup slack is **+9.87 ns** at 50 MHz (`nom_tt_025C_1v80`), with maximum operating frequency of **98.7 MHz**.
-   - **Worst-Case RC Boundary (`max_ss_100C_1v60`):** Setup slack is **-0.145 ns** (-145 ps) on 12 accumulator bits. Achievable clock frequency under 100°C / 1.60V / 3-sigma slow silicon is **49.64 MHz** (0.7% delta from 50 MHz).
-2. **External SDC Assumptions Audited:**
-   - 33.4 fF output load model validated against row MUX input gate and metal stub parasitics; OpenROAD output buffering and Hole #8 `!busy` gating make compute timing immune to load variations.
-   - External driving cell (`inv_2`), 2.0 ns I/O delay budget, and 500 ps/200 ps clock uncertainty validated.
-   - False path on `rst_n` verified with 2-stage synchronizer achieving MTBF > 1.0 × 10¹⁰ years.
-3. **Dynamic Power & Energy Profiling:**
-   - Core power: **2.80 mW** at 50 MHz (75.7% internal, 24.3% switching, <0.01% leakage).
-   - Energy efficiency: **55.95 pJ / MAC** (14.32 nJ per 16x16 MVM, 50.0 MMAC/s throughput).
-   - PDN integrity: Static IR drop is 68.0 µV (0.0038% of rail) and ground bounce is 101.4 µV.
+1. **Full Gate-Level Silicon Verification (100% Bit-Exact Match):**
+   - Simulated 67,615-line post-route netlist (`gds/tt_um_scim_core.v`) with 7,051 placed instances using official SkyWater 130nm library models (`sky130_fd_sc_hd`).
+   - All 10 Gate 0 golden test vectors (Mode 0 Unipolar, Mode 1 Bipolar, Mode 2 Hybrid ReLU) achieved 100% bit-exact parity across all 16 accumulator channels.
+   - Silicon Hardening Defenses verified on physical gates:
+     - Hole #8 (Pad Quiescence): External output pads `uo_out[7:0]` remained locked at `8'h00` with 0 transitions during 256 cycles of active compute.
+     - Hole #7 (Shift Interlock): Serial weight shift locked out during compute (`busy == 1`).
+     - Hole #10 (Illegal Mode Clamping): Undefined mode `2'b11` clamped column deltas to 0.
+   - Constrained-Random Verification (CRV): 15 / 15 randomized trials passed (240 / 240 accumulator columns bit-exact).
+2. **Clock Edge Discipline (`FallingEdge`):**
+   - Discovered and resolved testbench sampling race condition by driving inputs on `FallingEdge(clk)`, providing $10.0\text{ ns}$ setup and hold margins against internal clock tree buffering.
+3. **VCD-Driven Dynamic Switching Power & Energy Telemetry:**
+   - Mapped 5,988 out of 6,000 physical nets ($99.8\%$ coverage) from $5.4\text{ MB}$ gate-level VCD trace (`test/tb.vcd`) to post-route SPEF parasitics ($29.41\text{ pF}$ chip capacitance).
+   - Dynamic switching power is **$0.418\text{ mW}$** at $50\text{ MHz}$ ($1.80\text{V}$, nominal)—a **$38.5\%$ reduction** compared to OpenROAD's static STA assumption ($0.679\text{ mW}$) due to activation sparsity and unipolar zero-suppression.
+   - Total active core power: **$2.536\text{ mW}$** (Internal: $2.119\text{ mW}$, Switching: $0.418\text{ mW}$, Leakage: $52.54\text{ nW}$).
+   - Energy efficiency: **$50.73\text{ pJ / MAC}$** ($12.99\text{ nJ}$ per $16 \times 16$ MVM, $50.0\text{ MMAC/s}$ throughput).
+   - Pad Quiescence (Hole #8) saves **$5.45\text{ mW}$** of board-level PCB pad switching power.
 4. **Deliverables Completed:**
-   - `scripts/sta_power_audit.py` (Automated STA, power, and SDC audit engine).
-   - `src/scim_core.sdc` (Comprehensive educational annotations of all timing constraints).
-   - `docs/pillar4_static_timing_analysis_and_power_signoff.md` (Detailed pedagogical STA treatise).
-   - `docs/walkthrough_pillar4_sta_power.md` (Formal walkthrough report).
+   - `test/tb.v` (Tiny Tapeout testbench wrapper with explicit power rails `VPWR`/`VGND` and waveform dumper).
+   - `test/Makefile` (Dual-mode harness supporting RTL and Gate-Level Simulation).
+   - `test/test_scim_core.py` (Cocotb verification suite with `FallingEdge` clocking discipline).
+   - `test/tb.vcd` ($5.4\text{ MB}$ gate-level waveform trace).
+   - `scripts/gls_power_audit.py` (Automated VCD + SPEF dynamic power audit engine).
+   - `docs/pillar5_power_metrics.json` (Structured JSON power metrics).
+   - `docs/pillar5_gls_and_dynamic_power_signoff.md` (Detailed pedagogical GLS & power treatise).
+   - `docs/walkthrough_pillar5_gls_power.md` (Formal walkthrough report).
 
 ---
 
-## 2. Next Session Instructions (Pillar 5)
+## 2. Next Session Instructions (Pillar 6)
 
 Per our **Pillar Session Isolation Protocol** (`.agents/skills/pillar-session-isolation/SKILL.md`):
-1. **Pillar 4 is 100% complete, verified, and frozen.**
-2. **Do NOT proceed with Pillar 5 implementation in this chat session.**
+1. **Pillar 5 is 100% complete, verified, and frozen.**
+2. **Do NOT proceed with Pillar 6 implementation in this chat session.**
 3. Open a **fresh chat session** to initiate:
-   **Pillar 5: Gate-Level Simulation (GLS) & Power Analysis**
-4. Pillar 5 deliverables:
-   - Post-synthesis and post-route netlist simulation (`gds/tt_um_scim_core.v`).
-   - Standard Delay Format (SDF) back-annotation across min/typ/max timing corners.
-   - VCD activity dump generation during Gate 0 inference vector execution.
-   - VCD-driven switching power recalculation in OpenROAD to cross-correlate static vs. dynamic activity power.
+   **Pillar 6: Pre-Silicon Emulation (FPGA Testbench)**
+4. Pillar 6 deliverables:
+   - High-speed 50–100 MHz validation on **PYNQ-Z2** (Xilinx Zynq-7020) and **DE10-Lite** (Intel MAX 10).
+   - MMIO AXI driver and interactive Jupyter Notebook on PYNQ ARM Linux.
+   - Tactile logic console on DE10-Lite with 7-segment hex accumulator displays.
+   - End-to-end hardware-in-the-loop inference regression.
