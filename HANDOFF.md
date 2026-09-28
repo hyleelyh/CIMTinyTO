@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-09-27 17:52
-- **Machine:** Host (`juliusli`)
+- **Date:** 2026-09-28 08:05
+- **Machine:** Host / Laptop (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Pillars 1–5 completed, verified, Red-Team audited, documented, pushed, and frozen. GDSII release ready for tapeout. Ready for Pillar 6.
+- **Sync Status:** Pillars 1–5 completed, verified, Red-Team audited, documented, pushed, and frozen. Added automatic volare PDK resolution. Ready for Pillar 6.
 
 ---
 
@@ -11,10 +11,12 @@
 
 To review the complete verification results, test matrix, and waveforms on your laptop:
 
-1. **Pull the latest commits:**
+1. **Pull the latest commits & ensure dependencies:**
    ```bash
    git pull origin main
+   pip install -r test/requirements.txt
    ```
+   *(Note: `test/Makefile` now automatically downloads the required SkyWater 130nm library models via `volare` on the first run if missing!)*
 2. **Review Formal Documentation & Walkthroughs:**
    * **Pillar 5 Walkthrough (Complete 11-Test Matrix & Silicon Findings):** [`docs/walkthrough_pillar5_gls_power.md`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/walkthrough_pillar5_gls_power.md)
    * **Pillar 5 Pedagogical Treatise (GLS Physics & Power):** [`docs/pillar5_gls_and_dynamic_power_signoff.md`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/pillar5_gls_and_dynamic_power_signoff.md)

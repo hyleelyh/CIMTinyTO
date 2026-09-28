@@ -68,6 +68,12 @@ include $(shell cocotb-config --makefiles)/Makefile.sim
 all: sim
 	@if [ -f results.xml ]; then sed -i 's/failures="0"/fails="0"/g' results.xml; fi
 
+# Automatic PDK standard-cell model fetch if missing
+$(SKY130_VERILOG)/primitives.v:
+	@echo "SkyWater 130nm simulation models missing in $(SKY130_VERILOG)."
+	@echo "Fetching sky130_fd_sc_hd standard cell library via volare..."
+	@volare enable 0fe599b2afb6708d281543108caf8310912f54af -l sky130_fd_sc_hd
+
 # Automatic netlist sync for gate-level tests
 $(CURDIR)/gate_level_netlist.v:
 	@if [ -f $(CURDIR)/../gds/tt_um_scim_core.v ]; then \

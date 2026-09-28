@@ -1,9 +1,11 @@
 # Project Progress: CIMTinyTO
 
-## Execution Run: 2026-09-27 (Pillar 5 Gate-Level Sign-Off & Red Team Audit Complete)
+## Execution Run: 2026-09-28 (Pillar 5 Review & Self-Healing PDK Model Resolution)
 
 ### [Built & Verified — Pillar 5: Gate-Level Simulation (GLS) & Dynamic Power]
 - **Gate-Level Simulation (GLS) Harness & PDK Integration:**
+  - `test/requirements.txt`: Added `volare>=0.20.0` dependency for automated standard-cell simulation model fetching.
+  - `test/Makefile`: Added self-healing target `$(SKY130_VERILOG)/primitives.v` that automatically invokes `volare enable` if foundry library models are missing on local test hosts/laptops.
   - `test/tb.v`: Standard Tiny Tapeout testbench wrapper providing explicit physical power rails (`VPWR = 1'b1`, `VGND = 1'b0`) and dynamic plusarg waveform dumper (`+DUMPFILE=`) supporting isolated per-test `.vcd` files.
   - `test/Makefile`: Dual-mode Makefile supporting behavioral RTL simulation (`make test_all`), Gate-Level Simulation (`make test_gls`), and isolated milestone waveform dumping (`make gls_waves_dft`, `make gls_waves_saturation`, `make gls_waves_overclock`) with automatic Volare Sky130 PDK library resolution.
   - `test/test_scim_core.py`: Hardened Cocotb verification harness with `FallingEdge(clk)` stimulus timing, providing $10.0\text{ ns}$ setup and hold margins against on-chip clock tree buffering. Expanded to **11 physical gate-level test suites (100% PASS)** covering functional, hardening, DFT, overflow, and overclocking suites.
