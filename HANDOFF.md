@@ -1,9 +1,38 @@
 # Session Handoff
 
-- **Date:** 2026-09-27 14:20
+- **Date:** 2026-09-27 17:52
 - **Machine:** Host (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Pillars 4 and 5 completed, verified, Red-Team audited, documented, and frozen. GDSII release ready for tapeout. Ready for Pillar 6.
+- **Sync Status:** Pillars 1–5 completed, verified, Red-Team audited, documented, pushed, and frozen. GDSII release ready for tapeout. Ready for Pillar 6.
+
+---
+
+## Laptop Review & Walkthrough Access
+
+To review the complete verification results, test matrix, and waveforms on your laptop:
+
+1. **Pull the latest commits:**
+   ```bash
+   git pull origin main
+   ```
+2. **Review Formal Documentation & Walkthroughs:**
+   * **Pillar 5 Walkthrough (Complete 11-Test Matrix & Silicon Findings):** [`docs/walkthrough_pillar5_gls_power.md`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/walkthrough_pillar5_gls_power.md)
+   * **Pillar 5 Pedagogical Treatise (GLS Physics & Power):** [`docs/pillar5_gls_and_dynamic_power_signoff.md`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/pillar5_gls_and_dynamic_power_signoff.md)
+   * **Pillar 4 Walkthrough (STA Multi-Corner Sign-Off):** [`docs/walkthrough_pillar4_sta_power.md`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/walkthrough_pillar4_sta_power.md)
+   * **Power Metrics JSON:** [`docs/pillar5_power_metrics.json`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/pillar5_power_metrics.json)
+3. **Generate Waveforms on Demand (if inspecting with GTKWave / Surfer):**
+   * *Full Suite (all 11 tests):*
+     ```bash
+     PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves
+     ```
+   * *Single Target Test (e.g. DFT Scan Chain Loopback):*
+     ```bash
+     PATH=$(pwd)/.venv/bin:$PATH TESTCASE=test_scim_core_dft_loopback make -C test gls_waves
+     ```
+   * *View in GTKWave or Surfer:*
+     ```bash
+     gtkwave test/tb.vcd
+     ```
 
 ---
 

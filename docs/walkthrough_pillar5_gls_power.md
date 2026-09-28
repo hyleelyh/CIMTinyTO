@@ -88,6 +88,59 @@ The automated power audit identified the top dynamic power consumers in the core
 
 ---
 
-## 4. Final Sign-Off Verdict
+## 4. Waveform Inspection & Reproduction Guide (GTKWave / Surfer)
+
+For detailed waveform analysis on local or remote workstations (PC or Laptop), use the instructions below to generate and inspect gate-level traces.
+
+### 4.1 Waveform Generation Commands
+
+By default, `make -C test test_gls` runs with `WAVES=0` to maximize execution speed (8.8s runtime). To capture waveform dumps into `test/tb.vcd`:
+
+* **Dump Full Suite (All 11 Tests, ~18 MB VCD):**
+  ```bash
+  PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves
+  ```
+
+* **Dump Targeted Test Only (Fast & Clean Navigation):**
+  * DFT Scan Chain Loopback:
+    ```bash
+    PATH=$(pwd)/.venv/bin:$PATH TESTCASE=test_scim_core_dft_loopback make -C test gls_waves
+    ```
+  * Saturation Clamping & Sticky Overflow:
+    ```bash
+    PATH=$(pwd)/.venv/bin:$PATH TESTCASE=test_scim_core_saturation_sticky_overflow make -C test gls_waves
+    ```
+  * Silicon Overclocking at 200 MHz:
+    ```bash
+    PATH=$(pwd)/.venv/bin:$PATH TESTCASE=test_scim_core_overclocking_200mhz make -C test gls_waves
+    ```
+
+### 4.2 Recommended Signal Probes in GTKWave / Surfer
+
+When opening `test/tb.vcd` in GTKWave (`gtkwave test/tb.vcd`) or the VS Code Surfer extension, add the following signal groups for diagnosis:
+
+1. **System & Timing:**
+   * `tb.clk` (Clock)
+   * `tb.rst_n` (Active-low reset)
+   * `tb.ena` (Macro enable)
+2. **Control & FSM:**
+   * `tb.uio_in[1:0]` (Mode: `00` Unipolar, `01` Bipolar, `10` Hybrid ReLU)
+   * `tb.uio_in[2]` (Start pulse)
+   * `tb.uio_out[0]` (`busy` handshake)
+   * `tb.uio_out[1]` (`done` strobe)
+3. **DFT Scan Chain:**
+   * `tb.uio_in[3]` (`w_shift` enable)
+   * `tb.uio_in[4]` (`w_din` serial input)
+   * `tb.uio_out[2]` (`w_dout` serial output — observe 256-cycle delay match)
+4. **Saturation & Silicon Safety:**
+   * `tb.uio_out[3]` (`any_overflow` sticky alarm — observe latching high and auto-clearing)
+5. **Data Bus & Pad Quiescence:**
+   * `tb.ui_in[7:0]` (Input activations / SNG seeds)
+   * `tb.uo_out[7:0]` (Output byte — observe `8'h00` flatline during compute, followed by 32-byte readout stream)
+
+---
+
+## 5. Final Sign-Off Verdict
 
 With 11 / 11 physical gate-level suites passing with 100% bit-exact accuracy, DFT scan continuity proven, sticky saturation alarms validated, back-to-back inference robustness verified, and massive overclocking margin demonstrated up to 200 MHz, **the CIMTinyTO macro is 100% verified, hardened, and cleared for tapeout!**
+
