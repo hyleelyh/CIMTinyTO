@@ -92,28 +92,37 @@ The automated power audit identified the top dynamic power consumers in the core
 
 For detailed waveform analysis on local or remote workstations (PC or Laptop), use the instructions below to generate and inspect gate-level traces.
 
-### 4.1 Waveform Generation Commands
+### 4.1 Dedicated Waveform Generation Commands
 
-By default, `make -C test test_gls` runs with `WAVES=0` to maximize execution speed (8.8s runtime). To capture waveform dumps into `test/tb.vcd`:
+By default, `make -C test test_gls` runs with `WAVES=0` to maximize execution speed (8.8s runtime). To capture waveforms, the testbench dynamically accepts `+DUMPFILE=` via Verilog `$value$plusargs`, allowing each milestone test to be saved to its own isolated `.vcd` file without overwriting previous results:
 
-* **Dump Full Suite (All 11 Tests, ~18 MB VCD):**
+* **1. DFT Serial Weight Scan Chain (`waves_dft_loopback.vcd`):**
+  ```bash
+  PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves_dft
+  ```
+  *(Captures all 256 bits shifting through pad `uio_out[2]` `w_dout`)*
+
+* **2. Extreme Saturation & Sticky Overflow (`waves_saturation.vcd`):**
+  ```bash
+  PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves_saturation
+  ```
+  *(Captures $+4095$ saturation clamping and pad `uio_out[3]` `any_overflow` assertion)*
+
+* **3. Silicon Overclocking at 200 MHz (`waves_overclock_200mhz.vcd`):**
+  ```bash
+  PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves_overclock
+  ```
+  *(Captures 5.0 ns period high-speed clocking and Wallace tree convergence)*
+
+* **4. Full Regression Suite (All 11 Tests, `tb.vcd`):**
   ```bash
   PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves
   ```
 
-* **Dump Targeted Test Only (Fast & Clean Navigation):**
-  * DFT Scan Chain Loopback:
-    ```bash
-    PATH=$(pwd)/.venv/bin:$PATH TESTCASE=test_scim_core_dft_loopback make -C test gls_waves
-    ```
-  * Saturation Clamping & Sticky Overflow:
-    ```bash
-    PATH=$(pwd)/.venv/bin:$PATH TESTCASE=test_scim_core_saturation_sticky_overflow make -C test gls_waves
-    ```
-  * Silicon Overclocking at 200 MHz:
-    ```bash
-    PATH=$(pwd)/.venv/bin:$PATH TESTCASE=test_scim_core_overclocking_200mhz make -C test gls_waves
-    ```
+* **5. Custom Dynamic Test & Output Naming:**
+  ```bash
+  PATH=$(pwd)/.venv/bin:$PATH TESTCASE=<test_name> DUMPFILE=<output.vcd> make -C test gls_waves
+  ```
 
 ### 4.2 Recommended Signal Probes in GTKWave / Surfer
 

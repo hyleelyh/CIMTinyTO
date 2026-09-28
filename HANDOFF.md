@@ -20,18 +20,26 @@ To review the complete verification results, test matrix, and waveforms on your 
    * **Pillar 5 Pedagogical Treatise (GLS Physics & Power):** [`docs/pillar5_gls_and_dynamic_power_signoff.md`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/pillar5_gls_and_dynamic_power_signoff.md)
    * **Pillar 4 Walkthrough (STA Multi-Corner Sign-Off):** [`docs/walkthrough_pillar4_sta_power.md`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/walkthrough_pillar4_sta_power.md)
    * **Power Metrics JSON:** [`docs/pillar5_power_metrics.json`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/pillar5_power_metrics.json)
-3. **Generate Waveforms on Demand (if inspecting with GTKWave / Surfer):**
-   * *Full Suite (all 11 tests):*
+3. **Generate Waveforms on Demand (Isolated per-test `.vcd` files):**
+   * *DFT Scan Chain Loopback (`waves_dft_loopback.vcd`):*
+     ```bash
+     PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves_dft
+     ```
+   * *Saturation Clamping & Sticky Overflow (`waves_saturation.vcd`):*
+     ```bash
+     PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves_saturation
+     ```
+   * *Silicon Overclocking at 200 MHz (`waves_overclock_200mhz.vcd`):*
+     ```bash
+     PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves_overclock
+     ```
+   * *Full Suite (all 11 tests, `tb.vcd`):*
      ```bash
      PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves
      ```
-   * *Single Target Test (e.g. DFT Scan Chain Loopback):*
-     ```bash
-     PATH=$(pwd)/.venv/bin:$PATH TESTCASE=test_scim_core_dft_loopback make -C test gls_waves
-     ```
    * *View in GTKWave or Surfer:*
      ```bash
-     gtkwave test/tb.vcd
+     gtkwave test/waves_dft_loopback.vcd
      ```
 
 ---

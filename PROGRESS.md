@@ -4,10 +4,10 @@
 
 ### [Built & Verified — Pillar 5: Gate-Level Simulation (GLS) & Dynamic Power]
 - **Gate-Level Simulation (GLS) Harness & PDK Integration:**
-  - `test/tb.v`: Standard Tiny Tapeout testbench wrapper providing explicit physical power rails (`VPWR = 1'b1`, `VGND = 1'b0`) and waveform dumper.
-  - `test/Makefile`: Dual-mode Makefile supporting behavioral RTL simulation (`make test_all`), Gate-Level Simulation (`make test_gls`), and waveform dumping (`make gls_waves`) with automatic Volare Sky130 PDK library resolution.
+  - `test/tb.v`: Standard Tiny Tapeout testbench wrapper providing explicit physical power rails (`VPWR = 1'b1`, `VGND = 1'b0`) and dynamic plusarg waveform dumper (`+DUMPFILE=`) supporting isolated per-test `.vcd` files.
+  - `test/Makefile`: Dual-mode Makefile supporting behavioral RTL simulation (`make test_all`), Gate-Level Simulation (`make test_gls`), and isolated milestone waveform dumping (`make gls_waves_dft`, `make gls_waves_saturation`, `make gls_waves_overclock`) with automatic Volare Sky130 PDK library resolution.
   - `test/test_scim_core.py`: Hardened Cocotb verification harness with `FallingEdge(clk)` stimulus timing, providing $10.0\text{ ns}$ setup and hold margins against on-chip clock tree buffering. Expanded to **11 physical gate-level test suites (100% PASS)** covering functional, hardening, DFT, overflow, and overclocking suites.
-  - `test/tb.vcd`: $5.4\text{ MB}$ gate-level switching waveform dump capturing execution cycles.
+  - Waveforms: $5.4\text{ MB}$ gate-level switching waveform dump (`test/tb.vcd`) plus dedicated isolated targets for milestone tests.
 - **VCD-Driven Dynamic Power Audit Engine:**
   - `scripts/gls_power_audit.py`: Self-testing Python engine that correlates cycle-by-cycle VCD toggle transitions with post-route SPEF parasitics ($29.41\text{ pF}$ chip capacitance across 5,988 matched nets) to compute exact dynamic switching power.
 - **Pedagogical Treatise & Sign-Off Documentation:**

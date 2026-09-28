@@ -55,6 +55,8 @@ endif
 # Waveform dumping if requested
 ifeq ($(WAVES), 1)
     COMPILE_ARGS += -DWAVES
+    DUMPFILE ?= $(if $(TESTCASE),waves_$(TESTCASE).vcd,tb.vcd)
+    PLUSARGS += +DUMPFILE=$(DUMPFILE)
 endif
 
 # Default target: run simulation and sanitize results.xml for Tiny Tapeout CI
@@ -77,7 +79,7 @@ $(CURDIR)/gate_level_netlist.v:
 # ==============================================================================
 # Custom Targets for Submodule Unit Testing & Gate-Level Simulation
 # ==============================================================================
-.PHONY: test_lfsr test_compressor test_wallace test_core test_all test_gls gls_waves clean_all
+.PHONY: test_lfsr test_compressor test_wallace test_core test_all test_gls gls_waves gls_waves_dft gls_waves_saturation gls_waves_overclock clean_all
 
 test_lfsr:
 	$(MAKE) -B SIM=$(SIM) TOPLEVEL=lfsr8_galois MODULE=test_lfsr VERILOG_SOURCES="$(SRC_DIR)/lfsr8_galois.v"
@@ -104,11 +106,20 @@ test_gls: $(CURDIR)/gate_level_netlist.v
 	@echo "========================================================"
 
 gls_waves: $(CURDIR)/gate_level_netlist.v
-	$(MAKE) -B GATES=yes WAVES=1 TOPLEVEL=tb MODULE=test_scim_core
+	$(MAKE) -B GATES=yes WAVES=1 TOPLEVEL=tb MODULE=test_scim_core DUMPFILE=$(DUMPFILE)
 	@if [ -f results.xml ]; then sed -i 's/failures="0"/fails="0"/g' results.xml; fi
 	@echo "========================================================"
-	@echo " GLS WAVEFORMS DUMPED TO tb.vcd SUCCESSFULLY! "
+	@echo " GLS WAVEFORMS DUMPED TO $(DUMPFILE) SUCCESSFULLY! "
 	@echo "========================================================"
 
+gls_waves_dft: $(CURDIR)/gate_level_netlist.v
+	$(MAKE) gls_waves TESTCASE=test_scim_core_dft_loopback DUMPFILE=waves_dft_loopback.vcd
+
+gls_waves_saturation: $(CURDIR)/gate_level_netlist.v
+	$(MAKE) gls_waves TESTCASE=test_scim_core_saturation_sticky_overflow DUMPFILE=waves_saturation.vcd
+
+gls_waves_overclock: $(CURDIR)/gate_level_netlist.v
+	$(MAKE) gls_waves TESTCASE=test_scim_core_overclocking_200mhz DUMPFILE=waves_overclock_200mhz.vcd
+
 clean_all: clean
-	rm -rf sim_build __pycache__ results.xml *.vcd gate_level_netlist.v
+	rm -rf sim_build __pycache__ results.xml *.vcd *.fst gate_level_netlist.v

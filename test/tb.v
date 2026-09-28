@@ -18,8 +18,13 @@ module tb (
 );
 
 `ifdef WAVES
+  reg [1023:0] dump_filename;
   initial begin
-    $dumpfile("tb.vcd");
+    if ($value$plusargs("DUMPFILE=%s", dump_filename)) begin
+      $dumpfile(dump_filename);
+    end else begin
+      $dumpfile("tb.vcd");
+    end
     $dumpvars(0, tb);
   end
 `endif
