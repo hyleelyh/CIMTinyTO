@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-09-28 21:35
+- **Date:** 2026-09-29 08:44
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Pillars 1–5 completed, verified, Red-Team audited, isolated waveforms verified (`waves_dft_loopback.vcd`, `waves_saturation.vcd`, `waves_overclock_200mhz.vcd`), self-healing volare PDK resolution verified, documented, pushed, and frozen. GDSII release ready for tapeout. Ready for Pillar 6.
+- **Sync Status:** Pillars 1–5 completed, verified, Red-Team audited, DFT scan & weight-stationary CIM architecture reviewed, documented, pushed, and frozen. GDSII release ready for tapeout. Ready for Pillar 6 in a fresh session.
 
 ---
 
