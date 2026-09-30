@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-09-29 21:05
+- **Date:** 2026-09-30 08:20
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Pillars 1–5 completed, verified, Red-Team audited, waveforms reviewed (saturation clamping, sticky alarms, Vector 0 vs 1 stochastic contrast), documented, pushed, and frozen. GDSII release ready for tapeout. Ready for Pillar 6 launch on Sunday/next week in a fresh session.
+- **Sync Status:** Pillars 1–5 completed, verified, Red-Team audited, waveforms reviewed (DFT loopback, golden vectors suite, Make architecture), documented, pushed, and frozen. GDSII release ready for tapeout. Ready for Pillar 6 launch in a fresh session.
 
 ---
 
@@ -23,6 +23,10 @@ To review the complete verification results, test matrix, and waveforms on your 
    * **Pillar 4 Walkthrough (STA Multi-Corner Sign-Off):** [`docs/walkthrough_pillar4_sta_power.md`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/walkthrough_pillar4_sta_power.md)
    * **Power Metrics JSON:** [`docs/pillar5_power_metrics.json`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/pillar5_power_metrics.json)
 3. **Generate Waveforms on Demand (Isolated per-test `.vcd` files):**
+   * *Golden Vectors Suite (`waves_golden_vectors.vcd`):*
+     ```bash
+     PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves_golden
+     ```
    * *DFT Scan Chain Loopback (`waves_dft_loopback.vcd`):*
      ```bash
      PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves_dft

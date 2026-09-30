@@ -85,7 +85,7 @@ $(CURDIR)/gate_level_netlist.v:
 # ==============================================================================
 # Custom Targets for Submodule Unit Testing & Gate-Level Simulation
 # ==============================================================================
-.PHONY: test_lfsr test_compressor test_wallace test_core test_all test_gls gls_waves gls_waves_dft gls_waves_saturation gls_waves_overclock clean_all
+.PHONY: test_lfsr test_compressor test_wallace test_core test_all test_gls gls_waves gls_waves_golden gls_waves_dft gls_waves_saturation gls_waves_overclock clean_all
 
 test_lfsr:
 	$(MAKE) -B SIM=$(SIM) TOPLEVEL=lfsr8_galois MODULE=test_lfsr VERILOG_SOURCES="$(SRC_DIR)/lfsr8_galois.v"
@@ -117,6 +117,9 @@ gls_waves: $(CURDIR)/gate_level_netlist.v
 	@echo "========================================================"
 	@echo " GLS WAVEFORMS DUMPED TO $(DUMPFILE) SUCCESSFULLY! "
 	@echo "========================================================"
+
+gls_waves_golden: $(CURDIR)/gate_level_netlist.v
+	$(MAKE) gls_waves TESTCASE=test_scim_core_gate0_vectors DUMPFILE=waves_golden_vectors.vcd
 
 gls_waves_dft: $(CURDIR)/gate_level_netlist.v
 	$(MAKE) gls_waves TESTCASE=test_scim_core_dft_loopback DUMPFILE=waves_dft_loopback.vcd
