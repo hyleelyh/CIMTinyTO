@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-09-29 08:44
+- **Date:** 2026-09-29 21:05
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Pillars 1–5 completed, verified, Red-Team audited, DFT scan & weight-stationary CIM architecture reviewed, documented, pushed, and frozen. GDSII release ready for tapeout. Ready for Pillar 6 in a fresh session.
+- **Sync Status:** Pillars 1–5 completed, verified, Red-Team audited, waveforms reviewed (saturation clamping, sticky alarms, Vector 0 vs 1 stochastic contrast), documented, pushed, and frozen. GDSII release ready for tapeout. Ready for Pillar 6 launch on Sunday/next week in a fresh session.
 
 ---
 

@@ -69,7 +69,7 @@
 - **Pillar 5 (Gate-Level Simulation & Dynamic Power Sign-off): 100% COMPLETE, VERIFIED, RED-TEAM AUDITED & FROZEN.**
 
 ### [Next Steps]
-1. User to open a **fresh chat session** to initiate **Pillar 6 (Pre-Silicon Emulation on FPGA)** per the Pillar Session Isolation Protocol.
+1. User to open a **fresh chat session** on Sunday or next week to initiate **Pillar 6 (Pre-Silicon Emulation on FPGA)** per the Pillar Session Isolation Protocol.
 2. Pillar 6 will perform:
    - Synthesis, implementation, and bitstream generation for PYNQ-Z2 (Xilinx Zynq-7020) and DE10-Lite (Intel MAX 10).
    - High-speed 50–100 MHz hardware-in-the-loop testbench via PMOD / GPIO headers.
