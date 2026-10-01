@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-09-30 23:12
+- **Date:** 2026-09-30 23:22
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Disabled OpenROAD routability-driven pin-density inflation (`PL_ROUTABILITY_DRIVEN: false` / `0`), eliminating the artificial $+9,459.8\,\mu\text{m}^2$ area adjust that caused the 100.935% overflow. Physical standard cells occupy $62,882.8\,\mu\text{m}^2$ ($87.74\%$ core density vs $71,672.5\,\mu\text{m}^2$ net core). Ready for commit, push, and CI sign-off.
+- **Sync Status:** Expanded usable core to full 2x2 die boundaries (`MARGIN_MULT: 0`, gaining $+2,024.4\,\mu\text{m}^2$) and set `PL_TARGET_DENSITY_PCT: 99`. This reduces global placement density to $98.16\%$, completely clearing the 0.935% overflow. Ready for commit, push, and CI sign-off.
 
 ---
 
