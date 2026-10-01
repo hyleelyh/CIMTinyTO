@@ -1,20 +1,17 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-01 00:28 (Tiny Tapeout sky26d Flow Calibration — 1-Site Lateral Margins, 98.44% Placer Density)
+## Last Execution Run: 2026-10-01 00:40 (Tiny Tapeout sky26d Flow Calibration — GRT Congestion Handoff & Overflow Iterations)
 
 ### [Built]
-- `src/config.json`: Calibrated floorplan geometry to `LEFT_MARGIN_MULT: 1` and `RIGHT_MARGIN_MULT: 1` ($0.46\,\mu\text{m}$ clearance each) with `TOP_MARGIN_MULT: 0` and `BOTTOM_MARGIN_MULT: 0`. This establishes a gross core area of $75,394.8\,\mu\text{m}^2$ and net usable core of **$73,489.2\,\mu\text{m}^2$**. Against the total adjusted instance area of $72,342.6\,\mu\text{m}^2$ (physical cells $62,882.8\,\mu\text{m}^2$ + OpenROAD pin adjust $9,459.8\,\mu\text{m}^2$), this produces a legal placement density of **$98.44\% < 100.00\%$**, strictly preventing `GPL-0301`. Set `PL_TARGET_DENSITY_PCT: 99` ($98.44\% \le 99\%$, clearing `GPL-0302`).
+- `src/config.json`: Enabled `GRT_ALLOW_CONGESTION: 1` and set `GRT_OVERFLOW_ITERS: 100`. In Run 27, Global Placement and CTS succeeded 100%, and Global Routing routed 42,805 out of 42,825 tracks (83.42% total usage) with only 20 localized overflow tracks (0.046%). Enabling `GRT_ALLOW_CONGESTION: 1` (matching proven Sept 23 sign-off) allows GRT to hand off these 20 tracks to TritonRoute for 3D via resolution.
 - `config.yaml`: Aligned with `src/config.json`.
 
 ### [Architecture Decisions & Root Cause Analysis]
-- **Exact Geometric Derivation for Placement Legality:**
-  - Standard cell site: $0.460\,\mu\text{m} \times 2.720\,\mu\text{m}$.
-  - $2\times 2$ Die Dimensions: $334.88\,\mu\text{m} \times 225.76\,\mu\text{m}$.
-  - 1-site left/right clearance isolates edge cells from vertical I/O multiplexer routing tracks:
-    $$\text{Core Width} = 334.88 - 0.92 = 333.96\,\mu\text{m} \quad (726 \text{ sites})$$
-    $$\text{Core Height} = 225.76\,\mu\text{m} \quad (83 \text{ rows})$$
-    $$\text{Net Usable Core} = 75,394.81\,\mu\text{m}^2 - 1,905.58\,\mu\text{m}^2 = \mathbf{73,489.23\,\mu\text{m}^2}$$
-    $$\text{Placement Utilization} = \frac{72,342.61\,\mu\text{m}^2}{73,489.23\,\mu\text{m}^2} = \mathbf{98.4398\%} < 100\%$$
+- **Significance of GRT Congestion Handoff on Dense Standard-Cell Macros:**
+  - FastRoute global routing models track congestion using coarse 2D routing bins.
+  - In a macro with 6,000 cells packed at 85.5% physical density, minor track overflows (~20 tracks across the whole die) are routine.
+  - Setting `GRT_ALLOW_CONGESTION: 1` prevents premature abort (`GRT-0116`), delegating local track conflicts to TritonRoute, which utilizes exact 3D wire geometry and via hops up to `met4`.
+
 
 
 

@@ -53,8 +53,10 @@ RUN_CTS: true
 CTS_TARGET_SKEW: 0.200 # Max 200 ps clock skew target
 CTS_ROOT_BUFFER: "sky130_fd_sc_hd__clkbuf_16"
 
-# Detailed Routing
+# Detailed & Global Routing
 RT_MAX_LAYER: "met4"
+GRT_ALLOW_CONGESTION: true
+GRT_OVERFLOW_ITERS: 100
 
 # Antenna DRC Protection
 RUN_ANTENNA_CHECKER: true

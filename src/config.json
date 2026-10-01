@@ -37,6 +37,8 @@
 
   "//": "Routing: Restrict detailed routing to met1..met4 (met5 reserved for power grid / mux)",
   "RT_MAX_LAYER": "met4",
+  "GRT_ALLOW_CONGESTION": 1,
+  "GRT_OVERFLOW_ITERS": 100,
 
   "//": "Pad Frame & Periphery Margins: 1 site (0.46 um) left/right for I/O track clearance",
   "//": "Yields 73,489.2 um^2 net core -> 98.44% density < 100% (clears GPL-0301)",

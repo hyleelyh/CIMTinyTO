@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-10-01 00:28
+- **Date:** 2026-10-01 00:40
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Calibrated floorplan geometry to 1-site lateral margins (`LEFT/RIGHT_MARGIN_MULT: 1`, `TOP/BOTTOM: 0`), yielding $73,489.2\,\mu\text{m}^2$ net core and $98.44\% < 100\%$ placement density with canonical AREA 1 synthesis. Pushed to origin/main. Ready for CI sign-off.
+- **Sync Status:** Restored `GRT_ALLOW_CONGESTION: 1` and set `GRT_OVERFLOW_ITERS: 100` to delegate 20 localized global overflow tracks to TritonRoute for 3D via resolution. Pushed to origin/main.
 
 ---
 
