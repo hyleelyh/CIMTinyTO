@@ -2,12 +2,14 @@
   "//": "CIMTinyTO OpenLane / LibreLane Configuration for Tiny Tapeout",
   "//": "Target: SkyWater 130nm (sky130_fd_sc_hd) on Tiny Tapeout 2x2 Tile",
 
-  "//": "Placement Target Density: Set to 85% to accommodate 80.99% standard-cell",
-  "//": "macro core placement inside the 2x2 tile.",
-  "PL_TARGET_DENSITY_PCT": 85,
+  "//": "Placement Target Density: Set to 92% to accommodate high-density macro placement",
+  "PL_TARGET_DENSITY_PCT": 92,
 
-  "//": "Synthesis Strategy: AREA 0 for most compact logic mapping in LibreLane",
-  "SYNTH_STRATEGY": "AREA 0",
+  "//": "Synthesis Optimization Strategy: AREA 1 with ABC cell sizing",
+  "SYNTH_STRATEGY": "AREA 1",
+  "SYNTH_SIZING": 1,
+  "SYNTH_BUFFER_DIRECT_WIRES": 0,
+  "MAX_FANOUT_CONSTRAINT": 16,
 
   "//": "Disable cell padding during placement to avoid artificial density inflation > 100%",
   "GPL_CELL_PADDING": 0,

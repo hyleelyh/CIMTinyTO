@@ -27,12 +27,15 @@ pdk: "sky130A"
 STD_CELL_LIBRARY: "sky130_fd_sc_hd"
 
 # Synthesis Optimization Strategy
-# AREA 0: Most compact ABC mapping script in LibreLane
-SYNTH_STRATEGY: "AREA 0"
+# AREA 1: Prioritize compact standard cells (_1, _2) over oversized cells (_4, _8)
+SYNTH_STRATEGY: "AREA 1"
+SYNTH_SIZING: true
+SYNTH_BUFFER_DIRECT_WIRES: false
+MAX_FANOUT_CONSTRAINT: 16
 
 # Placement & Density
-# Target density 85% accommodates ~81% standard-cell placement inside the 2x2 core.
-PL_TARGET_DENSITY_PCT: 85
+# Target density 92% accommodates high-density macro placement inside the 2x2 core.
+PL_TARGET_DENSITY_PCT: 92
 GPL_CELL_PADDING: 0
 DPL_CELL_PADDING: 0
 TOP_MARGIN_MULT: 1
@@ -41,7 +44,6 @@ LEFT_MARGIN_MULT: 1
 RIGHT_MARGIN_MULT: 1
 
 # High-Fanout Net (HFN) & Buffer Insertion Rules
-MAX_FANOUT_CONSTRAINT: 16
 DESIGN_REPAIR_BUFFER_OUTPUT_PORTS: false
 
 # Hold Slack Margins

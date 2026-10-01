@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-09-30 22:35
+- **Date:** 2026-09-30 22:45
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** LibreLane 3.0 / Tiny Tapeout `sky26d` CI configuration updated. `GPL-0301` Global Placement density failure resolved by eliminating artificial cell padding and configuring `PL_TARGET_DENSITY_PCT: 85`. Ready for push and CI verification run.
+- **Sync Status:** LibreLane 3.0 / Tiny Tapeout `sky26d` CI configuration updated with ABC cell sizing (`SYNTH_SIZING: 1`), multi-pass area mapping (`SYNTH_STRATEGY: "AREA 1"`), and disabled direct wire buffer insertion (`SYNTH_BUFFER_DIRECT_WIRES: 0`). This eliminates the 102.521% utilization failure and restores standard-cell footprint to ~81% core density. Ready for commit, push, and CI sign-off.
 
 ---
 

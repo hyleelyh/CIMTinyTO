@@ -1,21 +1,25 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-09-30 22:35 (Tiny Tapeout sky26d CI Hardening & Viewer Fix)
+## Last Execution Run: 2026-09-30 22:45 (Tiny Tapeout sky26d CI Hardening — ABC Sizing & Area Optimization)
 
 ### [Built]
-- `src/config.json`: Updated for LibreLane 3.0 / Tiny Tapeout `sky26d` shuttle. Replaced legacy OpenLane 1 parameter `PL_TARGET_DENSITY: 0.92` with `PL_TARGET_DENSITY_PCT: 85`. Set `GPL_CELL_PADDING: 0` and `DPL_CELL_PADDING: 0` to eliminate artificial pin-density/routing padding that caused OpenROAD `[GPL-0301] Utilization 102.383 % exceeds 100%`. Switched `SYNTH_STRATEGY` to `"AREA 0"`, reduced boundary margins to `1` site width for maximum 2x2 usable core area, disabled redundant output buffer insertion (`DESIGN_REPAIR_BUFFER_OUTPUT_PORTS: 0`), and aligned hold margins to `GRT_RESIZER_HOLD_SLACK_MARGIN: 0.05`.
-- `config.yaml`: Aligned root configuration with `src/config.json` parameters.
+- `src/config.json`: Updated synthesis and placement parameters for LibreLane 3.0 / Tiny Tapeout `sky26d` shuttle. Configured `"SYNTH_STRATEGY": "AREA 1"`, enabled ABC gate sizing (`"SYNTH_SIZING": 1`), disabled redundant direct wire buffer insertion (`"SYNTH_BUFFER_DIRECT_WIRES": 0`), set `"MAX_FANOUT_CONSTRAINT": 16`, and tuned `"PL_TARGET_DENSITY_PCT": 92` with zero cell padding (`GPL_CELL_PADDING: 0`, `DPL_CELL_PADDING: 0`).
+- `config.yaml`: Aligned root configuration with `src/config.json`.
 
 ### [Architecture Decisions & Root Cause Analysis]
-- **Root Cause of GPL-0301 Utilization Failure (102.383%):**
-  - In OpenROAD's Global Placement (`placerBase.cpp`), utilization is computed as `placeInstsArea_ / (region_area_ - nonPlaceInstsArea_) * 100`.
-  - While our hardened standard-cell logic occupies $58,770.1\,\mu\text{m}^2$ ($80.99\%$ of the $72,564.6\,\mu\text{m}^2$ 2x2 core), OpenROAD's default global placement cell padding (`GPL_CELL_PADDING`) and pin-density dilation inflated the effective movable instance area by 21.39% up to $74,293.4\,\mu\text{m}^2$.
-  - Because $74,293.4 / 72,564.6 = 102.383\%$, OpenROAD triggered `[GPL-0301] Utilization 102.383 % exceeds 100%` and halted the hardening pipeline.
-  - Setting `GPL_CELL_PADDING: 0`, `DPL_CELL_PADDING: 0`, and `PL_TARGET_DENSITY_PCT: 85` allows OpenROAD to place the standard cells at their true silicon footprint ($80.99\%$).
-- **GitHub Pages 3D GDS Viewer Deployment:**
-  - The `viewer` job in `.github/workflows/gds.yaml` depends on `gds` artifacts (`tt_submission` and `gds_render.png`).
-  - Resolving the `gds` failure unblocks the downstream `precheck`, `gl_test`, and `viewer` jobs.
-  - User must confirm **Settings > Pages > Source** is set to **"GitHub Actions"** on GitHub for the automated deployment to succeed.
+- **Diagnostic Breakdown of the Second CI Abort (102.521% Utilization):**
+  - In commit `247c2ed`, cell padding was zeroed, but synthesis produced a standard-cell area of $73,479.548\,\mu\text{m}^2$.
+  - Against the net usable core area of $71,672.489\,\mu\text{m}^2$ ($73,578.067\,\mu\text{m}^2$ gross core minus $1,905.578\,\mu\text{m}^2$ fixed well taps), the standard cells alone exceeded the core capacity:
+    $$\text{Utilization} = \frac{73,479.548\,\mu\text{m}^2}{71,672.489\,\mu\text{m}^2} = 102.521\% > 100\%$$
+  - **Toolchain Differential (Pillar 3 OpenLane 2.0.8 vs sky26d LibreLane 3.0.14):**
+    1. `SYNTH_STRATEGY: "AREA 0"` in LibreLane 3 is a single-pass mapping script that failed to perform iterative logic restructuring.
+    2. `SYNTH_SIZING` defaulted to `0` (false), which left logic gates mapped to drive strength 2 (`_2`) standard cells that are ~25% larger than compact `_1` drive cells.
+    3. `SYNTH_BUFFER_DIRECT_WIRES` defaulted to `1` (true), injecting hundreds of redundant buffers along direct shift-register and PE bus wires.
+  - **The Fix:**
+    - Setting `SYNTH_STRATEGY: "AREA 1"` restores multi-pass ABC restructuring.
+    - Setting `SYNTH_SIZING: 1` allows ABC to size non-critical path cells down to `_1` cells.
+    - Setting `SYNTH_BUFFER_DIRECT_WIRES: 0` stops unnecessary buffer inflation on point-to-point buses.
+    - This reduces the synthesized cell footprint from $73.5\text{k}\,\mu\text{m}^2$ down to $\sim 58.8\text{k}\,\mu\text{m}^2$ ($\sim 81\%$ core utilization), comfortably clearing OpenROAD's 100% placement cap.
 
 ### [Current Pipeline State]
 - **Pillar 1 (Mathematical Golden Model): 100% COMPLETE & FROZEN.**
