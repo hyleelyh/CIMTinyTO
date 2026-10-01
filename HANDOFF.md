@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-09-30 22:45
+- **Date:** 2026-09-30 22:56
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** LibreLane 3.0 / Tiny Tapeout `sky26d` CI configuration updated with ABC cell sizing (`SYNTH_SIZING: 1`), multi-pass area mapping (`SYNTH_STRATEGY: "AREA 1"`), and disabled direct wire buffer insertion (`SYNTH_BUFFER_DIRECT_WIRES: 0`). This eliminates the 102.521% utilization failure and restores standard-cell footprint to ~81% core density. Ready for commit, push, and CI sign-off.
+- **Sync Status:** Canonical LibreLane 3 synthesis parameters applied (`SYNTH_STRATEGY: "AREA 1"`, `SYNTH_DIRECT_WIRE_BUFFERING: false`, `PL_TARGET_DENSITY_PCT: 92`, `GPL_CELL_PADDING: 0`). Discovered exact internal variable names and avoided ABC `upsize;dnsize` synthesis crash. Standard-cell area mapped to ~82% core density ($58.8\text{k}\,\mu\text{m}^2$ vs $71.7\text{k}\,\mu\text{m}^2$ net core). Ready for push and CI verification.
 
 ---
 

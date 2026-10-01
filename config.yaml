@@ -27,11 +27,9 @@ pdk: "sky130A"
 STD_CELL_LIBRARY: "sky130_fd_sc_hd"
 
 # Synthesis Optimization Strategy
-# AREA 1: Prioritize compact standard cells (_1, _2) over oversized cells (_4, _8)
+# AREA 1: 2-pass iterative ABC area mapping for compact macro footprint
 SYNTH_STRATEGY: "AREA 1"
-SYNTH_SIZING: true
-SYNTH_BUFFER_DIRECT_WIRES: false
-MAX_FANOUT_CONSTRAINT: 16
+SYNTH_DIRECT_WIRE_BUFFERING: false
 
 # Placement & Density
 # Target density 92% accommodates high-density macro placement inside the 2x2 core.
