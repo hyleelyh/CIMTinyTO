@@ -7,7 +7,6 @@
 
   "//": "Synthesis Optimization Strategy: AREA 1 with 2-pass ABC area mapping",
   "SYNTH_STRATEGY": "AREA 1",
-  "SYNTH_DIRECT_WIRE_BUFFERING": false,
 
   "//": "Disable cell padding during placement to avoid artificial density inflation > 100%",
   "GPL_CELL_PADDING": 0,

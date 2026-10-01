@@ -29,7 +29,6 @@ STD_CELL_LIBRARY: "sky130_fd_sc_hd"
 # Synthesis Optimization Strategy
 # AREA 1: 2-pass iterative ABC area mapping for compact macro footprint
 SYNTH_STRATEGY: "AREA 1"
-SYNTH_DIRECT_WIRE_BUFFERING: false
 
 # Placement & Density
 # Target density 92% accommodates high-density macro placement inside the 2x2 core.

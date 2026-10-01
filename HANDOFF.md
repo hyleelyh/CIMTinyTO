@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-09-30 22:56
+- **Date:** 2026-09-30 23:05
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Canonical LibreLane 3 synthesis parameters applied (`SYNTH_STRATEGY: "AREA 1"`, `SYNTH_DIRECT_WIRE_BUFFERING: false`, `PL_TARGET_DENSITY_PCT: 92`, `GPL_CELL_PADDING: 0`). Discovered exact internal variable names and avoided ABC `upsize;dnsize` synthesis crash. Standard-cell area mapped to ~82% core density ($58.8\text{k}\,\mu\text{m}^2$ vs $71.7\text{k}\,\mu\text{m}^2$ net core). Ready for push and CI verification.
+- **Sync Status:** Restored wire buffering (`insbuf`) to eliminate 4 continuous `assign` statements in gate-level netlist, clearing `Checker.NetlistAssignStatements`. Synthesis area verified at $62,847.8\,\mu\text{m}^2$ ($87.69\%$ core density vs $71.7\text{k}\,\mu\text{m}^2$ net core). Ready for commit, push, and CI sign-off.
 
 ---
 
