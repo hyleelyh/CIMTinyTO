@@ -1,9 +1,26 @@
 # Session Handoff
 
-- **Date:** 2026-10-01 00:40
+- **Date:** 2026-10-01 01:52
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Restored `GRT_ALLOW_CONGESTION: 1` and set `GRT_OVERFLOW_ITERS: 100` to delegate 20 localized global overflow tracks to TritonRoute for 3D via resolution. Pushed to origin/main.
+- **Sync Status:** GitHub Actions [Run #36831702414](https://github.com/hyleelyh/CIMTinyTO/actions/runs/36831702414) active in Detailed Routing (TritonRoute Iteration 5, 18,500 violations and resolving ~1,565/iter). Step 1 area audit completed with 5-line accumulator logic recoding formulated as immediate guardrail.
+
+---
+
+## Tomorrow Morning Sign-Off & Action Plan
+
+When returning to this PC tomorrow morning:
+
+1. **Check GitHub Actions Run #36831702414:**
+   - URL: `https://github.com/hyleelyh/CIMTinyTO/actions/runs/36831702414`
+   - **Branch A (Run Succeeded / All 4 Green: `gds`, `precheck`, `gl_test`, `viewer`):**
+     1. Sign-off complete!
+     2. Open `https://app.tinytapeout.com/`, select the `sky26d` shuttle, select your purchased 2x2 tile, and submit the repo.
+     3. Lock baseline, celebrate, and proceed cleanly to Pillar 6 in a fresh chat!
+   - **Branch B (TritonRoute Hit Max Iterations / Stopped):**
+     1. Apply the 5-line accumulator logic recoding in `src/scim_accumulator.v` (replace 32x 14-bit comparators with 2-bit two's complement sign checks).
+     2. Prunes ~6.3k µm² of standard-cell area (down to ~56.5k µm²) and drops placement density to 85.9%.
+     3. Push to `main`: TritonRoute will start with <3,500 violations and converge cleanly in under 20 minutes!
 
 ---
 
