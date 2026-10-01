@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-10-01 00:20
+- **Date:** 2026-10-01 00:28
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Restored canonical `SYNTH_STRATEGY: "AREA 1"` (proven to yield minimal $62,882.8\,\mu\text{m}^2$ standard cell area), 2-site margins (`MARGIN_MULT: 2`), 0 padding, `PL_TARGET_DENSITY_PCT: 92`, and removed `GRT_ALLOW_CONGESTION: 1`. Pushed to origin/main.
+- **Sync Status:** Calibrated floorplan geometry to 1-site lateral margins (`LEFT/RIGHT_MARGIN_MULT: 1`, `TOP/BOTTOM: 0`), yielding $73,489.2\,\mu\text{m}^2$ net core and $98.44\% < 100\%$ placement density with canonical AREA 1 synthesis. Pushed to origin/main. Ready for CI sign-off.
 
 ---
 

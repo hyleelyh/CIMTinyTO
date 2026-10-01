@@ -2,13 +2,13 @@
   "//": "CIMTinyTO OpenLane / LibreLane Configuration for Tiny Tapeout",
   "//": "Target: SkyWater 130nm (sky130_fd_sc_hd) on Tiny Tapeout 2x2 Tile",
 
-  "//": "Placement Target Density: Set to 92% (0.92) to match proven Sept 23 sign-off target",
-  "PL_TARGET_DENSITY_PCT": 92,
+  "//": "Placement Target Density: Set to 99% to accommodate 98.44% virtual placement density",
+  "PL_TARGET_DENSITY_PCT": 99,
 
   "//": "Synthesis Optimization Strategy: AREA 1 (proven minimal area 62,882 um^2)",
   "SYNTH_STRATEGY": "AREA 1",
 
-  "//": "Disable artificial cell padding to maintain 87.98% real core density",
+  "//": "Disable artificial cell padding to maintain true standard-cell density",
   "PL_ROUTABILITY_DRIVEN": 0,
   "GPL_CELL_PADDING": 0,
   "DPL_CELL_PADDING": 0,
@@ -38,11 +38,12 @@
   "//": "Routing: Restrict detailed routing to met1..met4 (met5 reserved for power grid / mux)",
   "RT_MAX_LAYER": "met4",
 
-  "//": "Pad Frame & Periphery Margins: isolate edge cells from I/O ring tracks (2 sites = 0.92 um)",
-  "TOP_MARGIN_MULT": 1,
-  "BOTTOM_MARGIN_MULT": 1,
-  "LEFT_MARGIN_MULT": 2,
-  "RIGHT_MARGIN_MULT": 2,
+  "//": "Pad Frame & Periphery Margins: 1 site (0.46 um) left/right for I/O track clearance",
+  "//": "Yields 73,489.2 um^2 net core -> 98.44% density < 100% (clears GPL-0301)",
+  "TOP_MARGIN_MULT": 0,
+  "BOTTOM_MARGIN_MULT": 0,
+  "LEFT_MARGIN_MULT": 1,
+  "RIGHT_MARGIN_MULT": 1,
 
   "//": "Floorplan sizing defined by Tiny Tapeout tile boundaries",
   "FP_SIZING": "absolute",

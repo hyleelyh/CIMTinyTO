@@ -1,20 +1,21 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-01 00:20 (Tiny Tapeout sky26d Flow Calibration — Canonical AREA 1, Zero Padding, 2-site Margins, Congestion-Free GRT)
+## Last Execution Run: 2026-10-01 00:28 (Tiny Tapeout sky26d Flow Calibration — 1-Site Lateral Margins, 98.44% Placer Density)
 
 ### [Built]
-- `src/config.json`: Restored canonical `SYNTH_STRATEGY: "AREA 1"` (proven to synthesize minimal $62,882.8\,\mu\text{m}^2$ standard cell area vs. $73,761.8\,\mu\text{m}^2$ in `AREA 2`). Maintained 2-site margins (`LEFT/RIGHT_MARGIN_MULT: 2`, `TOP/BOTTOM_MARGIN_MULT: 1`), yielding $73,375.4\,\mu\text{m}^2$ gross core and $71,469.8\,\mu\text{m}^2$ net core ($87.98\%$ real utilization). Zeroed cell padding (`GPL/DPL_CELL_PADDING: 0`) and set `PL_TARGET_DENSITY_PCT: 92` ($87.98\% \le 92\%$, clearing `GPL-0301` and `GPL-0302`). Removed `GRT_ALLOW_CONGESTION: 1` to force the global router to resolve congestion across upper metal layers (`met2`..`met4`) rather than dumping congested guides onto TritonRoute.
+- `src/config.json`: Calibrated floorplan geometry to `LEFT_MARGIN_MULT: 1` and `RIGHT_MARGIN_MULT: 1` ($0.46\,\mu\text{m}$ clearance each) with `TOP_MARGIN_MULT: 0` and `BOTTOM_MARGIN_MULT: 0`. This establishes a gross core area of $75,394.8\,\mu\text{m}^2$ and net usable core of **$73,489.2\,\mu\text{m}^2$**. Against the total adjusted instance area of $72,342.6\,\mu\text{m}^2$ (physical cells $62,882.8\,\mu\text{m}^2$ + OpenROAD pin adjust $9,459.8\,\mu\text{m}^2$), this produces a legal placement density of **$98.44\% < 100.00\%$**, strictly preventing `GPL-0301`. Set `PL_TARGET_DENSITY_PCT: 99` ($98.44\% \le 99\%$, clearing `GPL-0302`).
 - `config.yaml`: Aligned with `src/config.json`.
 
 ### [Architecture Decisions & Root Cause Analysis]
-- **Empirical Synthesis Strategy Comparison on SkyWater 130nm:**
-  - `AREA 0`: $73,479.5\,\mu\text{m}^2$ (Fast single-pass mapping)
-  - `AREA 2`: $73,761.8\,\mu\text{m}^2$ (Decomposition into primitive gates without complex AOI/OAI cells)
-  - **`AREA 1`**: **$62,882.8\,\mu\text{m}^2$** (Optimal two-pass mapping utilizing high-density complex standard cells: `a21oi`, `o21ai`, `mux2`)
-  - `AREA 1` saves **$10,879\,\mu\text{m}^2$** ($14.7\%$) over `AREA 2`.
-- **Elimination of Router Thrashing:**
-  - In Run 24, `GRT_ALLOW_CONGESTION: 1` allowed global routing to pass congested track overlaps down to TritonRoute, while 0-site margins placed boundary cells touching the I/O multiplexer pins.
-  - Restoring 2-site margins ($0.92\,\mu\text{m}$) isolates the logic from boundary pins, while disabling congestion bypass forces GRT to route cleanly.
+- **Exact Geometric Derivation for Placement Legality:**
+  - Standard cell site: $0.460\,\mu\text{m} \times 2.720\,\mu\text{m}$.
+  - $2\times 2$ Die Dimensions: $334.88\,\mu\text{m} \times 225.76\,\mu\text{m}$.
+  - 1-site left/right clearance isolates edge cells from vertical I/O multiplexer routing tracks:
+    $$\text{Core Width} = 334.88 - 0.92 = 333.96\,\mu\text{m} \quad (726 \text{ sites})$$
+    $$\text{Core Height} = 225.76\,\mu\text{m} \quad (83 \text{ rows})$$
+    $$\text{Net Usable Core} = 75,394.81\,\mu\text{m}^2 - 1,905.58\,\mu\text{m}^2 = \mathbf{73,489.23\,\mu\text{m}^2}$$
+    $$\text{Placement Utilization} = \frac{72,342.61\,\mu\text{m}^2}{73,489.23\,\mu\text{m}^2} = \mathbf{98.4398\%} < 100\%$$
+
 
 
 ### [Prior Execution Run: 2026-09-30 23:22]
