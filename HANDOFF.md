@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-09-30 23:22
+- **Date:** 2026-10-01 00:15
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Expanded usable core to full 2x2 die boundaries (`MARGIN_MULT: 0`, gaining $+2,024.4\,\mu\text{m}^2$) and set `PL_TARGET_DENSITY_PCT: 99`. This reduces global placement density to $98.16\%$, completely clearing the 0.935% overflow. Ready for commit, push, and CI sign-off.
+- **Sync Status:** Applied physical flow optimization: enabled `SYNTH_STRATEGY: "AREA 2"` in ABC, restored `GPL_CELL_PADDING: 1` to resolve `via1` router thrashing, set 2-site periphery margins (`MARGIN_MULT: 2`), and calibrated `PL_TARGET_DENSITY_PCT: 92`. Pushed to origin/main (commit `ffad620`). Ready for CI build and sign-off.
 
 ---
 
