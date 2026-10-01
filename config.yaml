@@ -27,19 +27,19 @@ pdk: "sky130A"
 STD_CELL_LIBRARY: "sky130_fd_sc_hd"
 
 # Synthesis Optimization Strategy
-# AREA 1: 2-pass iterative ABC area mapping for compact macro footprint
-SYNTH_STRATEGY: "AREA 1"
+# AREA 2: Deep multi-pass ABC Boolean network restructuring (resub, rewrite, refactor)
+SYNTH_STRATEGY: "AREA 2"
 
 # Placement & Density
-# Target density 99% accommodates high-density macro placement inside the 2x2 core.
-PL_TARGET_DENSITY_PCT: 99
+# Target density 92% accommodates ~85% physical cell density + 1-site global via clearance
+PL_TARGET_DENSITY_PCT: 92
 PL_ROUTABILITY_DRIVEN: false
-GPL_CELL_PADDING: 0
+GPL_CELL_PADDING: 1
 DPL_CELL_PADDING: 0
-TOP_MARGIN_MULT: 0
-BOTTOM_MARGIN_MULT: 0
-LEFT_MARGIN_MULT: 0
-RIGHT_MARGIN_MULT: 0
+TOP_MARGIN_MULT: 1
+BOTTOM_MARGIN_MULT: 1
+LEFT_MARGIN_MULT: 2
+RIGHT_MARGIN_MULT: 2
 
 # High-Fanout Net (HFN) & Buffer Insertion Rules
 DESIGN_REPAIR_BUFFER_OUTPUT_PORTS: false
@@ -60,3 +60,4 @@ GRT_ALLOW_CONGESTION: true
 # Antenna DRC Protection
 RUN_ANTENNA_CHECKER: true
 DIODE_CELL: "sky130_fd_sc_hd__diode_2"
+

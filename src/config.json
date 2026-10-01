@@ -2,15 +2,15 @@
   "//": "CIMTinyTO OpenLane / LibreLane Configuration for Tiny Tapeout",
   "//": "Target: SkyWater 130nm (sky130_fd_sc_hd) on Tiny Tapeout 2x2 Tile",
 
-  "//": "Placement Target Density: Set to 99% to accommodate high-density macro placement",
-  "PL_TARGET_DENSITY_PCT": 99,
+  "//": "Placement Target Density: Set to 92% (0.92) to match proven Sept 23 sign-off target",
+  "PL_TARGET_DENSITY_PCT": 92,
 
-  "//": "Synthesis Optimization Strategy: AREA 1 with 2-pass ABC area mapping",
-  "SYNTH_STRATEGY": "AREA 1",
+  "//": "Synthesis Optimization Strategy: AREA 2 for deep multi-pass ABC Boolean restructuring",
+  "SYNTH_STRATEGY": "AREA 2",
 
-  "//": "Disable cell padding and pin-density inflation to avoid artificial density inflation > 100%",
+  "//": "Cell Padding: 1 site for global placement to prevent pin-access via-to-via starvation",
   "PL_ROUTABILITY_DRIVEN": 0,
-  "GPL_CELL_PADDING": 0,
+  "GPL_CELL_PADDING": 1,
   "DPL_CELL_PADDING": 0,
 
   "//": "SDC Timing Constraints",
@@ -38,11 +38,11 @@
   "//": "Routing: Restrict detailed routing to met1..met4 (met5 reserved for power grid / mux)",
   "RT_MAX_LAYER": "met4",
 
-  "//": "Pad Frame & Periphery Margins: 0 site margin on all sides for max usable core area (75,602.5 um^2)",
-  "TOP_MARGIN_MULT": 0,
-  "BOTTOM_MARGIN_MULT": 0,
-  "LEFT_MARGIN_MULT": 0,
-  "RIGHT_MARGIN_MULT": 0,
+  "//": "Pad Frame & Periphery Margins: isolate edge cells from I/O ring tracks (2 sites = 0.92 um)",
+  "TOP_MARGIN_MULT": 1,
+  "BOTTOM_MARGIN_MULT": 1,
+  "LEFT_MARGIN_MULT": 2,
+  "RIGHT_MARGIN_MULT": 2,
 
   "//": "Floorplan sizing defined by Tiny Tapeout tile boundaries",
   "FP_SIZING": "absolute",
