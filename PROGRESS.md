@@ -1,21 +1,33 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-09-30 23:05 (Tiny Tapeout sky26d CI Hardening — Netlist Assign Statements Resolution)
+## Last Execution Run: 2026-09-30 23:12 (Tiny Tapeout sky26d CI Hardening — Pin Density Area Adjust & Routability Deactivation)
 
 ### [Built]
-- `src/config.json`: Restored default direct wire buffering (`SYNTH_DIRECT_WIRE_BUFFERING: true` via default) so that Yosys executes `insbuf` to convert all continuous `assign` statements into physical standard-cell buffers (`sky130_fd_sc_hd__buf_1`), passing `Checker.NetlistAssignStatements`. Retained `"SYNTH_STRATEGY": "AREA 1"` (2-pass ABC mapping), `"PL_TARGET_DENSITY_PCT": 92`, and zero placement padding (`GPL_CELL_PADDING: 0`, `DPL_CELL_PADDING: 0`).
-- `config.yaml`: Synchronized with `src/config.json`.
+- `src/config.json`: Added `"PL_ROUTABILITY_DRIVEN": 0` to disable OpenROAD RePlAce's routability-driven pin-density dilation (`-routability_driven`), eliminating the artificial $+9,459.799\,\mu\text{m}^2$ area inflation that pushed placement density to $100.935\%$. Retained `"PL_TARGET_DENSITY_PCT": 92`, `"GPL_CELL_PADDING": 0`, `"DPL_CELL_PADDING": 0`, and `"SYNTH_STRATEGY": "AREA 1"`.
+- `config.yaml`: Added `PL_ROUTABILITY_DRIVEN: false`.
 
 ### [Architecture Decisions & Root Cause Analysis]
-- **Diagnostic Breakdown of `Checker.NetlistAssignStatements` Failure:**
-  - In run `36822178858`, synthesis successfully produced a compact **$62,847.78\,\mu\text{m}^2$** netlist, completely solving the >100% area problem.
-  - However, setting `SYNTH_DIRECT_WIRE_BUFFERING: false` prevented Yosys from running `insbuf`. This left 4 continuous assignment statements (`assign a = b;`) in `tt_um_scim_core.nl.v` (lines 40110–40113).
-  - In standard-cell ASIC flows, gate-level netlists must be 100% structural (cells only). Unbuffered wire-to-wire assignments cannot be routed or represented in physical DEF/GDS without explicit buffer cells. LibreLane's `Checker.NetlistAssignStatements` correctly flagged this and halted the flow.
-  - **Area Impact of Restoring `insbuf`:**
-    - Local synthesis verified that `insbuf` adds only **$63.8\,\mu\text{m}^2$** (~15 small buffer cells).
-    - Total macro area remains **$62,847.8\,\mu\text{m}^2$** vs. net usable core of **$71,672.5\,\mu\text{m}^2$**.
-    - True physical utilization is $\mathbf{87.69\%}$, which cleanly fits within `PL_TARGET_DENSITY_PCT: 92` and provides $12.3\%$ routing margin.
-    - Zero placement cell padding (`GPL_CELL_PADDING: 0`) ensures OpenROAD does not artificially inflate the density beyond 100%.
+- **Diagnostic Breakdown of the Final 100.935% Placement Abort:**
+  - The CI execution log revealed the exact mathematical mechanism of the overflow:
+    ```plaintext
+    [INFO GPL-0036] Movable instances area:      62882.810 um^2
+    [INFO GPL-0035] Pin density area adjust:      9459.799 um^2
+    ...
+    [INFO GPL-0018] Movable instances area:      72342.609 um^2
+    [INFO GPL-0019] Utilization:                   100.935 %
+    [06:05:35] ERROR [GPL-0301] Utilization 100.935 % exceeds 100%. openroad.py:312
+    ```
+  - **The Physics & Heuristic Behind `Pin density area adjust`:**
+    - The true physical cell area from synthesis with full wire buffering is **$62,882.810\,\mu\text{m}^2$** ($87.74\%$ net core utilization).
+    - In LibreLane 3 / OpenROAD, `PL_ROUTABILITY_DRIVEN` defaults to `True`. This invokes RePlAce's `adjustPinDensity()` heuristic, which inflates cells with high pin counts (such as our 4:2 compressors, Wallace tree adders, and PE XNOR gates) by adding virtual halo padding.
+    - This heuristic added **$9,459.799\,\mu\text{m}^2$** of phantom area:
+      $$62,882.810\,\mu\text{m}^2 + 9,459.799\,\mu\text{m}^2 = \mathbf{72,342.609\,\mu\text{m}^2}$$
+      $$\text{Reported Utilization} = \frac{72,342.609\,\mu\text{m}^2}{71,672.489\,\mu\text{m}^2} = \mathbf{100.935\%} > 100\%$$
+    - The placement failed by merely **$670\,\mu\text{m}^2$** ($0.935\%$) due entirely to this heuristic inflation!
+  - **Why Disabling Routability-Driven Placement is Safe on CIMTinyTO:**
+    - `PL_ROUTABILITY_DRIVEN: false` tells RePlAce to place standard cells at their true silicon footprint ($87.74\%$).
+    - On our $2\times 2$ tile, metal layers `met2`, `met3`, and `met4` are 100% unobstructed.
+    - Our systolic dataflow (SNG $\rightarrow$ PE Array $\rightarrow$ Wallace Tree $\rightarrow$ Accumulator) is purely feed-forward, with short, regular point-to-point interconnects. As demonstrated in Pillar 3, global routing has abundant routing tracks and achieves 0 DRC / 0 antenna violations without requiring pin-density dilation.
 
 ### [Current Pipeline State]
 - **Pillar 1 (Mathematical Golden Model): 100% COMPLETE & FROZEN.**

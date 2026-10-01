@@ -33,6 +33,7 @@ SYNTH_STRATEGY: "AREA 1"
 # Placement & Density
 # Target density 92% accommodates high-density macro placement inside the 2x2 core.
 PL_TARGET_DENSITY_PCT: 92
+PL_ROUTABILITY_DRIVEN: false
 GPL_CELL_PADDING: 0
 DPL_CELL_PADDING: 0
 TOP_MARGIN_MULT: 1

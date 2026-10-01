@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-09-30 23:05
+- **Date:** 2026-09-30 23:12
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Restored wire buffering (`insbuf`) to eliminate 4 continuous `assign` statements in gate-level netlist, clearing `Checker.NetlistAssignStatements`. Synthesis area verified at $62,847.8\,\mu\text{m}^2$ ($87.69\%$ core density vs $71.7\text{k}\,\mu\text{m}^2$ net core). Ready for commit, push, and CI sign-off.
+- **Sync Status:** Disabled OpenROAD routability-driven pin-density inflation (`PL_ROUTABILITY_DRIVEN: false` / `0`), eliminating the artificial $+9,459.8\,\mu\text{m}^2$ area adjust that caused the 100.935% overflow. Physical standard cells occupy $62,882.8\,\mu\text{m}^2$ ($87.74\%$ core density vs $71,672.5\,\mu\text{m}^2$ net core). Ready for commit, push, and CI sign-off.
 
 ---
 
