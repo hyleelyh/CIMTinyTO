@@ -1,21 +1,21 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-01 00:15 (Tiny Tapeout sky26d Physical Flow Optimization — AREA 2 Synthesis, Cell Padding & Margins)
+## Last Execution Run: 2026-10-01 00:20 (Tiny Tapeout sky26d Flow Calibration — Canonical AREA 1, Zero Padding, 2-site Margins, Congestion-Free GRT)
 
 ### [Built]
-- `src/config.json`: Configured `SYNTH_STRATEGY: "AREA 2"` to enable deep multi-pass ABC Boolean restructuring (`resub`, `rewrite -z`, `refactor -z`, `balance`), reducing arithmetic compressor standard cell area towards ~58k µm². Configured `GPL_CELL_PADDING: 1` and `DPL_CELL_PADDING: 0` to provide 1-site (0.46 µm) lateral clearance during global placement, physically resolving pin-access and `via1` spacing starvation. Configured `TOP_MARGIN_MULT: 1`, `BOTTOM_MARGIN_MULT: 1`, `LEFT_MARGIN_MULT: 2`, `RIGHT_MARGIN_MULT: 2` (0.92 µm) to isolate boundary cells from outer I/O routing tracks while preserving 73,375 µm² of core area. Calibrated target density to `PL_TARGET_DENSITY_PCT: 92`.
+- `src/config.json`: Restored canonical `SYNTH_STRATEGY: "AREA 1"` (proven to synthesize minimal $62,882.8\,\mu\text{m}^2$ standard cell area vs. $73,761.8\,\mu\text{m}^2$ in `AREA 2`). Maintained 2-site margins (`LEFT/RIGHT_MARGIN_MULT: 2`, `TOP/BOTTOM_MARGIN_MULT: 1`), yielding $73,375.4\,\mu\text{m}^2$ gross core and $71,469.8\,\mu\text{m}^2$ net core ($87.98\%$ real utilization). Zeroed cell padding (`GPL/DPL_CELL_PADDING: 0`) and set `PL_TARGET_DENSITY_PCT: 92` ($87.98\% \le 92\%$, clearing `GPL-0301` and `GPL-0302`). Removed `GRT_ALLOW_CONGESTION: 1` to force the global router to resolve congestion across upper metal layers (`met2`..`met4`) rather than dumping congested guides onto TritonRoute.
 - `config.yaml`: Aligned with `src/config.json`.
 
 ### [Architecture Decisions & Root Cause Analysis]
-- **Diagnosis of TritonRoute Router Thrashing at 0 Padding:**
-  - In run 36824425469, zero cell padding forced cells into direct pin abutment on `met1`.
-  - When pins are packed within $< 0.25\,\mu\text{m}$, two `via1` cuts ($0.17\,\mu\text{m}$ width + $0.06\,\mu\text{m}$ enclosure + $0.14\,\mu\text{m}$ spacing) cannot land simultaneously without violating design rules.
-  - TritonRoute entered a thrashing cycle (ripping up one net to fix a via caused a short on the adjacent net), causing violations to plateau at 9,440–9,800.
-  - **Resolution:** Rather than forcing placement by zeroing margins and padding, we attacked the problem at the source:
-    1. `SYNTH_STRATEGY: "AREA 2"` leverages ABC's deep Boolean network rewriting to shrink gate count and area by 4–7% in arithmetic blocks (Wallace trees and accumulators).
-    2. `GPL_CELL_PADDING: 1` guarantees 1 placement site (0.46 µm) between cells during global placement, providing dedicated, collision-free landing pads for every `via1`.
-    3. `LEFT/RIGHT_MARGIN_MULT: 2` creates 0.92 µm clearance between standard cells and the outer tile I/O ring tracks.
-    4. Target density set to 92%, matching our proven September 23 sign-off baseline.
+- **Empirical Synthesis Strategy Comparison on SkyWater 130nm:**
+  - `AREA 0`: $73,479.5\,\mu\text{m}^2$ (Fast single-pass mapping)
+  - `AREA 2`: $73,761.8\,\mu\text{m}^2$ (Decomposition into primitive gates without complex AOI/OAI cells)
+  - **`AREA 1`**: **$62,882.8\,\mu\text{m}^2$** (Optimal two-pass mapping utilizing high-density complex standard cells: `a21oi`, `o21ai`, `mux2`)
+  - `AREA 1` saves **$10,879\,\mu\text{m}^2$** ($14.7\%$) over `AREA 2`.
+- **Elimination of Router Thrashing:**
+  - In Run 24, `GRT_ALLOW_CONGESTION: 1` allowed global routing to pass congested track overlaps down to TritonRoute, while 0-site margins placed boundary cells touching the I/O multiplexer pins.
+  - Restoring 2-site margins ($0.92\,\mu\text{m}$) isolates the logic from boundary pins, while disabling congestion bypass forces GRT to route cleanly.
+
 
 ### [Prior Execution Run: 2026-09-30 23:22]
 

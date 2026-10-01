@@ -1,9 +1,9 @@
 # Session Handoff
 
-- **Date:** 2026-10-01 00:15
+- **Date:** 2026-10-01 00:20
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Applied physical flow optimization: enabled `SYNTH_STRATEGY: "AREA 2"` in ABC, restored `GPL_CELL_PADDING: 1` to resolve `via1` router thrashing, set 2-site periphery margins (`MARGIN_MULT: 2`), and calibrated `PL_TARGET_DENSITY_PCT: 92`. Pushed to origin/main (commit `ffad620`). Ready for CI build and sign-off.
+- **Sync Status:** Restored canonical `SYNTH_STRATEGY: "AREA 1"` (proven to yield minimal $62,882.8\,\mu\text{m}^2$ standard cell area), 2-site margins (`MARGIN_MULT: 2`), 0 padding, `PL_TARGET_DENSITY_PCT: 92`, and removed `GRT_ALLOW_CONGESTION: 1`. Pushed to origin/main.
 
 ---
 

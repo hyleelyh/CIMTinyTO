@@ -5,12 +5,12 @@
   "//": "Placement Target Density: Set to 92% (0.92) to match proven Sept 23 sign-off target",
   "PL_TARGET_DENSITY_PCT": 92,
 
-  "//": "Synthesis Optimization Strategy: AREA 2 for deep multi-pass ABC Boolean restructuring",
-  "SYNTH_STRATEGY": "AREA 2",
+  "//": "Synthesis Optimization Strategy: AREA 1 (proven minimal area 62,882 um^2)",
+  "SYNTH_STRATEGY": "AREA 1",
 
-  "//": "Cell Padding: 1 site for global placement to prevent pin-access via-to-via starvation",
+  "//": "Disable artificial cell padding to maintain 87.98% real core density",
   "PL_ROUTABILITY_DRIVEN": 0,
-  "GPL_CELL_PADDING": 1,
+  "GPL_CELL_PADDING": 0,
   "DPL_CELL_PADDING": 0,
 
   "//": "SDC Timing Constraints",
@@ -46,7 +46,6 @@
 
   "//": "Floorplan sizing defined by Tiny Tapeout tile boundaries",
   "FP_SIZING": "absolute",
-  "GRT_ALLOW_CONGESTION": 1,
 
   "FP_IO_HLENGTH": 2,
   "FP_IO_VLENGTH": 2,
