@@ -1,9 +1,36 @@
 # Session Handoff
 
-- **Date:** 2026-09-30 08:20
+- **Date:** 2026-09-30 22:35
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** main
-- **Sync Status:** Pillars 1–5 completed, verified, Red-Team audited, waveforms reviewed (DFT loopback, golden vectors suite, Make architecture), documented, pushed, and frozen. GDSII release ready for tapeout. Ready for Pillar 6 launch in a fresh session.
+- **Sync Status:** LibreLane 3.0 / Tiny Tapeout `sky26d` CI configuration updated. `GPL-0301` Global Placement density failure resolved by eliminating artificial cell padding and configuring `PL_TARGET_DENSITY_PCT: 85`. Ready for push and CI verification run.
+
+---
+
+## Tiny Tapeout sky26d Submission & CI Sign-Off Checklist
+
+To complete submission to the Tiny Tapeout `sky26d` shuttle:
+
+1. **Verify GitHub Pages Source Configuration:**
+   - Navigate to: `https://github.com/hyleelyh/CIMTinyTO/settings/pages`
+   - Under **Build and deployment > Source**, ensure **"GitHub Actions"** is selected (NOT "Deploy from a branch").
+   - This allows the `viewer` action to automatically deploy the 3D GDS interactive viewer.
+
+2. **Trigger and Monitor the GitHub Actions Run:**
+   - Once pushed to `origin/main` without `[skip ci]`, monitor:
+     `https://github.com/hyleelyh/CIMTinyTO/actions`
+   - All 4 workflow jobs must succeed (turn GREEN):
+     - `gds`: Hardens the RTL into GDSII via LibreLane 3.0 on SkyWater 130nm ($2 \times 2$ tile).
+     - `precheck`: Runs DRC and physical design rule checks.
+     - `gl_test`: Executes gate-level simulation regression with power rail back-annotation.
+     - `viewer`: Deploys the interactive 3D GDS viewer to GitHub Pages.
+
+3. **Submit on the Tiny Tapeout Portal:**
+   - Navigate to: `https://app.tinytapeout.com/`
+   - Select the `sky26d` shuttle.
+   - Choose your purchased **2x2 tile**.
+   - Link the repository: `https://github.com/hyleelyh/CIMTinyTO`.
+   - The portal will verify the green CI status and 3D viewer deployment, and confirm your submission!
 
 ---
 
@@ -50,60 +77,7 @@ To review the complete verification results, test matrix, and waveforms on your 
 
 ---
 
-## 1. State: Pillar 4 (Static Timing Analysis & Power Sign-Off) — Signed Off & Frozen
-
-1. **Multi-Corner STA Timing Sign-Off Matrix across 9 PVT/RC Corners:**
-   - Evaluated all 9 sign-off corners extracted by OpenROAD across process (TT, SS, FF), temperature ($-40^\circ\text{C}$ to $+100^\circ\text{C}$), voltage ($1.60\text{V}$ to $1.95\text{V}$), and RC parasitics (Nominal, Min-RC, Max-RC).
-   - **Zero Hold Violations Across ALL Corners:** Hold slack strictly positive ($+0.110\text{ ns}$ to $+0.388\text{ ns}$), guaranteeing race-condition-free operation.
-   - **Nominal Room-Temperature Headroom:** Setup slack $+9.87\text{ ns}$ at $50\text{ MHz}$ ($F_{\max} \approx 98.7\text{ MHz}$).
-   - **Worst-Case RC Boundary (`max_ss_100C_1v60`):** Setup slack $-0.145\text{ ns}$ ($F_{\max} = 49.64\text{ MHz}$, $0.7\%$ delta from $50\text{ MHz}$).
-2. **SDC Interface & Environmental Assumptions Audited:**
-   - Annotated [`src/scim_core.sdc`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/src/scim_core.sdc) with exact physical derivations.
-   - Output load ($33.4\text{ fF}$) buffered by `clkbuf_4` (drive $>150\text{ fF}$); `uo_out` held at `8'h00` during compute (Hole #8), making compute timing immune to load variations.
-   - Driving cell (`sky130_fd_sc_hd__inv_2`) provides $>+17.3\text{ ns}$ setup margin on inputs.
-   - I/O delay budget ($2.0\text{ ns}$ max / $0.5\text{ ns}$ min) guarantees shuttle location invariance.
-   - Clock uncertainty: $500\text{ ps}$ setup, $200\text{ ps}$ hold.
-   - Reset false path validated via 2-stage synchronizer ($\text{MTBF} > 10^{10}\text{ years}$).
-3. **OpenROAD Static Power & PDN Rigidity:**
-   - Core active power: **$2.798\text{ mW}$** at $50\text{ MHz}$ ($1.80\text{V}$).
-   - Energy efficiency: **$55.95\text{ pJ/MAC}$** ($14.32\text{ nJ}$ per $16 \times 16$ MVM).
-   - Static IR drop on `VPWR`: $68.0\,\mu\text{V}$ ($0.0038\%$); ground bounce on `VGND`: $101.4\,\mu\text{V}$.
-4. **Deliverables:**
-   - `scripts/sta_power_audit.py`
-   - `docs/pillar4_static_timing_analysis_and_power_signoff.md`
-   - `docs/walkthrough_pillar4_sta_power.md`
-
----
-
-## 2. State: Pillar 5 (Gate-Level Simulation & Dynamic Power) — Signed Off & Frozen
-
-1. **Full Gate-Level Silicon Verification (11 / 11 Test Suites 100% Bit-Exact):**
-   - Simulated 67,615-line post-route netlist (`gds/tt_um_scim_core.v`, 7,051 placed instances, 80.99% core placement density) with official SkyWater 130nm library models (`sky130_fd_sc_hd`) and explicit power rails (`VPWR = 1'b1`, `VGND = 1'b0`).
-   - **All 10 Gate 0 golden test vectors** (Unipolar, Bipolar, Hybrid ReLU) achieved 100% bit-exact parity across all 16 accumulator channels.
-   - **Silicon Hardening Defenses Verified:**
-     - Hole #8 (Pad Quiescence): `uo_out[7:0]` locked at `8'h00` with 0 transitions during 256 compute cycles, saving $5.45\text{ mW}$ of PCB pad power.
-     - Hole #7 (Shift Interlock): Serial weight shift locked out during compute (`busy == 1`).
-     - Hole #10 (Illegal Mode Clamping): Mode `2'b11` clamped column deltas to 0.
-   - **Pre-Tapeout Red Team Verification Suites (100% PASS):**
-     - DFT Weight Scan Chain Loopback (`w_dout` on `uio_out[2]`): 256/256 bits matched through all 256 physical DFFs across 32 placement rows.
-     - Extreme Saturation & Sticky Alarm (`any_overflow` on `uio_out[3]`): Clamped at $+4095$ with 0 wrap-arounds; `any_overflow` asserted, remained latched throughout readback, and cleared on next compute.
-     - Back-to-Back Inferences: 3 consecutive runs completed without reset with 0 deadlocks.
-     - Physical Overclocking Ladder: Bit-exact arithmetic verified up to **200.0 MHz** ($T = 5.0\text{ ns}$, 400% nominal).
-2. **Clock Edge Discipline (`FallingEdge`):**
-   - Drove testbench inputs on `FallingEdge(clk)`, providing $10.0\text{ ns}$ setup and hold margins against internal clock tree buffering.
-3. **VCD-Driven Dynamic Switching Power & Energy Telemetry:**
-   - Mapped 5,988 out of 6,000 physical nets ($99.8\%$ coverage) from $5.4\text{ MB}$ gate-level VCD trace (`test/tb.vcd`) to post-route SPEF parasitics ($29.41\text{ pF}$ chip capacitance).
-   - Dynamic switching power: **$0.418\text{ mW}$** at $50\text{ MHz}$ ($38.5\%$ lower than OpenROAD's static STA assumption due to activation sparsity).
-   - Total active core power: **$2.536\text{ mW}$**.
-   - Energy efficiency: **$50.73\text{ pJ / MAC}$** ($12.99\text{ nJ}$ per $16 \times 16$ MVM).
-4. **Deliverables:**
-   - `test/tb.v`, `test/Makefile`, `test/test_scim_core.py`, `test/tb.vcd`
-   - `scripts/gls_power_audit.py`, `docs/pillar5_power_metrics.json`
-   - `docs/pillar5_gls_and_dynamic_power_signoff.md`, `docs/walkthrough_pillar5_gls_power.md`
-
----
-
-## 3. Next Session Instructions (Pillar 6)
+## Next Session Instructions (Pillar 6)
 
 Per our **Pillar Session Isolation Protocol** (`.agents/skills/pillar-session-isolation/SKILL.md`):
 1. **Pillars 1 through 5 are 100% complete, verified, Red-Team audited, and frozen.**
