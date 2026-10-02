@@ -1,29 +1,25 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-01 01:50 (Tiny Tapeout sky26d Flow Calibration — DRT Convergence Trajectory & Step 1 Area Pruning Analysis)
+## Last Execution Run: 2026-10-01 20:20 (Option 1: OpenLane 2.0 Parity Test on Isolated Branch test/openlane2-match)
 
-### [Built & Monitored]
-- **Verified GRT Handoff to TritonRoute:** Detailed Routing successfully bypassed the `[GRT-0116]` false-alarm abort with `GRT_ALLOW_CONGESTION: 1`.
-- **Live Detailed Routing Telemetry from GitHub Actions Run #36831702414:**
-  - Iteration 1: 22,300 violations (initial full-chip DRC verification pass across 22,230 pins).
-  - Iteration 2: 22,600 violations (early PathFinder conflict fanout / local congestion spreading).
-  - Iteration 3: 21,630 violations (broke the plateau, -970 violations).
-  - Iteration 5: 18,500 violations (steady convergence at ~1,565 violations resolved per 7-minute iteration).
-- **Step 1 (Synthesis / Architecture) Forensic Area Pruning Audit Completed:**
-  - Identified 2 major silicon optimization opportunities for future PPA pruning without breaking front-end verification:
-    1. `src/scim_accumulator.v`: Replace 32x 14-bit signed magnitude carry-chain comparators (`> MAX_POS`, `< MIN_NEG`) with two's complement sign/overflow bit checks (`(~sum_ext[13]) & sum_ext[12]`). Eliminates ~1,120 standard cells (~4,800 µm²).
-    2. `src/tt_um_scim_core.v`: Unify Mode 1 and Mode 2 column delta subtractors via subtrahend multiplexing (`2P - (mode1 ? 16 : shared_act)`). Eliminates 16x 7-bit full subtractors (~320 standard cells, ~1,500 µm²).
-  - Total potential area reduction: ~6.3k µm² (dropping standard cell area from 62.9k to 56.5k µm², and placer utilization from 98.4% to 85.9%), with 100% bit-exact mathematical and testbench parity.
+### [Built & Dispatched]
+- Created isolated branch `test/openlane2-match` branched from `main`. Main branch remains 100% frozen and untouched.
+- `src/config.json` & `config.yaml`: Restored proven physical design variables from the Sept 23 sign-off (`OpenLane2 2.0.8` / `resolved.json`):
+  - `GRT_LAYER_ADJUSTMENTS: [0.99, 0, 0, 0, 0, 0]` (99% derating on `met1` routing tracks, forcing long routes to upper metal layers and clearing `met1` pin access corridors).
+  - `GRT_ADJUSTMENT: 0.3` & `GRT_OVERFLOW_ITERS: 50` & `GRT_ALLOW_CONGESTION: 1`.
+  - `DECAP_CELL` array restored with 5 foundry sizes (`decap_3` through `decap_12`).
+  - `PL_TIME_DRIVEN: 1` & `DRT_OPT_ITERS: 64`.
+  - Kept 1-site margins (`LEFT/RIGHT: 1`, `TOP/BOTTOM: 0`) and `PL_TARGET_DENSITY_PCT: 99` to maintain $98.44\% < 100\%$ placement utilization to prevent `[GPL-0301]`.
+- All 11 local Cocotb regression suites passed 100% (11/11 PASS in 2.29s).
+- Pushed branch to `origin/test/openlane2-match`, triggering GitHub Actions [Run #36959574654](https://github.com/hyleelyh/CIMTinyTO/actions/runs/36959574654).
 
 ### [Architecture Decisions & Root Cause Analysis]
-- **TritonRoute Convergence Physics:**
-  - With standard-cell physical density at 85.57% and 0 cell padding, adjacent standard-cell pins on `met1` touch across row sites, causing high initial pin-access DRC markers.
-  - The PathFinder cost function $C_e = (b_e + h_e) \cdot p_e$ naturally exhibits a brief conflict fanout in Iterations 1-2 before historical penalties ($h_e$) force 3D via jumps to `met3` (24% free) and `met4` (40% free).
-  - Run 28 is left running overnight on GitHub Actions to attempt baseline convergence without RTL changes.
-- **RTL Logic Recoding as Immediate Guardrail:**
-  - If Run 28 exhausts maximum iterations, the 5-line accumulator logic recoding provides an immediate, zero-risk pathway to slash placer density to 85.9% and accelerate DRT by 4.5x.
+- **The met1 Capacity Derating Strategy:**
+  - Standard-cell pins live almost entirely on `met1`.
+  - When FastRoute considers `met1` as general routing resource, it packs inter-cell signal routes into `met1`, leaving zero room for `via1` drops from upper layers.
+  - Setting `GRT_LAYER_ADJUSTMENTS: [0.99, 0, 0, 0, 0, 0]` reduces FastRoute's `met1` capacity by 99%, forcing all signal wires up to `met2..met4` and preserving `met1` strictly for local pin connections and power rails.
 
-### [Prior Execution Run: 2026-10-01 00:40]
+### [Prior Execution Run: 2026-10-01 01:50]
 
 
 ### [Architecture Decisions & Root Cause Analysis]

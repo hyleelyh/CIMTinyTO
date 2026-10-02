@@ -1,26 +1,20 @@
 # Session Handoff
 
-- **Date:** 2026-10-01 01:52
+- **Date:** 2026-10-01 20:20
 - **Machine:** Host/PC (`juliusli`)
-- **Branch:** main
-- **Sync Status:** GitHub Actions [Run #36831702414](https://github.com/hyleelyh/CIMTinyTO/actions/runs/36831702414) active in Detailed Routing (TritonRoute Iteration 5, 18,500 violations and resolving ~1,565/iter). Step 1 area audit completed with 5-line accumulator logic recoding formulated as immediate guardrail.
+- **Branch:** test/openlane2-match (Main branch remains untouched)
+- **Sync Status:** Dispatched Option 1 (OpenLane 2.0 variable parity) to isolated branch `test/openlane2-match`. Live workflow: GitHub Actions [Run #36959574654](https://github.com/hyleelyh/CIMTinyTO/actions/runs/36959574654).
 
 ---
 
-## Tomorrow Morning Sign-Off & Action Plan
+## Active Experiment: OpenLane 2.0 Parity on LibreLane 3
 
-When returning to this PC tomorrow morning:
-
-1. **Check GitHub Actions Run #36831702414:**
-   - URL: `https://github.com/hyleelyh/CIMTinyTO/actions/runs/36831702414`
-   - **Branch A (Run Succeeded / All 4 Green: `gds`, `precheck`, `gl_test`, `viewer`):**
-     1. Sign-off complete!
-     2. Open `https://app.tinytapeout.com/`, select the `sky26d` shuttle, select your purchased 2x2 tile, and submit the repo.
-     3. Lock baseline, celebrate, and proceed cleanly to Pillar 6 in a fresh chat!
-   - **Branch B (TritonRoute Hit Max Iterations / Stopped):**
-     1. Apply the 5-line accumulator logic recoding in `src/scim_accumulator.v` (replace 32x 14-bit comparators with 2-bit two's complement sign checks).
-     2. Prunes ~6.3k µm² of standard-cell area (down to ~56.5k µm²) and drops placement density to 85.9%.
-     3. Push to `main`: TritonRoute will start with <3,500 violations and converge cleanly in under 20 minutes!
+1. **Active Branch:** `test/openlane2-match`
+2. **Workflow Run:** [Run #36959574654](https://github.com/hyleelyh/CIMTinyTO/actions/runs/36959574654)
+3. **Hypothesis Under Test:**
+   - Restoring `GRT_LAYER_ADJUSTMENTS: [0.99, 0, 0, 0, 0, 0]` derates `met1` capacity by 99%, forcing FastRoute to push interconnects to upper metal layers.
+   - Restoring `DECAP_CELL` array, `GRT_ADJUSTMENT: 0.3`, `GRT_OVERFLOW_ITERS: 50`, and `PL_TIME_DRIVEN: 1` reproduces the Sept 23 OpenLane 2 sign-off configuration.
+4. **Safety:** `main` branch is untouched and remains at commit `d42b67e`.
 
 ---
 
