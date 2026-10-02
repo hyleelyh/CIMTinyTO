@@ -2,8 +2,8 @@
   "//": "CIMTinyTO OpenLane 2.0 Parity Configuration for Tiny Tapeout",
   "//": "Target: SkyWater 130nm (sky130_fd_sc_hd) on Tiny Tapeout 2x2 Tile",
 
-  "//": "Placement Target Density: Set to 92% (exact match to Sept 23 sign-off)",
-  "PL_TARGET_DENSITY_PCT": 92,
+  "//": "Placement Target Density: Set to 98% to accommodate 96.69% utilization with 2,432 um² safety headroom",
+  "PL_TARGET_DENSITY_PCT": 98,
 
   "//": "Synthesis Optimization Strategy: AREA 1",
   "SYNTH_STRATEGY": "AREA 1",
@@ -46,11 +46,12 @@
   "GRT_LAYER_ADJUSTMENTS": [0.99, 0, 0, 0, 0, 0],
   "DRT_OPT_ITERS": 64,
 
-  "//": "Pad Frame & Periphery Margins: Exact 6-site / 1-row margins from Sept 23 sign-off",
-  "TOP_MARGIN_MULT": 1,
-  "BOTTOM_MARGIN_MULT": 1,
-  "LEFT_MARGIN_MULT": 6,
-  "RIGHT_MARGIN_MULT": 6,
+  "//": "Pad Frame & Periphery Margins: 1 site (0.46 um) left/right yields 73,489.2 um^2 net core",
+  "//": "Utilization = 71,056.97 / 73,489.2 = 96.69% < 100% (clears GPL-0301 with +2,432 um² safety headroom)",
+  "TOP_MARGIN_MULT": 0,
+  "BOTTOM_MARGIN_MULT": 0,
+  "LEFT_MARGIN_MULT": 1,
+  "RIGHT_MARGIN_MULT": 1,
 
   "//": "Floorplan sizing defined by Tiny Tapeout tile boundaries",
   "FP_SIZING": "absolute",

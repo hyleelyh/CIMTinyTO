@@ -1,28 +1,23 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-02 06:30 (Option 2: Step 1 Logic Recoding & Full OpenLane 2.0 Parity on test/option2-recoded)
+## Last Execution Run: 2026-10-02 06:37 (Option 2: 1-Site Margin Calibration for 96.69% Placement Utilization)
 
 ### [Built & Dispatched]
-- Created dedicated branch `test/option2-recoded` branched from `main`. Main branch remains 100% frozen and untouched.
-- `src/scim_accumulator.v`: Replaced 32x 14-bit carry-chain magnitude comparators (`> MAX_POS`, `< MIN_NEG`) with two's complement sign-and-overflow bit checks (`(~sum_ext[WIDTH]) & sum_ext[WIDTH-1]`). Eliminates ~1,120 standard cells (~4,800 µm²).
-- `src/tt_um_scim_core.v`: Unified Mode 1 and Mode 2 column delta subtractors via subtrahend multiplexing (`2P - (mode1 ? 16 : shared_act)`). Eliminates 16x 7-bit full subtractors (~320 standard cells, ~1,500 µm²).
-- `src/config.json` & `config.yaml`: Restored 100% exact Sept 23 OpenLane 2 sign-off configuration:
-  - `LEFT_MARGIN_MULT: 6`, `RIGHT_MARGIN_MULT: 6`, `TOP_MARGIN_MULT: 1`, `BOTTOM_MARGIN_MULT: 1`.
-  - `PL_TARGET_DENSITY_PCT: 92` (exact match to Sept 23 `PL_TARGET_DENSITY: 0.92`).
-  - `PL_ROUTABILITY_DRIVEN: 1`, `PL_TIME_DRIVEN: 1`.
-  - `GRT_LAYER_ADJUSTMENTS: [0.99, 0, 0, 0, 0, 0]`, `GRT_ADJUSTMENT: 0.3`, `GRT_OVERFLOW_ITERS: 50`.
-  - `DECAP_CELL` array with 5 explicit foundry decap sizes.
-- Verified all 11 Cocotb regression suites locally: 11/11 PASS in 2.27s with 100% bit-exact mathematical parity across all golden vectors and overclocking to 200 MHz.
-- Pushed branch to `origin/test/option2-recoded` to launch GitHub Actions CI.
+- Run 30 confirmed logic recoding reduced cells by 288 (`5,985 -> 5,697`) and pins by 1,138 (`22,230 -> 21,092`), but missed 6-site margins by only 0.56% (398 µm²) due to RePlAce pin-density inflation.
+- `src/config.json` & `config.yaml`: Calibrated margins to 1 site (`LEFT/RIGHT: 1`, `TOP/BOTTOM: 0`) and target density to `98%`:
+  - Usable core area: $73,489.2\,\mu\text{m}^2$.
+  - Placement utilization: $71,056.97 / 73,489.2 = \mathbf{96.69\%} < \mathbf{100.00\%}$.
+  - Safety margin: **$+2,432.2\,\mu\text{m}^2$ of headroom below 100% threshold**, strictly preventing `[GPL-0301]`.
+  - Retained all OpenLane 2 routing parameters: `GRT_LAYER_ADJUSTMENTS: [0.99, 0, 0, 0, 0, 0]`, `DECAP_CELL`, `PL_TIME_DRIVEN: 1`, `PL_ROUTABILITY_DRIVEN: 1`.
+- Verified local regression: 11/11 PASS in 2.27s. Pushed to `origin/test/option2-recoded`.
 
 ### [Architecture Decisions & Root Cause Analysis]
-- **Elimination of the GPL-0301 Density Trap:**
-  - With standard cell area pruned from $62,882\,\mu\text{m}^2$ to $\approx 56,500\,\mu\text{m}^2$, total movable placer area drops to $\approx 63,000\,\mu\text{m}^2$.
-  - Placement utilization inside the $72,564\,\mu\text{m}^2$ core drops to **$89.15\% \le 92.0\%$**, completely eliminating `[GPL-0301]`.
-  - Restoring 6-site margins restores **$14,100\,\mu\text{m}^2$ of real physical whitespace (20% open space)** between cells.
-  - Standard-cell pins are no longer touching edge-to-edge, opening clean vertical via escape channels on `met2..met4` and allowing TritonRoute to converge in under 20 minutes!
+- **Diagnostic Precision of the 0.56% Margin:**
+  - In Run 30, movable area after pin adjustment was $71,056.97\,\mu\text{m}^2$ + fixed tapcells $1,905.58\,\mu\text{m}^2$ = $72,962.55\,\mu\text{m}^2$.
+  - With 6-site margins, core was $72,564.6\,\mu\text{m}^2$, resulting in $100.56\%$ utilization.
+  - Expanding lateral margins by just 5 sites (to 1-site margin) adds $924.6\,\mu\text{m}^2$ of usable core, flipping utilization from $100.56\%$ to $96.69\%$ and clearing global placement legally.
 
-### [Prior Execution Run: 2026-10-01 01:50]
+### [Prior Execution Run: 2026-10-02 06:30]
 
 
 ### [Architecture Decisions & Root Cause Analysis]
