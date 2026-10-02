@@ -1,21 +1,23 @@
 # Session Handoff
 
-- **Date:** 2026-10-02 06:30
+- **Date:** 2026-10-02 06:38
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** test/option2-recoded (Main branch remains untouched)
-- **Sync Status:** Dispatched Option 2 (Step 1 Logic Recoding + Full Sept 23 Parity) to isolated branch `test/option2-recoded`.
+- **Sync Status:** Dispatched Run #31 (1-site lateral margin calibration, 96.69% placement utilization) on branch `test/option2-recoded`.
 
 ---
 
-## Active Experiment: Option 2 (Area Pruning + Sept 23 OpenLane 2 Parity)
+## Active Experiment: Option 2 (Margin Calibration & OpenLane 2 Parity)
 
 1. **Active Branch:** `test/option2-recoded`
 2. **Changes Applied:**
    - `src/scim_accumulator.v`: Direct two's complement sign-and-overflow checks (`(~sum_ext[WIDTH]) & sum_ext[WIDTH-1]`), eliminating 32x 14-bit carry comparators (~1,120 cells, ~4,800 µm²).
    - `src/tt_um_scim_core.v`: Shared column delta subtrahend multiplexing, eliminating 16x 7-bit subtractors (~320 cells, ~1,500 µm²).
-   - `src/config.json` & `config.yaml`: 100% exact Sept 23 OpenLane 2 sign-off configuration (6-site margins, 92% target density, decap array, 99% met1 derating).
+   - `src/config.json` & `config.yaml`: 1-site margin calibration (`LEFT/RIGHT: 1`, `TOP/BOTTOM: 0`, `PL_TARGET_DENSITY_PCT: 98`), delivering $73,489.2\,\mu\text{m}^2$ usable core area for $96.69\%$ utilization with $+2,432.2\,\mu\text{m}^2$ safety headroom below the 100% RePlAce ceiling.
+   - Preserved all routing parameters: `GRT_LAYER_ADJUSTMENTS: [0.99, 0, 0, 0, 0, 0]`, `DECAP_CELL` array, `PL_TIME_DRIVEN: 1`, `PL_ROUTABILITY_DRIVEN: 1`.
 3. **Verification:** All 11 Cocotb regression suites passed 100% locally with bit-exact parity across golden vectors and overclocking to 200 MHz.
 4. **Safety:** `main` branch is 100% untouched and safe.
+5. **Active Run:** Run #31 (`37014179296`) in progress on GitHub Actions.
 
 ---
 
