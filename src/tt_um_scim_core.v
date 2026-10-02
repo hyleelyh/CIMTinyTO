@@ -325,20 +325,20 @@ module tt_um_scim_core #(
             // Mode 0 (Unipolar):    Δ = P                (Range [0, 16])
             // Mode 1 (Bipolar):     Δ = 2X - 16          (Range [-16, +16])
             // Mode 2 (Hybrid ReLU): Δ = 2P - A           (Range [-16, +16])
-            // Hardening (Hole #1): Zero-extend to 7 bits before subtraction to guarantee
-            // that 2*P (range [0, 32]) fits cleanly without signed overflow into bit 5.
-            wire signed [5:0] delta_mode0    = $signed({1'b0, col_sum[col]});
-            wire signed [6:0] delta_mode1_7b = $signed({1'b0, col_sum[col], 1'b0}) - 7'sd16;
-            wire signed [6:0] delta_mode2_7b = $signed({1'b0, col_sum[col], 1'b0}) - $signed({2'b00, shared_act_sum});
+            // Shared Subtrahend: Mode 1 subtracts 16 (5'd16), Mode 2 subtracts shared_act_sum (5 bits).
+            // Sharing the subtractor eliminates 16x 7-bit full subtractors (~320 standard cells, ~1,500 um²).
+            wire signed [5:0] delta_mode0  = $signed({1'b0, col_sum[col]});
+            wire [4:0] subtrahend = (mode == 2'b01) ? 5'd16 : shared_act_sum;
+            wire signed [6:0] delta_sub_7b = $signed({1'b0, col_sum[col], 1'b0}) - $signed({2'b00, subtrahend});
 
             // Bit 6 is the redundant sign bit; tie off for lint hygiene
-            wire _unused_delta = &{delta_mode1_7b[6], delta_mode2_7b[6], 1'b0};
+            wire _unused_delta = &{delta_sub_7b[6], 1'b0};
 
             // Hardening (Hole #10): Explicitly decode Mode 2 (2'b10) and clamp undefined
             // modes (e.g. 2'b11) to 6'sd0, preventing spurious negative accumulation.
             assign col_delta[col] = (mode == 2'b00) ? delta_mode0 :
-                                    (mode == 2'b01) ? delta_mode1_7b[5:0] :
-                                    (mode == 2'b10) ? delta_mode2_7b[5:0] : 6'sd0;
+                                    (mode == 2'b01) ? delta_sub_7b[5:0] :
+                                    (mode == 2'b10) ? delta_sub_7b[5:0] : 6'sd0;
         end
     endgenerate
 

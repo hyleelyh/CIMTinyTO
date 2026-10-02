@@ -31,15 +31,16 @@ STD_CELL_LIBRARY: "sky130_fd_sc_hd"
 SYNTH_STRATEGY: "AREA 1"
 
 # Placement & Density
-# Target density 99% cleanly accommodates 98.44% virtual placement density inside the 2x2 core.
-PL_TARGET_DENSITY_PCT: 99
-PL_ROUTABILITY_DRIVEN: false
+# Target density 92% matching Sept 23 sign-off
+PL_TARGET_DENSITY_PCT: 92
+PL_TIME_DRIVEN: true
+PL_ROUTABILITY_DRIVEN: true
 GPL_CELL_PADDING: 0
 DPL_CELL_PADDING: 0
-TOP_MARGIN_MULT: 0
-BOTTOM_MARGIN_MULT: 0
-LEFT_MARGIN_MULT: 1
-RIGHT_MARGIN_MULT: 1
+TOP_MARGIN_MULT: 1
+BOTTOM_MARGIN_MULT: 1
+LEFT_MARGIN_MULT: 6
+RIGHT_MARGIN_MULT: 6
 
 # High-Fanout Net (HFN) & Buffer Insertion Rules
 DESIGN_REPAIR_BUFFER_OUTPUT_PORTS: false
@@ -53,11 +54,29 @@ RUN_CTS: true
 CTS_TARGET_SKEW: 0.200 # Max 200 ps clock skew target
 CTS_ROOT_BUFFER: "sky130_fd_sc_hd__clkbuf_16"
 
-# Detailed & Global Routing
+# Detailed & Global Routing (Restored from Sept 23 sign-off)
 RT_MAX_LAYER: "met4"
 GRT_ALLOW_CONGESTION: true
-GRT_OVERFLOW_ITERS: 100
+GRT_OVERFLOW_ITERS: 50
+GRT_ADJUSTMENT: 0.3
+GRT_LAYER_ADJUSTMENTS:
+  - 0.99
+  - 0.00
+  - 0.00
+  - 0.00
+  - 0.00
+  - 0.00
+DRT_OPT_ITERS: 64
+
+# Decoupling Capacitors (Decap) Restored from Sept 23 Sign-off
+DECAP_CELL:
+  - "sky130_fd_sc_hd__decap_3"
+  - "sky130_fd_sc_hd__decap_4"
+  - "sky130_fd_sc_hd__decap_6"
+  - "sky130_fd_sc_hd__decap_8"
+  - "sky130_ef_sc_hd__decap_12"
 
 # Antenna DRC Protection
 RUN_ANTENNA_CHECKER: true
 DIODE_CELL: "sky130_fd_sc_hd__diode_2"
+
