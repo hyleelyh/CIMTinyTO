@@ -1,30 +1,22 @@
-# Session Handoff: Run #37 Dispatch (Choice 1 Test)
+# Session Handoff: Run #38 Dispatch (True 50% met1 Derating)
 
-- **Date:** 2026-10-03 13:18
+- **Date:** 2026-10-03 13:38
 - **Machine:** Host/PC (`juliusli`)
 - **Active Branch:** `test/option2-recoded`
 - **Sept 23 Golden Archive:** Tagged at `v-sept23-openlane2-signoff`, branch `archive/sept23-openlane2-signoff`, and committed in `archive/sept23_openlane2_golden/`.
-- **Target:** Run #37 on GitHub Actions (`https://github.com/hyleelyh/CIMTinyTO/actions`).
+- **Target:** Run #38 on GitHub Actions (`https://github.com/hyleelyh/CIMTinyTO/actions`).
 
 ---
 
-## Active Experiment: Run #37 (LibreLane Dict Syntax Fix for met1 Derating)
+## Active Experiment: Run #38 (True met1 50% Derate & Modernized LibreLane 3 Schema)
 
-1. **Hypothesis:**
-   - Run #36 ran for 4.5 hours because LibreLane 3 dropped `"GRT_LAYER_ADJUSTMENTS": [0.99, ...]` due to list-vs-dict type mismatch, leaving `met1` un-derated.
-   - By converting to the proper dictionary format:
-     ```json
-     "GRT_LAYER_ADJUSTMENTS": {
-       "met1": 0.99,
-       "met2": 0.0,
-       "met3": 0.0,
-       "met4": 0.0,
-       "met5": 0.0
-     }
-     ```
-     FastRoute will actually enforce 99% `met1` derating. With our 72% density and balanced binary adder tree, TritonRoute should converge cleanly in 15–25 minutes.
+1. **Root Cause Resolved:**
+   - In Sky130 LEF, routing layers are ordered: `[li1, met1, met2, met3, met4, met5]`.
+   - The Tiny Tapeout default `[0.99, 0, 0, 0, 0, 0]` applied 0.99 to `li1` (index 0) to block signals from local interconnect, but left `met1` (index 1) at **0% derating**, dumping signal nets on standard-cell pins.
+   - Setting `GRT_LAYER_ADJUSTMENTS: [0.99, 0.50, 0, 0, 0, 0]` reduces `met1` routing capacity by 50%, reserving 50% of tracks strictly for standard-cell pin access.
+   - Updated all deprecated LibreLane 3 variables (`DRT_THREADS`, `IO_PIN_H_LENGTH`, `IO_PIN_V_LENGTH`, `PDN_VPITCH`, `PDN_MULTILAYER`, `DECAP_CELLS`) and converted integer flags to JSON booleans. Verified with `Config.load` locally: 0 errors, 0 warnings.
 
 2. **Goal:**
-   - Achieve a 100% green build on `ttsky26d` immediately.
-   - Submit to `app.tinytapeout.com` so Tiny Tapeout can officially assign physical real estate on the `sky26d` shuttle wafer.
-   - Once wafer real estate is locked in, we can evaluate implementing Path B (No Mode 1 + 4:2 Compressors) on a fresh branch.
+   - Achieve 100% green DRC/LVS/routing sign-off on `ttsky26d`.
+   - Submit immediately to `app.tinytapeout.com` so Tiny Tapeout can officially assign wafer real estate for `sky26d`.
+   - Once tile real estate is assigned, open a fresh branch and chat session for Path B.
