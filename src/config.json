@@ -34,7 +34,13 @@
 
   "//": "Global Routing: Enable 2D congestion resolution and derate met1 to reserve for pin access",
   "GRT_ALLOW_CONGESTION": 1,
-  "GRT_LAYER_ADJUSTMENTS": [0.99, 0, 0, 0, 0, 0],
+  "GRT_LAYER_ADJUSTMENTS": {
+    "met1": 0.99,
+    "met2": 0.0,
+    "met3": 0.0,
+    "met4": 0.0,
+    "met5": 0.0
+  },
 
   "//": "Detailed Routing: Bind to 2 cores matching GitHub Actions runner vCPUs",
   "ROUTING_CORES": 2,

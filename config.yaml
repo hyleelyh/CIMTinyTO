@@ -54,12 +54,11 @@ CTS_ROOT_BUFFER: "sky130_fd_sc_hd__clkbuf_16"
 RT_MAX_LAYER: "met4"
 GRT_ALLOW_CONGESTION: true
 GRT_LAYER_ADJUSTMENTS:
-  - 0.99
-  - 0.00
-  - 0.00
-  - 0.00
-  - 0.00
-  - 0.00
+  met1: 0.99
+  met2: 0.00
+  met3: 0.00
+  met4: 0.00
+  met5: 0.00
 ROUTING_CORES: 2
 
 # Decoupling Capacitors (Decap) Restored from Sign-off
