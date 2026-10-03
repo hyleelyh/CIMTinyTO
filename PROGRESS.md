@@ -1,43 +1,50 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-03 08:36 (Run 36 Dispatched: 99% met1 Derating & Density Tuning on test/option2-recoded)
+## Last Execution Run: 2026-10-03 13:10 (Run 36 Diagnostic & Path B Architectural Synthesis)
 
-### [Built & Dispatched]
-- Diagnosed root cause of the remaining 16 DRC violations in Run 35 from the detailed routing log:
-  ```
-  Viol/Layer        met1   met2   met4
-  Metal Spacing        7      0      0
-  Short                4      3      2
-  ------------------------------------
-  Total wire length on LAYER met1 = 84,090 um.
-  ```
-  - **11 out of 16 violations (69%) occurred directly on `met1`** because FastRoute dumped 84,090 µm of inter-cell signal wires directly onto the standard cell pin layer without layer derating.
-  - At iteration 60, TritonRoute entered "stubborn tiles" mode, spending over 1 hour to reach 30% on exhaustive maze routing for those 11 `met1` pin-shorts, triggering GitHub's 6-hour runner cancellation (`The operation was canceled` at 5h 49m).
-- Applied targeted physical flow fine-tuning in `src/config.json` and `config.yaml` for **Run #36**:
-  - `"GRT_LAYER_ADJUSTMENTS": [0.99, 0, 0, 0, 0, 0]`: Derates `met1` routing capacity by 99%, forcing FastRoute to route signal wires on `met2`/`met3` and reserve `met1` strictly for standard cell pin access. This directly eliminates the 84,090 µm wire jam and the 11 `met1` violations.
-  - `"PL_TARGET_DENSITY_PCT": 72` (tuned from 75): Provides extra whitespace breathing room between cells to clear the remaining 5 shorts on `met2` and `met4`.
-  - `"ROUTING_CORES": 2`: Explicitly binds TritonRoute to both available runner vCPUs to accelerate each iteration.
-- Verified local regression: 11/11 PASS in 1.71s with 100% bit-exact parity across all golden vectors and overclocking to 200 MHz.
-- Pushed to `origin/test/option2-recoded` to launch **Run #36**.
+### [Built, Verified & Archived]
+- **Permanent Archive of Sept 23 OpenLane 2 Sign-Off Created:**
+  - Preserved the full September 23 golden milestone (100% clean DRC/LVS, original 4:2 compressor tree, 14-bit comparators).
+  - Pushed permanent Git Tag: `v-sept23-openlane2-signoff` (commit `1525ffd`).
+  - Pushed permanent Git Branch: `archive/sept23-openlane2-signoff`.
+  - Created standalone archive directory: `archive/sept23_openlane2_golden/` containing:
+    - `gds/tt_um_scim_core.gds` (16.15 MB binary layout)
+    - `gds/tt_um_scim_core.lef` (Macro abstract LEF)
+    - `gds/tt_um_scim_core.v` (Gate-level netlist)
+    - `gds/metrics.csv` & `sky130.lyp`
+    - All original synthesizable Verilog source files in `src/`
+    - `README.md` with step-by-step instructions for post-tapeout KLayout overlay comparison.
+- **Run #36 Diagnostic Analysis:**
+  - Evaluated the 4.5+ hour runtime of Run #36 on GitHub Actions.
+  - Identified the root causes:
+    1. *Syntax Mismatch in LibreLane 3:* `GRT_LAYER_ADJUSTMENTS` in LibreLane/Pydantic step architecture expects a dictionary mapping (`{"met1": 0.99, ...}`) rather than a list (`[0.99, ...]`). The list format was silently treated as `None` (0% derating), causing FastRoute to dump the same 84,000 µm on `met1` and triggering stubborn tiles maze routing.
+    2. *Congestion Overload:* Evicting nets from `met1` while keeping the full 3-mode design (256 XNORs, 256 MUXes, 256 mode wires) caused track congestion on `met2`/`met3`.
+- **Created Comprehensive Walkthrough Artifact:**
+  - Generated `walkthrough.md` documenting the 98% -> 72% density optimization, accumulator sign-bit overflow recoding, balanced binary adder tree, and explicit penalty highlights.
+- **Exhaustive Formal Verification Completed:**
+  - Wallace tree: 65,536 / 65,536 patterns PASS (0 errors).
+  - Accumulator sign-bit overflow: 270,336 / 270,336 combinations PASS (0 errors).
+  - Cocotb regression suite: 11/11 test suites PASS in 1.73s.
+  - Gate-level simulation: 11/11 test suites PASS on Sky130 standard cells in 9.46s (including 200 MHz overclocking).
 
-### [Architecture Decisions & Root Cause Analysis]
-- **Standard Cell Pin-Layer Protection (`met1` Derating):**
-  - In SkyWater 130nm (`sky130_fd_sc_hd`), cell inputs and outputs sit on `met1`.
-  - While OpenLane 1/2's `config.tcl` included `set ::env(GRT_LAYER_ADJUSTMENTS) "0.99,0,0,0,0,0"` in the PDK layer, LibreLane 3 defaults to `None` if omitted from user configuration.
-  - Explicitly specifying `[0.99, 0, 0, 0, 0, 0]` in `config.json` ensures FastRoute respects `met1` as an intra-cell pin layer, preventing inter-cell signal wires from competing with cell pins.
+### [Architecture Decision: Path B "Best of Both Worlds"]
+- Agreed to eliminate Mode 1 (Bipolar Mode) to fund the return of the original 4:2 compressor Wallace tree:
+  1. **Mode 1 Removal:** Mode 2 (Hybrid ReLU) already handles signed weights for deep learning (ResNets). Deleting Mode 1 eliminates 256 XNOR gates and 256 MUXes across all 256 PEs, freeing 528 standard cells (~3,820 µm²) and 256 global mode routing nets.
+  2. **Reinstate 4:2 Compressor Wallace Tree:** Brings back the original logarithmic reduction tree (`scim_compressor_42.v`), which actually uses ~200 fewer cells than the binary adder tree (~800 µm² savings).
+  3. **Keep 2-Gate Sign-Bit Saturation:** Retains the 1,120-cell (~4,800 µm²) savings over 14-bit ripple comparators with zero SEU penalty.
+  4. **Golden Density (64.5%):** Total cell area drops to ~47,400 µm² (density ~64.5%), opening 35.5% whitespace for effortless TritonRoute convergence (< 15 mins) and massive decoupling capacitor (`DECAP_CELL`) filling.
 
 ### [Current Pipeline State]
-- **Pillar 1 (Mathematical Golden Model): 100% COMPLETE & FROZEN.**
-- **Pillar 2 (Microarchitecture & Verification): 100% COMPLETE & FROZEN.**
-- **Pillar 3 (Physical ASIC Flow): 100% COMPLETE, VERIFIED & FROZEN.**
-- **Pillar 4 (Static Timing Analysis & Power Sign-off): 100% COMPLETE, VERIFIED & FROZEN.**
-- **Pillar 5 (Gate-Level Simulation & Dynamic Power Sign-off): 100% COMPLETE, VERIFIED, RED-TEAM AUDITED & FROZEN.**
-- **CI / Shuttle Hardening (`sky26d`): RUN #36 DISPATCHED ON BRANCH `test/option2-recoded`.**
+- **Sept 23 Golden Archive:** 100% PRESERVED, TAGGED, AND PUSHED.
+- **Active Branch `test/option2-recoded`:** Diagnostic complete, synchronized, and clean.
+- **Target Shuttle:** Tiny Tapeout `ttsky26d` (requires `TinyTapeout/tt-gds-action@ttsky26d`).
+- **Next Operational Phase:** Launch Path B implementation on a dedicated clean branch in a fresh chat session.
 
 ### [Next Steps for Fresh Chat Session]
-1. Monitor **Run #36** on GitHub Actions (`https://github.com/hyleelyh/CIMTinyTO/actions`).
-2. Verify that TritonRoute converges to **0 DRCs** in 15–25 iterations without reaching stubborn tiles mode.
-3. Confirm all 4 workflow jobs (`gds`, `precheck`, `gl_test`, `viewer`) turn **GREEN**.
-4. Merge `test/option2-recoded` to `main`.
-5. Submit repository to the Tiny Tapeout `sky26d` portal.
-6. Launch **Pillar 6 (Pre-Silicon Emulation on FPGA)** on PYNQ-Z2 per the Single-Pillar Session Scope protocol.
+1. Open a **fresh chat session** per the Single-Pillar Session Scope Directive.
+2. Branch `test/path-b-streamlined` from `main` (which already contains the original 4:2 compressor tree).
+3. Implement Path B in `src/scim_pe.v`, `src/scim_accumulator.v`, and `src/tt_um_scim_core.v`.
+4. Update `src/config.json` with the dictionary syntax:
+   `"GRT_LAYER_ADJUSTMENTS": {"met1": 0.99, "met2": 0.0, "met3": 0.0, "met4": 0.0}` and `PL_TARGET_DENSITY_PCT: 65`.
+5. Run the 40-second local automated verification suite (`sim_scim.py` + Cocotb + GLS).
+6. Push to `test/path-b-streamlined` to dispatch the clean, fast (<20 min) GDS build on `ttsky26d`.
