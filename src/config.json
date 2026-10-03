@@ -1,31 +1,24 @@
 {
-  "//": "CIMTinyTO OpenLane 2.0 Parity Configuration for Tiny Tapeout",
+  "//": "CIMTinyTO LibreLane 3.0 Configuration for Tiny Tapeout sky26d",
   "//": "Target: SkyWater 130nm (sky130_fd_sc_hd) on Tiny Tapeout 2x2 Tile",
 
-  "//": "Placement Target Density: Set to 98% to accommodate 96.69% utilization with 2,432 um² safety headroom",
-  "PL_TARGET_DENSITY_PCT": 98,
+  "//": "Placement Target Density: 75% allows balanced cell distribution and ample routing tracks",
+  "PL_TARGET_DENSITY_PCT": 75,
 
   "//": "Synthesis Optimization Strategy: AREA 1",
   "SYNTH_STRATEGY": "AREA 1",
-
-  "//": "Placement Timing & Routability Controls (Matching OpenLane 2.0)",
-  "PL_TIME_DRIVEN": 1,
-  "PL_ROUTABILITY_DRIVEN": 1,
-  "GPL_CELL_PADDING": 0,
-  "DPL_CELL_PADDING": 0,
 
   "//": "SDC Timing Constraints",
   "PNR_SDC_FILE": "dir::scim_core.sdc",
   "SIGNOFF_SDC_FILE": "dir::scim_core.sdc",
 
-  "//": "Target Clock Period: 20 ns (50 MHz sign-off target).",
+  "//": "Target Clock Period: 20 ns (50 MHz sign-off target)",
   "CLOCK_PERIOD": 20,
 
   "//": "Clock port name matching top-level wrapper",
   "CLOCK_PORT": "clk",
 
-  "//": "Hold Slack Margins: Enforce positive hold slack (T_slack, hold >= 0.10 ns)",
-  "//": "to physically eliminate silicon race conditions across all PVT corners.",
+  "//": "Hold Slack Margins: Enforce positive hold slack across all PVT corners",
   "PL_RESIZER_HOLD_SLACK_MARGIN": 0.1,
   "GRT_RESIZER_HOLD_SLACK_MARGIN": 0.05,
 
@@ -39,19 +32,14 @@
   "//": "Routing: Restrict detailed routing to met1..met4 (met5 reserved for power grid / mux)",
   "RT_MAX_LAYER": "met4",
 
-  "//": "FastRoute & TritonRoute Parameters: 2D congestion handoff enabled with 24-iter DRT fast-fail cap",
+  "//": "Global Routing: Enable 2D congestion resolution",
   "GRT_ALLOW_CONGESTION": 1,
-  "GRT_OVERFLOW_ITERS": 64,
-  "GRT_ADJUSTMENT": 0.3,
-  "GRT_LAYER_ADJUSTMENTS": [0.99, 0, 0, 0, 0, 0],
-  "DRT_OPT_ITERS": 24,
 
-  "//": "Pad Frame & Periphery Margins: 1 site (0.46 um) left/right yields 73,489.2 um^2 net core",
-  "//": "Utilization = 71,056.97 / 73,489.2 = 96.69% < 100% (clears GPL-0301 with +2,432 um² safety headroom)",
-  "TOP_MARGIN_MULT": 0,
-  "BOTTOM_MARGIN_MULT": 0,
-  "LEFT_MARGIN_MULT": 1,
-  "RIGHT_MARGIN_MULT": 1,
+  "//": "Pad Frame & Periphery Margins: Standard 6-site / 1-row margins (matching official TT template)",
+  "TOP_MARGIN_MULT": 1,
+  "BOTTOM_MARGIN_MULT": 1,
+  "LEFT_MARGIN_MULT": 6,
+  "RIGHT_MARGIN_MULT": 6,
 
   "//": "Floorplan sizing defined by Tiny Tapeout tile boundaries",
   "FP_SIZING": "absolute",
@@ -60,9 +48,8 @@
   "FP_IO_VLENGTH": 2,
   "FP_PDN_VPITCH": 38.87,
   "FP_PDN_MULTILAYER": 0,
-  "FP_TAPCELL_DIST": 13,
 
-  "//": "Decoupling Capacitor (Decap) Array Restored from Sept 23 Sign-off",
+  "//": "Decoupling Capacitor (Decap) Array Restored from Sign-off",
   "DECAP_CELL": [
     "sky130_fd_sc_hd__decap_3",
     "sky130_fd_sc_hd__decap_4",
@@ -74,7 +61,7 @@
   "//": "Don't put clock buffers on the outputs (matching official TT template)",
   "DESIGN_REPAIR_BUFFER_OUTPUT_PORTS": 0,
 
-  "//": "DRC and LEF export settings",
+  "//": "DRC and LEF export settings (matching official TT template)",
   "RUN_KLAYOUT_XOR": 0,
   "RUN_KLAYOUT_DRC": 0,
   "MAGIC_DEF_LABELS": 0,

@@ -1,25 +1,24 @@
 # Session Handoff
 
-- **Date:** 2026-10-02 21:11
+- **Date:** 2026-10-03 02:26
 - **Machine:** Host/PC (`juliusli`)
-- **Branch:** test/option2-recoded (Main branch remains untouched)
-- **Sync Status:** Applied 4-Level Balanced Binary Tree in `src/scim_wallace_tree.v` and enabled 2D congestion handoff (`GRT_ALLOW_CONGESTION: 1`) on branch `test/option2-recoded`.
+- **Branch:** test/option2-recoded (Main branch remains untouched and frozen)
+- **Sync Status:** Restored official Tiny Tapeout `ttsky26d` LibreLane 3 template defaults (6-site margins, natural cell padding, PL_TARGET_DENSITY_PCT 75) on branch `test/option2-recoded` for Run #35.
 
 ---
 
-## Active Experiment: Option 2 (Balanced Binary Tree & 2D Handoff)
+## Active Experiment: Run #35 (Official LibreLane 3 Defaults & Cell Padding Restoration)
 
 1. **Active Branch:** `test/option2-recoded`
 2. **Changes Applied:**
-   - `src/scim_wallace_tree.v`: Explicit 4-level balanced binary tree (`s1_* -> s2_* -> s3_* -> count`).
-     - Eliminates cascading 15-stage left-associative ripple adder chain.
-     - Enforces strictly logarithmic depth ($O(\log_2 N) = 4$) with localized routing tracks.
    - `src/config.json` & `config.yaml`:
-     - `GRT_ALLOW_CONGESTION: 1` (`true`): Allows FastRoute to hand off the remaining 260 localized tracks (0.6%) to TritonRoute for 3D resolution.
-     - `DRT_OPT_ITERS: 24`: Fast-fail cap ensures detailed routing finishes in ~20-35 mins.
-3. **Verification:** 11/11 Cocotb regression suites passing with 100% bit-exact mathematical parity.
-4. **Safety:** `main` branch is 100% untouched and safe.
-5. **Target:** Run #34 on GitHub Actions.
+     - Restored standard 6-site margins (`LEFT_MARGIN_MULT: 6`, `RIGHT_MARGIN_MULT: 6`, `TOP_MARGIN_MULT: 1`, `BOTTOM_MARGIN_MULT: 1`). Eliminates Net VGND boundary warning.
+     - Removed `GPL_CELL_PADDING: 0` and `DPL_CELL_PADDING: 0` to enable LibreLane 3's natural cell padding. Physically eliminates adjacent `met1` pin `via1` DRC collisions.
+     - Set `PL_TARGET_DENSITY_PCT: 75` (official TT recommendation).
+     - Removed obsolete OpenLane 2 flags (`GRT_LAYER_ADJUSTMENTS`, `DRT_OPT_ITERS: 24`).
+3. **Verification:** 11/11 Cocotb regression suites passing locally in 1.75s with 100% bit-exact mathematical parity.
+4. **Safety:** `main` branch is 100% untouched and safe at commit `d42b67e`.
+5. **Target:** Run #35 on GitHub Actions (cancels stuck Run #34 via `cancel-in-progress: true`).
 
 ---
 
@@ -33,7 +32,7 @@ To complete submission to the Tiny Tapeout `sky26d` shuttle:
    - This allows the `viewer` action to automatically deploy the 3D GDS interactive viewer.
 
 2. **Trigger and Monitor the GitHub Actions Run:**
-   - Once pushed to `origin/main` without `[skip ci]`, monitor:
+   - Monitor the latest run at:
      `https://github.com/hyleelyh/CIMTinyTO/actions`
    - All 4 workflow jobs must succeed (turn GREEN):
      - `gds`: Hardens the RTL into GDSII via LibreLane 3.0 on SkyWater 130nm ($2 \times 2$ tile).
@@ -59,50 +58,7 @@ To review the complete verification results, test matrix, and waveforms on your 
    git pull origin main
    pip install -r test/requirements.txt
    ```
-   *(Note: `test/Makefile` now automatically downloads the required SkyWater 130nm library models via `volare` on the first run if missing!)*
-2. **Review Formal Documentation & Walkthroughs:**
-   * **Pillar 5 Walkthrough (Complete 11-Test Matrix & Silicon Findings):** [`docs/walkthrough_pillar5_gls_power.md`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/walkthrough_pillar5_gls_power.md)
-   * **Pillar 5 Pedagogical Treatise (GLS Physics & Power):** [`docs/pillar5_gls_and_dynamic_power_signoff.md`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/pillar5_gls_and_dynamic_power_signoff.md)
-   * **Pillar 4 Walkthrough (STA Multi-Corner Sign-Off):** [`docs/walkthrough_pillar4_sta_power.md`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/walkthrough_pillar4_sta_power.md)
-   * **Power Metrics JSON:** [`docs/pillar5_power_metrics.json`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/docs/pillar5_power_metrics.json)
-3. **Generate Waveforms on Demand (Isolated per-test `.vcd` files):**
-   * *Golden Vectors Suite (`waves_golden_vectors.vcd`):*
-     ```bash
-     PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves_golden
-     ```
-   * *DFT Scan Chain Loopback (`waves_dft_loopback.vcd`):*
-     ```bash
-     PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves_dft
-     ```
-   * *Saturation Clamping & Sticky Overflow (`waves_saturation.vcd`):*
-     ```bash
-     PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves_saturation
-     ```
-   * *Silicon Overclocking at 200 MHz (`waves_overclock_200mhz.vcd`):*
-     ```bash
-     PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves_overclock
-     ```
-   * *Full Suite (all 11 tests, `tb.vcd`):*
-     ```bash
-     PATH=$(pwd)/.venv/bin:$PATH make -C test gls_waves
-     ```
-   * *View in GTKWave or Surfer:*
-     ```bash
-     gtkwave test/waves_dft_loopback.vcd
-     ```
-
----
-
-## Next Session Instructions (Pillar 6)
-
-Per our **Pillar Session Isolation Protocol** (`.agents/skills/pillar-session-isolation/SKILL.md`):
-1. **Pillars 1 through 5 are 100% complete, verified, Red-Team audited, and frozen.**
-2. **The physical GDSII layout is tapeout-ready and sealed.**
-3. **Do NOT proceed with Pillar 6 implementation in this chat session.**
-4. Open a **fresh chat session** to initiate:
-   **Pillar 6: Pre-Silicon Emulation (FPGA Testbench)**
-5. Pillar 6 deliverables:
-   - High-speed 50–100 MHz validation on **PYNQ-Z2** (Xilinx Zynq-7020) and **DE10-Lite** (Intel MAX 10).
-   - MMIO AXI driver and interactive Jupyter Notebook on PYNQ ARM Linux.
-   - Tactile logic console on DE10-Lite with 7-segment hex accumulator displays.
-   - End-to-end hardware-in-the-loop inference regression.
+2. **Execute local regression verification:**
+   ```bash
+   source .venv/bin/activate && make -C test
+   ```

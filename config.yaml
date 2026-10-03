@@ -1,5 +1,5 @@
 # ==============================================================================
-# OpenLane 2 / LibreLane Configuration File: CIMTinyTO Macro Hardening
+# LibreLane 3 / OpenLane Configuration File: CIMTinyTO Macro Hardening
 # Target Shuttle: Tiny Tapeout SKY 26d (SkyWater 130nm / sky130_fd_sc_hd)
 # Footprint: 2x2 Tile (~335 um x 226 um, ~73,500 um² usable core area)
 # ==============================================================================
@@ -27,20 +27,16 @@ pdk: "sky130A"
 STD_CELL_LIBRARY: "sky130_fd_sc_hd"
 
 # Synthesis Optimization Strategy
-# AREA 1: 2-pass iterative ABC area mapping for compact macro footprint (62,882 um²)
+# AREA 1: 2-pass iterative ABC area mapping for compact macro footprint
 SYNTH_STRATEGY: "AREA 1"
 
 # Placement & Density
-# Target density 98% accommodates 96.69% utilization with +2,432 um² safety headroom (clears GPL-0301)
-PL_TARGET_DENSITY_PCT: 98
-PL_TIME_DRIVEN: true
-PL_ROUTABILITY_DRIVEN: true
-GPL_CELL_PADDING: 0
-DPL_CELL_PADDING: 0
-TOP_MARGIN_MULT: 0
-BOTTOM_MARGIN_MULT: 0
-LEFT_MARGIN_MULT: 1
-RIGHT_MARGIN_MULT: 1
+# Target density 75% accommodates pruned netlist with ample routing tracks
+PL_TARGET_DENSITY_PCT: 75
+TOP_MARGIN_MULT: 1
+BOTTOM_MARGIN_MULT: 1
+LEFT_MARGIN_MULT: 6
+RIGHT_MARGIN_MULT: 6
 
 # High-Fanout Net (HFN) & Buffer Insertion Rules
 DESIGN_REPAIR_BUFFER_OUTPUT_PORTS: false
@@ -54,21 +50,11 @@ RUN_CTS: true
 CTS_TARGET_SKEW: 0.200 # Max 200 ps clock skew target
 CTS_ROOT_BUFFER: "sky130_fd_sc_hd__clkbuf_16"
 
-# Detailed & Global Routing: 2D congestion handoff enabled with 24-iter DRT fast-fail cap
+# Detailed & Global Routing
 RT_MAX_LAYER: "met4"
 GRT_ALLOW_CONGESTION: true
-GRT_OVERFLOW_ITERS: 64
-GRT_ADJUSTMENT: 0.3
-GRT_LAYER_ADJUSTMENTS:
-  - 0.99
-  - 0.00
-  - 0.00
-  - 0.00
-  - 0.00
-  - 0.00
-DRT_OPT_ITERS: 24
 
-# Decoupling Capacitors (Decap) Restored from Sept 23 Sign-off
+# Decoupling Capacitors (Decap) Restored from Sign-off
 DECAP_CELL:
   - "sky130_fd_sc_hd__decap_3"
   - "sky130_fd_sc_hd__decap_4"
@@ -79,4 +65,3 @@ DECAP_CELL:
 # Antenna DRC Protection
 RUN_ANTENNA_CHECKER: true
 DIODE_CELL: "sky130_fd_sc_hd__diode_2"
-
