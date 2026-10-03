@@ -1,23 +1,25 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-02 20:34 (Step 2: Native Standard-Cell Adder Mapping on test/option2-recoded)
+## Last Execution Run: 2026-10-02 21:11 (Balanced Binary Tree & 2D Congestion Handoff on test/option2-recoded)
 
 ### [Built & Dispatched]
-- Run 32 successfully diagnosed the root cause in 4 minutes (`[GRT-0116] Global routing finished with congestion`), proving that 170 discrete 4:2 compressors in the Wallace trees were choking routing tracks on `met1..met4`.
-- `src/scim_wallace_tree.v`: Replaced manual 10x discrete 4:2 compressor tree with native behavioral addition (`in_bits[0] + ... + in_bits[15]`).
-  - Allows Yosys to infer balanced Carry-Save Adder (CSA) trees directly mapped to SkyWater dedicated Full Adders (`sky130_fd_sc_hd__fa_1`) and Half Adders (`ha_1`).
-  - Slashes tree implementation from ~70 discrete gates to just 11 FAs and 4 HAs (15 compact standard cells) per tree.
-  - Across 17 trees: eliminates ~900 standard cells and ~3,600 pins/nets, clearing massive congestion on `met1..met4`.
-- Verified local regression: 11/11 PASS in 1.76s with 100% bit-exact parity across all golden vectors and overclocking to 200 MHz.
-- Pushed to `origin/test/option2-recoded` to launch Run #33.
+- Run 33 telemetry confirmed a **17.0% drop in overall routing track demand** (down to 66.44% usage) with native adders, leaving only 260 localized overflow tracks (0.6%) across the whole die.
+- `src/scim_wallace_tree.v`: Converted addition chain to an explicit 4-level balanced binary adder tree (`s1_* -> s2_* -> s3_* -> count`).
+  - Enforces strictly logarithmic $O(\log_2 N) = 4$ depth and localized wiring, eliminating left-associative cascading wire drag.
+- `src/config.json` & `config.yaml`:
+  - `GRT_ALLOW_CONGESTION: 1` (`true`): Allows FastRoute to hand off the remaining 260 localized tracks to TritonRoute for 3D resolution.
+  - `DRT_OPT_ITERS: 24`: Retains the 24-iteration fast-fail ceiling to guarantee TritonRoute terminates within ~35 minutes.
+- Verified local regression: 11/11 PASS in 1.75s with 100% bit-exact parity across all golden vectors and overclocking to 200 MHz.
+- Pushed to `origin/test/option2-recoded` to launch Run #34.
 
 ### [Architecture Decisions & Root Cause Analysis]
-- **Structural 4:2 Compressors vs. Library Standard-Cell Adders:**
-  - SkyWater 130nm contains no physical 4:2 compressor macro cell. Coding them via discrete XOR/MUX logic forced Yosys to instantiate loose gates, exploding wire count.
-  - Native standard-cell Full Adders have internal transistor-level XOR sharing, cutting cell area by ~40% and wire count by ~75%.
-  - At 50 MHz ($T_{\text{clk}} = 20\text{ ns}$), adder tree delay is ~1.5 ns, leaving >18.5 ns of positive timing slack.
+- **Eliminating Cascading Adder Chains:**
+  - In IEEE Verilog, unparenthesized `a + b + c...` creates a linear left-associative ripple chain of 15 adders.
+  - An explicit 4-level balanced tree (`8 pairs -> 4 pairs -> 2 pairs -> 1 final sum`) guarantees tree-depth bounds and localizes routing.
+- **FastRoute 2D Bins vs. TritonRoute 3D Resolution:**
+  - With 66.44% track usage and only 260 overflow tracks die-wide (99.39% clean), TritonRoute has ample open space across `met1..met4` to resolve via stacks cleanly without thrashing.
 
-### [Prior Execution Run: 2026-10-02 20:18]
+### [Prior Execution Run: 2026-10-02 20:34]
 
 
 ### [Architecture Decisions & Root Cause Analysis]

@@ -1,27 +1,25 @@
 # Session Handoff
 
-- **Date:** 2026-10-02 20:34
+- **Date:** 2026-10-02 21:11
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** test/option2-recoded (Main branch remains untouched)
-- **Sync Status:** Applied Step 2 Native Adder Mapping in `src/scim_wallace_tree.v` on branch `test/option2-recoded`.
+- **Sync Status:** Applied 4-Level Balanced Binary Tree in `src/scim_wallace_tree.v` and enabled 2D congestion handoff (`GRT_ALLOW_CONGESTION: 1`) on branch `test/option2-recoded`.
 
 ---
 
-## Active Experiment: Option 2 (Step 2: Native Standard-Cell Adder Mapping)
+## Active Experiment: Option 2 (Balanced Binary Tree & 2D Handoff)
 
 1. **Active Branch:** `test/option2-recoded`
 2. **Changes Applied:**
-   - `src/scim_wallace_tree.v`: Converted discrete 4:2 compressor tree to native behavioral 16-input addition (`assign count = in_bits[0] + ... + in_bits[15]`).
-     - Yosys maps directly to SkyWater dedicated Full Adders (`sky130_fd_sc_hd__fa_1`) and Half Adders (`ha_1`).
-     - Eliminates ~900 standard cells and ~3,600 pins/nets across 17 trees.
-     - Resolves the `[GRT-0116]` global routing congestion.
+   - `src/scim_wallace_tree.v`: Explicit 4-level balanced binary tree (`s1_* -> s2_* -> s3_* -> count`).
+     - Eliminates cascading 15-stage left-associative ripple adder chain.
+     - Enforces strictly logarithmic depth ($O(\log_2 N) = 4$) with localized routing tracks.
    - `src/config.json` & `config.yaml`:
-     - `DRT_OPT_ITERS: 24`: Fast-fail cap on TritonRoute iterations.
-     - `GRT_ALLOW_CONGESTION: 0` (`false`): Prohibits unresolved global track overflow.
-     - `GRT_OVERFLOW_ITERS: 64`: 64 FastRoute overflow iterations.
-3. **Verification:** All 11 Cocotb regression suites passed 100% locally in 1.76s with bit-exact parity across golden vectors and overclocking to 200 MHz.
+     - `GRT_ALLOW_CONGESTION: 1` (`true`): Allows FastRoute to hand off the remaining 260 localized tracks (0.6%) to TritonRoute for 3D resolution.
+     - `DRT_OPT_ITERS: 24`: Fast-fail cap ensures detailed routing finishes in ~20-35 mins.
+3. **Verification:** 11/11 Cocotb regression suites passing with 100% bit-exact mathematical parity.
 4. **Safety:** `main` branch is 100% untouched and safe.
-5. **Target:** Run #33 on GitHub Actions.
+5. **Target:** Run #34 on GitHub Actions.
 
 ---
 

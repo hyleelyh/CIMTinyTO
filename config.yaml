@@ -54,9 +54,9 @@ RUN_CTS: true
 CTS_TARGET_SKEW: 0.200 # Max 200 ps clock skew target
 CTS_ROOT_BUFFER: "sky130_fd_sc_hd__clkbuf_16"
 
-# Detailed & Global Routing (Step 1 Fail-Fast Convergence Tuning)
+# Detailed & Global Routing: 2D congestion handoff enabled with 24-iter DRT fast-fail cap
 RT_MAX_LAYER: "met4"
-GRT_ALLOW_CONGESTION: false
+GRT_ALLOW_CONGESTION: true
 GRT_OVERFLOW_ITERS: 64
 GRT_ADJUSTMENT: 0.3
 GRT_LAYER_ADJUSTMENTS:
