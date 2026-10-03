@@ -54,10 +54,10 @@ RUN_CTS: true
 CTS_TARGET_SKEW: 0.200 # Max 200 ps clock skew target
 CTS_ROOT_BUFFER: "sky130_fd_sc_hd__clkbuf_16"
 
-# Detailed & Global Routing (Restored from Sept 23 sign-off)
+# Detailed & Global Routing (Step 1 Fail-Fast Convergence Tuning)
 RT_MAX_LAYER: "met4"
-GRT_ALLOW_CONGESTION: true
-GRT_OVERFLOW_ITERS: 50
+GRT_ALLOW_CONGESTION: false
+GRT_OVERFLOW_ITERS: 64
 GRT_ADJUSTMENT: 0.3
 GRT_LAYER_ADJUSTMENTS:
   - 0.99
@@ -66,7 +66,7 @@ GRT_LAYER_ADJUSTMENTS:
   - 0.00
   - 0.00
   - 0.00
-DRT_OPT_ITERS: 64
+DRT_OPT_ITERS: 24
 
 # Decoupling Capacitors (Decap) Restored from Sept 23 Sign-off
 DECAP_CELL:

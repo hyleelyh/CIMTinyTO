@@ -39,12 +39,12 @@
   "//": "Routing: Restrict detailed routing to met1..met4 (met5 reserved for power grid / mux)",
   "RT_MAX_LAYER": "met4",
 
-  "//": "FastRoute & TritonRoute Parameters Restored from Sept 23 Sign-off",
-  "GRT_ALLOW_CONGESTION": 1,
-  "GRT_OVERFLOW_ITERS": 50,
+  "//": "FastRoute & TritonRoute Parameters (Step 1 Fail-Fast Convergence Tuning)",
+  "GRT_ALLOW_CONGESTION": 0,
+  "GRT_OVERFLOW_ITERS": 64,
   "GRT_ADJUSTMENT": 0.3,
   "GRT_LAYER_ADJUSTMENTS": [0.99, 0, 0, 0, 0, 0],
-  "DRT_OPT_ITERS": 64,
+  "DRT_OPT_ITERS": 24,
 
   "//": "Pad Frame & Periphery Margins: 1 site (0.46 um) left/right yields 73,489.2 um^2 net core",
   "//": "Utilization = 71,056.97 / 73,489.2 = 96.69% < 100% (clears GPL-0301 with +2,432 um² safety headroom)",

@@ -1,23 +1,24 @@
 # Session Handoff
 
-- **Date:** 2026-10-02 06:38
+- **Date:** 2026-10-02 20:18
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** test/option2-recoded (Main branch remains untouched)
-- **Sync Status:** Dispatched Run #31 (1-site lateral margin calibration, 96.69% placement utilization) on branch `test/option2-recoded`.
+- **Sync Status:** Applied Step 1 Fail-Fast Convergence Tuning (`DRT_OPT_ITERS: 24`, `GRT_ALLOW_CONGESTION: 0`, `GRT_OVERFLOW_ITERS: 64`) on branch `test/option2-recoded`.
 
 ---
 
-## Active Experiment: Option 2 (Margin Calibration & OpenLane 2 Parity)
+## Active Experiment: Option 2 (Fail-Fast Convergence Tuning)
 
 1. **Active Branch:** `test/option2-recoded`
 2. **Changes Applied:**
-   - `src/scim_accumulator.v`: Direct two's complement sign-and-overflow checks (`(~sum_ext[WIDTH]) & sum_ext[WIDTH-1]`), eliminating 32x 14-bit carry comparators (~1,120 cells, ~4,800 µm²).
-   - `src/tt_um_scim_core.v`: Shared column delta subtrahend multiplexing, eliminating 16x 7-bit subtractors (~320 cells, ~1,500 µm²).
-   - `src/config.json` & `config.yaml`: 1-site margin calibration (`LEFT/RIGHT: 1`, `TOP/BOTTOM: 0`, `PL_TARGET_DENSITY_PCT: 98`), delivering $73,489.2\,\mu\text{m}^2$ usable core area for $96.69\%$ utilization with $+2,432.2\,\mu\text{m}^2$ safety headroom below the 100% RePlAce ceiling.
-   - Preserved all routing parameters: `GRT_LAYER_ADJUSTMENTS: [0.99, 0, 0, 0, 0, 0]`, `DECAP_CELL` array, `PL_TIME_DRIVEN: 1`, `PL_ROUTABILITY_DRIVEN: 1`.
-3. **Verification:** All 11 Cocotb regression suites passed 100% locally with bit-exact parity across golden vectors and overclocking to 200 MHz.
+   - `src/config.json` & `config.yaml`:
+     - `DRT_OPT_ITERS: 24`: Closes feedback loop in 30-45 minutes instead of 6 hours.
+     - `GRT_ALLOW_CONGESTION: 0` (`false`): Forbids unresolved global track overflow from reaching TritonRoute.
+     - `GRT_OVERFLOW_ITERS: 64`: Gives FastRoute 64 iterations to resolve global congestion.
+   - Preserved: 1-site margins, 98% target density, 99% `met1` derating, decap array.
+3. **Verification:** 11/11 Cocotb regression suites passing with 100% bit-exact mathematical parity.
 4. **Safety:** `main` branch is 100% untouched and safe.
-5. **Active Run:** Run #31 (`37014179296`) in progress on GitHub Actions.
+5. **Target:** Run #32 on GitHub Actions to observe FastRoute convergence and TritonRoute 24-iteration behavior.
 
 ---
 

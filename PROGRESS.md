@@ -1,23 +1,21 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-02 06:37 (Option 2: 1-Site Margin Calibration for 96.69% Placement Utilization)
+## Last Execution Run: 2026-10-02 20:18 (Step 1: Fail-Fast Routing Convergence Tuning on test/option2-recoded)
 
 ### [Built & Dispatched]
-- Run 30 confirmed logic recoding reduced cells by 288 (`5,985 -> 5,697`) and pins by 1,138 (`22,230 -> 21,092`), but missed 6-site margins by only 0.56% (398 µm²) due to RePlAce pin-density inflation.
-- `src/config.json` & `config.yaml`: Calibrated margins to 1 site (`LEFT/RIGHT: 1`, `TOP/BOTTOM: 0`) and target density to `98%`:
-  - Usable core area: $73,489.2\,\mu\text{m}^2$.
-  - Placement utilization: $71,056.97 / 73,489.2 = \mathbf{96.69\%} < \mathbf{100.00\%}$.
-  - Safety margin: **$+2,432.2\,\mu\text{m}^2$ of headroom below 100% threshold**, strictly preventing `[GPL-0301]`.
-  - Retained all OpenLane 2 routing parameters: `GRT_LAYER_ADJUSTMENTS: [0.99, 0, 0, 0, 0, 0]`, `DECAP_CELL`, `PL_TIME_DRIVEN: 1`, `PL_ROUTABILITY_DRIVEN: 1`.
-- Verified local regression: 11/11 PASS in 2.27s. Pushed to `origin/test/option2-recoded`.
+- Run 31 confirmed Step 13 Global Placement (RePlAce) succeeded at 96.69% utilization, but Detailed Routing (TritonRoute) ran for 6 hours due to the absence of a plateau early-stop criterion in OpenROAD.
+- `src/config.json` & `config.yaml`: Applied fail-fast convergence knobs:
+  - `DRT_OPT_ITERS: 24` (down from 64): Caps search-and-repair iterations, collapsing CI feedback time from 6 hours to ~35-45 minutes.
+  - `GRT_ALLOW_CONGESTION: 0` (`false`): Rejects globally congested routes before detailed routing begins.
+  - `GRT_OVERFLOW_ITERS: 64`: Extends FastRoute iteration budget to resolve global track conflicts cleanly.
+  - Retained: 1-site margins (`LEFT/RIGHT: 1`), `PL_TARGET_DENSITY_PCT: 98`, `GRT_LAYER_ADJUSTMENTS: [0.99, ...]`.
 
 ### [Architecture Decisions & Root Cause Analysis]
-- **Diagnostic Precision of the 0.56% Margin:**
-  - In Run 30, movable area after pin adjustment was $71,056.97\,\mu\text{m}^2$ + fixed tapcells $1,905.58\,\mu\text{m}^2$ = $72,962.55\,\mu\text{m}^2$.
-  - With 6-site margins, core was $72,564.6\,\mu\text{m}^2$, resulting in $100.56\%$ utilization.
-  - Expanding lateral margins by just 5 sites (to 1-site margin) adds $924.6\,\mu\text{m}^2$ of usable core, flipping utilization from $100.56\%$ to $96.69\%$ and clearing global placement legally.
+- **Eliminating the 6-Hour Runner Churn:**
+  - TritonRoute converges in 10-18 iterations when pin access is clean; running beyond 24 iterations indicates a physical via spacing deadlock.
+  - Capping iterations to 24 ensures rapid diagnosis of pin-access bottlenecks without exhausting GitHub Actions runner quotas.
 
-### [Prior Execution Run: 2026-10-02 06:30]
+### [Prior Execution Run: 2026-10-02 06:37]
 
 
 ### [Architecture Decisions & Root Cause Analysis]
