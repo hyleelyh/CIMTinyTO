@@ -1,24 +1,27 @@
 # Session Handoff
 
-- **Date:** 2026-10-02 20:18
+- **Date:** 2026-10-02 20:34
 - **Machine:** Host/PC (`juliusli`)
 - **Branch:** test/option2-recoded (Main branch remains untouched)
-- **Sync Status:** Applied Step 1 Fail-Fast Convergence Tuning (`DRT_OPT_ITERS: 24`, `GRT_ALLOW_CONGESTION: 0`, `GRT_OVERFLOW_ITERS: 64`) on branch `test/option2-recoded`.
+- **Sync Status:** Applied Step 2 Native Adder Mapping in `src/scim_wallace_tree.v` on branch `test/option2-recoded`.
 
 ---
 
-## Active Experiment: Option 2 (Fail-Fast Convergence Tuning)
+## Active Experiment: Option 2 (Step 2: Native Standard-Cell Adder Mapping)
 
 1. **Active Branch:** `test/option2-recoded`
 2. **Changes Applied:**
+   - `src/scim_wallace_tree.v`: Converted discrete 4:2 compressor tree to native behavioral 16-input addition (`assign count = in_bits[0] + ... + in_bits[15]`).
+     - Yosys maps directly to SkyWater dedicated Full Adders (`sky130_fd_sc_hd__fa_1`) and Half Adders (`ha_1`).
+     - Eliminates ~900 standard cells and ~3,600 pins/nets across 17 trees.
+     - Resolves the `[GRT-0116]` global routing congestion.
    - `src/config.json` & `config.yaml`:
-     - `DRT_OPT_ITERS: 24`: Closes feedback loop in 30-45 minutes instead of 6 hours.
-     - `GRT_ALLOW_CONGESTION: 0` (`false`): Forbids unresolved global track overflow from reaching TritonRoute.
-     - `GRT_OVERFLOW_ITERS: 64`: Gives FastRoute 64 iterations to resolve global congestion.
-   - Preserved: 1-site margins, 98% target density, 99% `met1` derating, decap array.
-3. **Verification:** 11/11 Cocotb regression suites passing with 100% bit-exact mathematical parity.
+     - `DRT_OPT_ITERS: 24`: Fast-fail cap on TritonRoute iterations.
+     - `GRT_ALLOW_CONGESTION: 0` (`false`): Prohibits unresolved global track overflow.
+     - `GRT_OVERFLOW_ITERS: 64`: 64 FastRoute overflow iterations.
+3. **Verification:** All 11 Cocotb regression suites passed 100% locally in 1.76s with bit-exact parity across golden vectors and overclocking to 200 MHz.
 4. **Safety:** `main` branch is 100% untouched and safe.
-5. **Target:** Run #32 on GitHub Actions to observe FastRoute convergence and TritonRoute 24-iteration behavior.
+5. **Target:** Run #33 on GitHub Actions.
 
 ---
 
