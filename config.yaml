@@ -31,8 +31,8 @@ STD_CELL_LIBRARY: "sky130_fd_sc_hd"
 SYNTH_STRATEGY: "AREA 1"
 
 # Placement & Density
-# Target density 75% accommodates pruned netlist with ample routing tracks
-PL_TARGET_DENSITY_PCT: 75
+# Target density 72% accommodates pruned netlist with ample routing tracks
+PL_TARGET_DENSITY_PCT: 72
 TOP_MARGIN_MULT: 1
 BOTTOM_MARGIN_MULT: 1
 LEFT_MARGIN_MULT: 6
@@ -53,6 +53,14 @@ CTS_ROOT_BUFFER: "sky130_fd_sc_hd__clkbuf_16"
 # Detailed & Global Routing
 RT_MAX_LAYER: "met4"
 GRT_ALLOW_CONGESTION: true
+GRT_LAYER_ADJUSTMENTS:
+  - 0.99
+  - 0.00
+  - 0.00
+  - 0.00
+  - 0.00
+  - 0.00
+ROUTING_CORES: 2
 
 # Decoupling Capacitors (Decap) Restored from Sign-off
 DECAP_CELL:

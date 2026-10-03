@@ -2,8 +2,8 @@
   "//": "CIMTinyTO LibreLane 3.0 Configuration for Tiny Tapeout sky26d",
   "//": "Target: SkyWater 130nm (sky130_fd_sc_hd) on Tiny Tapeout 2x2 Tile",
 
-  "//": "Placement Target Density: 75% allows balanced cell distribution and ample routing tracks",
-  "PL_TARGET_DENSITY_PCT": 75,
+  "//": "Placement Target Density: 72% allows balanced cell distribution and ample routing tracks",
+  "PL_TARGET_DENSITY_PCT": 72,
 
   "//": "Synthesis Optimization Strategy: AREA 1",
   "SYNTH_STRATEGY": "AREA 1",
@@ -32,8 +32,12 @@
   "//": "Routing: Restrict detailed routing to met1..met4 (met5 reserved for power grid / mux)",
   "RT_MAX_LAYER": "met4",
 
-  "//": "Global Routing: Enable 2D congestion resolution",
+  "//": "Global Routing: Enable 2D congestion resolution and derate met1 to reserve for pin access",
   "GRT_ALLOW_CONGESTION": 1,
+  "GRT_LAYER_ADJUSTMENTS": [0.99, 0, 0, 0, 0, 0],
+
+  "//": "Detailed Routing: Bind to 2 cores matching GitHub Actions runner vCPUs",
+  "ROUTING_CORES": 2,
 
   "//": "Pad Frame & Periphery Margins: Standard 6-site / 1-row margins (matching official TT template)",
   "TOP_MARGIN_MULT": 1,
