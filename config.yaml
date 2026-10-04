@@ -51,9 +51,10 @@ PDN_MULTILAYER: false
 # High-Fanout Net (HFN) & Buffer Insertion Rules
 DESIGN_REPAIR_BUFFER_OUTPUT_PORTS: false
 
-# Hold Slack Margins
-PL_RESIZER_HOLD_SLACK_MARGIN: 0.10
-GRT_RESIZER_HOLD_SLACK_MARGIN: 0.05
+# Hold Slack Margins: Enforce positive hold slack (T_slack, hold >= 0.02 ns)
+# alongside SDC 200 ps uncertainty, preventing redundant buffer flooding and DPL-0036 overflow.
+PL_RESIZER_HOLD_SLACK_MARGIN: 0.02
+GRT_RESIZER_HOLD_SLACK_MARGIN: 0.02
 
 # Clock Tree Synthesis (CTS)
 RUN_CTS: true
