@@ -2,12 +2,6 @@ name: gds
 
 on:
   push:
-    paths:
-      - 'src/**'
-      - 'config.yaml'
-      - 'info.yaml'
-      - 'test/**'
-      - '.github/workflows/gds.yaml'
   workflow_dispatch:
 
 concurrency:
