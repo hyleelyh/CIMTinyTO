@@ -47,13 +47,14 @@
   "LEFT_MARGIN_MULT": 1,
   "RIGHT_MARGIN_MULT": 1,
 
-  "//": "Floorplan sizing defined by Tiny Tapeout tile boundaries",
+  "// Floorplan sizing defined by Tiny Tapeout tile boundaries": "",
   "FP_SIZING": "absolute",
 
-  "FP_IO_HLENGTH": 2,
-  "FP_IO_VLENGTH": 2,
-  "FP_PDN_VPITCH": 38.87,
-  "FP_PDN_MULTILAYER": 0,
+  "// I/O Pin lengths: tuned to 1.0 um to eliminate perimeter standard-cell overlap": "",
+  "IO_PIN_H_LENGTH": 1.0,
+  "IO_PIN_V_LENGTH": 1.0,
+  "PDN_VPITCH": 38.87,
+  "PDN_MULTILAYER": false,
 
   "//": "Don't put clock buffers on the outputs (matching official TT template)",
   "DESIGN_REPAIR_BUFFER_OUTPUT_PORTS": 0,

@@ -41,6 +41,13 @@ BOTTOM_MARGIN_MULT: 0
 LEFT_MARGIN_MULT: 1
 RIGHT_MARGIN_MULT: 1
 
+# Floorplan & Pin Geometry: 1.0 um pin stub to eliminate boundary cell shorts
+FP_SIZING: "absolute"
+IO_PIN_H_LENGTH: 1.0
+IO_PIN_V_LENGTH: 1.0
+PDN_VPITCH: 38.87
+PDN_MULTILAYER: false
+
 # High-Fanout Net (HFN) & Buffer Insertion Rules
 DESIGN_REPAIR_BUFFER_OUTPUT_PORTS: false
 
