@@ -1,6 +1,6 @@
 # Session Handoff: Path B (Mode 1 Removal & Clean 4:2 Compressor Sign-Off)
 
-- **Date:** 2026-10-03 17:10
+- **Date:** 2026-10-03 23:15
 - **Machine:** Host/PC (`juliusli`)
 - **Active Branch:** `test/path-b-streamlined` (Branched directly from `main`)
 - **Sept 23 Golden Archive:** Tagged at `v-sept23-openlane2-signoff`, branch `archive/sept23-openlane2-signoff`, and committed in `archive/sept23_openlane2_golden/`.
@@ -11,16 +11,15 @@
 ## Current Status & Next Actions
 
 ### 1. Completed in this Run:
-- **RTL Streamlining (Gate 1):**
-  - `src/scim_pe.v`: Pruned Mode 1 and 2:1 MUX; implemented pure 2-input AND PE.
-  - `src/scim_accumulator.v`: Implemented 2-gate sign-bit overflow detection (`pos_ovf = (~sum_ext[13]) & sum_ext[12]`, `neg_ovf = sum_ext[13] & (~sum_ext[12])`).
-  - `src/tt_um_scim_core.v`: 1-bit mode (`0` = Unipolar, `1` = Hybrid ReLU), 2:1 column delta MUX, 4:2 compressor tree intact.
-  - `src/config.json`: Updated with `PL_TARGET_DENSITY_PCT: 65`, `DRT_THREADS: 2`, `GRT_LAYER_ADJUSTMENTS: [0.99, 0.50, 0, 0, 0, 0]`.
+- **RTL Streamlining (Gate 1):** Verified 100% clean (Pure AND PEs, 2-gate saturation, 1-bit mode, 4:2 Wallace tree).
 - **Verification Sign-Off:**
   - `verilator --lint-only -Wall -Wno-DECLFILENAME src/*.v`: **0 errors, 0 warnings**.
-  - `make -C test test_all`: **100% PASSED** across all unit and full-core regressions (11/11 tests green).
+  - `make -C test test_all`: **100% PASSED** across all unit and full-core regressions (15/15 tests green).
+- **PnR Hardening Configuration (`src/config.json`):**
+  - Updated with Tier 1 routability fixes: `PL_ROUTABILITY_DRIVEN: 1`, `GPL_CELL_PADDING: 1`, `DPL_CELL_PADDING: 1`, `PL_TARGET_DENSITY_PCT: 70`, `LEFT_MARGIN_MULT: 6`, `RIGHT_MARGIN_MULT: 6`, `TOP_MARGIN_MULT: 1`, `BOTTOM_MARGIN_MULT: 1`, `GRT_LAYER_ADJUSTMENTS: [0.99, 0.30, 0, 0, 0, 0]`.
 
 ### 2. Next Immediate Action:
-- Commit and push to `origin/test/path-b-streamlined`.
-- Monitor GitHub Actions LibreLane 3 CI run (Run #39).
-- Check detailed routing convergence (expected 12–18 minutes) and verify 0 DRC, 0 LVS violations.
+- Commit and push `src/config.json` to `origin/test/path-b-streamlined` to trigger Run #40.
+- Monitor GitHub Actions LibreLane 3 CI run (Run #40).
+- Check detailed routing convergence and verify 0 DRC, 0 LVS violations.
+- Execute "Poking Holes" Red Team stress testing.
