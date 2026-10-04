@@ -2,8 +2,8 @@
   "//": "CIMTinyTO OpenLane / LibreLane Configuration for Tiny Tapeout",
   "//": "Target: SkyWater 130nm (sky130_fd_sc_hd) on Tiny Tapeout 2x2 Tile",
 
-  "//": "Placement Target Density: Set to 99% to accommodate 98.44% virtual placement density",
-  "PL_TARGET_DENSITY_PCT": 99,
+  "//": "Placement Target Density: Set to 65% for relaxed standard-cell placement with Path B area savings",
+  "PL_TARGET_DENSITY_PCT": 65,
 
   "//": "Synthesis Optimization Strategy: AREA 1 (proven minimal area 62,882 um^2)",
   "SYNTH_STRATEGY": "AREA 1",
@@ -39,6 +39,8 @@
   "RT_MAX_LAYER": "met4",
   "GRT_ALLOW_CONGESTION": 1,
   "GRT_OVERFLOW_ITERS": 100,
+  "DRT_THREADS": 2,
+  "GRT_LAYER_ADJUSTMENTS": [0.99, 0.50, 0, 0, 0, 0],
 
   "//": "Pad Frame & Periphery Margins: 1 site (0.46 um) left/right for I/O track clearance",
   "//": "Yields 73,489.2 um^2 net core -> 98.44% density < 100% (clears GPL-0301)",

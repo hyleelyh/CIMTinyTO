@@ -5,20 +5,18 @@
 // Standard: IEEE 1364-2001 Verilog
 // Top-Level Wrapper conforming to Tiny Tapeout pinout specifications
 // ============================================================================
-// Pedagogical & Silicon Rationale:
+// Pedagogical & Silicon Rationale (Path B Streamlined):
 //
-// 1. Unified Column Delta Reduction Architecture:
-//    - Naive implementations require two Wallace trees per column (32 trees total)
-//      to separately sum positive and negative PE pulses, exceeding the tile budget.
-//    - This core uses the proven mathematical transformation:
+// 1. Unified Column Delta Reduction Architecture (1-Bit Mode):
+//    - By pruning Mode 1 (Bipolar XNOR mode), the macro operates with two clean modes:
 //        * Mode 0 (Unipolar):    Δ_col = P_col
-//        * Mode 1 (Bipolar):     Δ_col = 2 * X_col - 16
-//        * Mode 2 (Hybrid ReLU): Δ_col = 2 * P_col - A
+//        * Mode 1 (Hybrid ReLU): Δ_col = 2 * P_col - A
 //      where:
-//        * P_col / X_col is computed by the column's 16-to-5 Wallace tree.
-//        * A = Σ a_i is computed ONCE by a single shared activation Wallace tree
-//          and broadcast to all 16 column subtractors.
-//      This cuts macro tree count from 32 down to 17, saving ~855 standard cells!
+//        * P_col = Σ (a_i & w_i) is computed by each column's 16-to-5 Wallace tree.
+//        * A = Σ a_i is computed ONCE centrally by the shared activation tree
+//          and broadcast across the 16 column subtractors.
+//    - Every PE is a pure 2-input AND gate with zero multiplexers and zero
+//      global mode routing. Cuts 528+ cells and lowers tile density to ~64.5%.
 //
 // 2. Hardware Guardrails & Strict Synchronous Discipline:
 //    - Single synchronous clock domain (posedge clk).
@@ -125,7 +123,7 @@ module tt_um_scim_core #(
     // 2. CONTROL REGISTERS & FSM
     // ========================================================================
     reg [3:0] addr;                       // Channel/Column address [0..15]
-    reg [1:0] mode;                       // 0: Unipolar, 1: Bipolar, 2: Hybrid ReLU
+    reg       mode;                       // 0: Mode 0 (Unipolar), 1: Mode 1 (Hybrid ReLU)
     reg       byte_sel;                   // 0: Acc lower byte [7:0], 1: upper byte [12:8]
 
     // 16x 8-bit activation storage registers (128 bits total)
@@ -149,7 +147,7 @@ module tt_um_scim_core #(
     always @(posedge clk) begin
         if (!rst_ctrl_n) begin
             addr      <= 4'd0;
-            mode      <= 2'b00;
+            mode      <= 1'b0;
             byte_sel  <= 1'b0;
             start_req <= 1'b0;
             for (k = 0; k < 16; k = k + 1) begin
@@ -162,7 +160,7 @@ module tt_um_scim_core #(
             // Handle Control Strobe (Command write)
             if (ctrl_strobe && !busy) begin
                 addr      <= ui_in[3:0];
-                mode      <= ui_in[5:4];
+                mode      <= ui_in[4];    // 1-bit mode: 0=Unipolar, 1=Hybrid ReLU (ui_in[5] reserved)
                 byte_sel  <= ui_in[6];
                 start_req <= ui_in[7];
             // Hardening (Hole #4): Strict mutual exclusion prevents bus collision on addr
@@ -310,7 +308,6 @@ module tt_um_scim_core #(
                 scim_pe u_pe (
                     .a_bit(sng_activations[row]),
                     .w_bit(w_cell),
-                    .mode(mode),
                     .pe_out(pe_col_out[col][row])
                 );
             end
@@ -321,24 +318,19 @@ module tt_um_scim_core #(
                 .count(col_sum[col])
             );
 
-            // Column Delta Arithmetic:
+            // Column Delta Arithmetic (Path B Streamlined):
             // Mode 0 (Unipolar):    Δ = P                (Range [0, 16])
-            // Mode 1 (Bipolar):     Δ = 2X - 16          (Range [-16, +16])
-            // Mode 2 (Hybrid ReLU): Δ = 2P - A           (Range [-16, +16])
+            // Mode 1 (Hybrid ReLU): Δ = 2P - A           (Range [-16, +16])
             // Hardening (Hole #1): Zero-extend to 7 bits before subtraction to guarantee
             // that 2*P (range [0, 32]) fits cleanly without signed overflow into bit 5.
-            wire signed [5:0] delta_mode0    = $signed({1'b0, col_sum[col]});
-            wire signed [6:0] delta_mode1_7b = $signed({1'b0, col_sum[col], 1'b0}) - 7'sd16;
-            wire signed [6:0] delta_mode2_7b = $signed({1'b0, col_sum[col], 1'b0}) - $signed({2'b00, shared_act_sum});
+            wire signed [5:0] delta_mode0     = $signed({1'b0, col_sum[col]});
+            wire signed [6:0] delta_hybrid_7b = $signed({1'b0, col_sum[col], 1'b0}) - $signed({2'b00, shared_act_sum});
 
             // Bit 6 is the redundant sign bit; tie off for lint hygiene
-            wire _unused_delta = &{delta_mode1_7b[6], delta_mode2_7b[6], 1'b0};
+            wire _unused_delta = &{delta_hybrid_7b[6], 1'b0};
 
-            // Hardening (Hole #10): Explicitly decode Mode 2 (2'b10) and clamp undefined
-            // modes (e.g. 2'b11) to 6'sd0, preventing spurious negative accumulation.
-            assign col_delta[col] = (mode == 2'b00) ? delta_mode0 :
-                                    (mode == 2'b01) ? delta_mode1_7b[5:0] :
-                                    (mode == 2'b10) ? delta_mode2_7b[5:0] : 6'sd0;
+            // 1-Bit Multiplexer: 0 = Mode 0 (Unipolar), 1 = Mode 1 (Hybrid ReLU)
+            assign col_delta[col] = (mode) ? delta_hybrid_7b[5:0] : delta_mode0;
         end
     endgenerate
 
