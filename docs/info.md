@@ -1,91 +1,65 @@
-# CIMTinyTO: Stochastic & Digital Compute-in-Memory Accelerator
+<!---
 
-## 1. Overview & Architectural Innovation
+This file is used to generate your project datasheet. Please fill in the information below and delete any unused
+sections.
 
-**CIMTinyTO** is an open-source, standard-cell **Stochastic Compute-in-Memory (SCIM)** and **Digital Compute-in-Memory (DCIM)** accelerator macro designed for the **SkyWater 130nm** (`sky130_fd_sc_hd`) process on **Tiny Tapeout** ($2\times 2$ tile footprint).
+You can also include images in this folder and reference them in the markdown. Each image must be less than
+512 kb in size, and the combined size of all images must be less than 1 MB.
+-->
 
-Standard analog/mixed-signal CIM macros rely on custom analog SRAM bitcells, sensitive analog sense amplifiers, and power-hungry Flash/SAR ADCs—elements that are prone to PVT variation and violate standard digital ASIC flow rules. 
+## How it works
 
-**CIMTinyTO** eliminates all analog components by combining:
-1. **Stochastic Computing (SC):** Multi-bit integer multiplications are replaced by single-gate logical operations (AND for unipolar, XNOR for bipolar, and masked AND for hybrid activations).
-2. **Standard-Cell DFF Memory Fabric:** 256 weight flip-flops configured as a serial shift register with full Design-for-Testability (DFT) loopback (`w_dout`).
-3. **Unified Column Delta Reduction:** Conventional bipolar CIM requires two separate Wallace trees per column to sum positive and negative pulses ($16 \times 2 = 32$ trees), exceeding the Tiny Tapeout area budget. CIMTinyTO solves this by mathematically proving:
+**CIMTinyTO** is an open-source standard-cell **Stochastic Compute-in-Memory (SCIM)** and **Digital Compute-in-Memory (DCIM)** accelerator macro fabricated on **SkyWater 130nm** (`sky130_fd_sc_hd`) in a $2\times 2$ tile footprint.
+
+Standard analog CIM macros rely on custom analog SRAM bitcells, sensitive sense amplifiers, and power-hungry ADCs—components prone to PVT mismatch and incompatible with standard digital ASIC flows. CIMTinyTO eliminates all analog circuitry by combining:
+
+1. **Stochastic Computing (SC):** Multi-bit integer multiplications are replaced by single-gate logical AND operations between unipolar stochastic bitstreams generated on-chip.
+2. **Standard-Cell Weight Memory Fabric:** A 256-bit DFF memory array organized as a serial shift register with full Design-for-Testability (DFT) loopback (`w_dout`).
+3. **Unified Column Delta Reduction:** Conventional bipolar CIM requires two separate Wallace trees per column to count positive and negative pulses ($16 \times 2 = 32$ trees), exceeding the Tiny Tapeout area limit. CIMTinyTO solves this by mathematically proving that:
+   
    $$\Delta_{\text{col}} = 2 \cdot P_{\text{col}} - A$$
-   where $P_{\text{col}}$ is the column pulse count and $A = \sum_{i=0}^{15} a_i$ is the total active activation count, computed **once** by a single shared activation tree and broadcast to all 16 columns. This cuts macro tree count from 32 down to 17, saving $\approx 855$ standard cells!
+
+   where $P_{\text{col}}$ is the column pulse count and $A = \sum_{i=0}^{15} a_i$ is the active activation count, computed once by a single shared activation Wallace tree and broadcast to all 16 columns. This cuts macro tree count from 32 down to 17, saving 855 standard cells!
+4. **16 Parallel Saturating Accumulators:** 13-bit signed accumulators with hardware clamping at $\pm 4095$ and a sticky overflow status flag.
+5. **Silicon Hardening & Hole #8 Pad Quiescence:** During the 256-cycle compute phase, the output bus `uo_out` is clamped to `8'h00`, eliminating off-chip pad dynamic power ($<0.25\,\mu\text{W}$) and protecting on-chip power rails against $L \cdot di/dt$ ground bounce.
+
+### Operating Modes
+The accelerator natively supports two operating modes configured via `ui_in[4]` during a `ctrl_strobe` pulse:
+* **Mode 0: Unipolar (`ui_in[4] = 0`):** Single AND gate PE ($W \in \{0, 1\}$, $X \in [0, 1] \implies \Delta = P$).
+* **Mode 1: Hybrid ReLU (`ui_in[4] = 1`):** Single AND gate PE + Subtractor ($W \in \{-1, +1\}$, $X \in [0, 1] \implies \Delta = 2P - A$), enabling direct execution of quantized neural networks (Micro-ResNet).
 
 ---
 
-## 2. Operating Modes
+## How to test
 
-The accelerator natively supports two operating modes configured via `ui_in[4]` during a `ctrl_strobe` pulse (`ui_in[5]` is reserved):
+The chip operates with a 50 MHz master clock. An end-to-end $16 \times 16$ Matrix-Vector Multiply (MVM) sequence is executed as follows:
 
-| Mode (`ui_in[4]`) | Name | PE Operation | Mathematics | Applications |
-|:---:|---|---|---|---|
-| `0` | **Mode 0: Unipolar** | Single `AND` gate | $W \in \{0, 1\}$, $X \in [0, 1] \implies \Delta = P$ | Binary networks, boolean pattern matching |
-| `1` | **Mode 1: Hybrid ReLU** | Single `AND` gate + Subtractor | $W \in \{-1, +1\}$, $X \in [0, 1] \implies \Delta = 2P - A$ | Quantized CNNs (Micro-ResNet, MobileNet) |
-
----
-
-## 3. Hardware Pinout Mapping
-
-### Dedicated Inputs (`ui_in[7:0]`)
-* When idle or during compute: `ui_in[7:0]` feeds 8-bit activation bytes and configuration commands.
-* During readback (`busy == 0`): `ui_in[4:0]` selects which accumulator channel (0 to 15) and byte (Low `[7:0]` or High `[12:8]`) is multiplexed onto `uo_out[7:0]`.
-
-### Dedicated Outputs (`uo_out[7:0]`)
-* **Pad Quiescence Hardening (Hole #8):** Driven to `8'h00` during the 256-cycle compute phase to eliminate $\approx 108\text{ mW}$ of dynamic pad switching power and protect against ground bounce ($L \frac{di}{dt}$).
-* In readback mode (`busy == 0`): Emits the selected 8-bit accumulator slice.
-
-### Bidirectional I/Os (`uio[7:0]`)
-Configured as `uio_oe = 8'b0000_1111` (upper nibble input, lower nibble output):
-
-| Pin | Direction | Signal | Description |
-|---|---|---|---|
-| `uio[0]` | Output | `busy` | High while the 256-cycle stochastic compute phase is active. |
-| `uio[1]` | Output | `done` | 1-cycle active-high completion strobe at end of compute. |
-| `uio[2]` | Output | `w_dout` | Serial weight loopback for non-destructive shift verification (DFT). |
-| `uio[3]` | Output | `overflow` | Latched saturation flag if any 13-bit accumulator saturated ($\pm 4095$). |
-| `uio[4]` | Input | `w_din` | Serial weight data bit input. |
-| `uio[5]` | Input | `w_shift_en` | Weight shift enable (interlocked: ignored when `busy == 1`). |
-| `uio[6]` | Input | `wr_act` | Activation register write strobe (auto-increments channel 0..15). |
-| `uio[7]` | Input | `ctrl_strobe` | Command strobe to latch operating mode and trigger compute. |
-
----
-
-## 4. Operational & Programming Protocol
-
-1. **Reset Initialization:**
-   Assert `rst_n = 0` for $\ge 3$ clock cycles to clear the 2-stage synchronizer, reset LFSRs to their stride-15 seeds, and zero the accumulators.
-
-2. **Weight Matrix Programming (256 Cycles):**
-   * Assert `w_shift_en = 1`.
-   * For 256 consecutive clock cycles, clock in the $16 \times 16$ weight bits via `w_din`.
-   * *Verification:* Observe `w_dout` on `uio[2]` to verify shift-register chain continuity.
-
+1. **Reset Initialization:** Assert `rst_n = 0` for at least 3 clock cycles to initialize the LFSR seeds and clear the accumulators.
+2. **Weight Matrix Loading (256 Cycles):**
+   * Set `uio[5]` (`w_shift_en`) = 1.
+   * Clock in 256 weight bits serially via `uio[4]` (`w_din`).
+   * Observe `uio[2]` (`w_dout`) to verify the scan chain continuity (DFT loopback).
+   * Deassert `w_shift_en` = 0.
 3. **Activation Loading (16 Writes):**
-   * Place an 8-bit activation byte on `ui_in[7:0]` and pulse `wr_act = 1` for 1 cycle.
-   * Repeat 16 times. An internal counter automatically increments channel address $0 \rightarrow 15$.
-
-4. **Compute Triggering (1 Cycle):**
-   * Set `ui_in[1:0]` to the desired mode (`00`, `01`, or `10`).
-   * Set `ui_in[2] = 1` (`START_COMPUTE` command).
-   * Pulse `ctrl_strobe = 1` for 1 cycle.
-   * The core asserts `busy = 1` and executes for exactly 256 clock cycles ($N = 256$).
-
+   * Apply an 8-bit activation byte on `ui_in[7:0]`.
+   * Pulse `uio[6]` (`wr_act`) = 1 for 1 clock cycle.
+   * Repeat 16 times; an internal counter automatically auto-increments the channel address from 0 to 15.
+4. **Compute Triggering:**
+   * Set `ui_in[4]` to select mode (0 = Unipolar, 1 = Hybrid ReLU).
+   * Set `ui_in[2]` = 1 (`START_COMPUTE` command).
+   * Pulse `uio[7]` (`ctrl_strobe`) = 1 for 1 clock cycle.
+   * The core asserts `uio[0]` (`busy`) = 1 and computes for exactly 256 clock cycles.
 5. **Accumulator Readback:**
-   * After 256 cycles, `busy` drops to 0 and `done` pulses high for 1 cycle.
-   * Set `ui_in[3:0] = col_idx` (0 to 15).
-   * Set `ui_in[4] = 0` to read low byte (`uo_out[7:0] = acc[7:0]`).
-   * Set `ui_in[4] = 1` to read sign-extended high byte (`uo_out[7:0] = {{3{acc[12]}}, acc[12:8]}`).
+   * After 256 cycles, `busy` drops to 0 and `uio[1]` (`done`) pulses high for 1 cycle.
+   * Set `ui_in[3:0]` to the desired column index (0 to 15).
+   * Set `ui_in[4]` = 0 to read the low byte (`uo_out[7:0] = acc[7:0]`).
+   * Set `ui_in[4]` = 1 to read the high byte (`uo_out[7:0] = {{3{acc[12]}}, acc[12:8]}`).
+   * Check `uio[3]` (`overflow`) to verify that no numerical saturation occurred.
 
 ---
 
-## 5. Physical Implementation & Sign-Off Specs
+## External hardware
 
-* **Foundry & Node:** SkyWater 130nm (`sky130A`)
-* **Standard Cell Library:** `sky130_fd_sc_hd` (High Density, 7-track, $2.72\,\mu\text{m}$ height)
-* **Tile Footprint:** Tiny Tapeout $1\times 2$ Tile ($\approx 161\,\mu\text{m} \times 226\,\mu\text{m}$, gross area $\approx 36,386\,\mu\text{m}^2$)
-* **Core Placement Density:** Target $\mathbf{58.8\%}$ (leaving $41.2\%$ whitespace for routing channels and buffer insertion)
-* **Clock Frequency:** Target **$50\text{ MHz}$** ($T_{\text{clk}} = 20.0\,\text{ns}$)
-* **Total Inference Latency:** $256 \times 20\,\text{ns} = \mathbf{5.12\,\mu\text{s}}$ per $16\times 16$ Matrix-Vector Multiply ($\mathbf{100,000,000\text{ MACs/sec}}$ throughput)
-* **Sign-Off Criteria:** 0 Magic DRC errors, 0 Netgen LVS mismatches, Hold Slack $T_{\text{slack, hold}} \ge 0.10\,\text{ns}$
+* **Tiny Tapeout Carrier Board:** RP2040 or RP2350 carrier board running MicroPython or C firmware.
+* **FPGA Testbench (Optional):** PYNQ-Z2 or DE10-Lite connected via PMOD for high-speed hardware-in-the-loop inference testing at 50–100 MHz.
+* All I/O pins operate at standard 3.3V logic levels through the Tiny Tapeout pad frame.
