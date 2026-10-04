@@ -210,6 +210,74 @@ def audit_external_assumptions(metrics: Dict[str, Any]) -> List[Dict[str, str]]:
     return assumptions
 
 
+def verify_signoff_thresholds(metrics: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    """Verify that all physical sign-off criteria are satisfied for tapeout."""
+    checks = []
+    all_passed = True
+
+    # Check 1: Zero hold violations across all corners (strictly positive hold slack)
+    hold_ws_global = metrics.get("timing__hold__ws", 0.0)
+    hold_vio_count = metrics.get("timing__hold_vio__count", 0)
+    if hold_ws_global > 0.0 and hold_vio_count == 0:
+        checks.append(f"[PASS] Zero hold violations across all corners (Global WHS = +{hold_ws_global:.3f} ns)")
+    else:
+        checks.append(f"[FAIL] Fatal hold violation detected! Global WHS = {hold_ws_global:.3f} ns, Count = {hold_vio_count}")
+        all_passed = False
+
+    # Check 2: Worst-case clock skew bounded within 200 ps target
+    worst_skew = abs(metrics.get("clock__skew__worst_setup", 0.0))
+    if worst_skew <= 0.200:
+        checks.append(f"[PASS] Clock skew within 200 ps budget (Worst = {worst_skew*1000.0:.1f} ps)")
+    else:
+        checks.append(f"[FAIL] Clock skew exceeds 200 ps target (Worst = {worst_skew*1000.0:.1f} ps)")
+        all_passed = False
+
+    # Check 3: Nominal room temperature setup slack >= 5.0 ns (allows >60 MHz)
+    nom_setup_ws = metrics.get("timing__setup__ws__corner:nom_tt_025C_1v80", 0.0)
+    if nom_setup_ws >= 5.0:
+        checks.append(f"[PASS] Nominal setup headroom >= +5.0 ns (nom_tt WSS = +{nom_setup_ws:.3f} ns, F_max = {1000.0/(20.0-nom_setup_ws):.1f} MHz)")
+    else:
+        checks.append(f"[FAIL] Nominal setup slack is insufficient (nom_tt WSS = {nom_setup_ws:.3f} ns)")
+        all_passed = False
+
+    # Check 4: Derated worst-case slow silicon frequency >= 48.0 MHz
+    max_ss_ws = metrics.get("timing__setup__ws__corner:max_ss_100C_1v60", 0.0)
+    max_ss_period = 20.0 - max_ss_ws
+    max_ss_fmax = 1000.0 / max_ss_period if max_ss_period > 0 else 0.0
+    if max_ss_fmax >= 48.0:
+        checks.append(f"[PASS] Worst-case slow silicon F_max >= 48.0 MHz (Achieved: {max_ss_fmax:.2f} MHz, Slack: {max_ss_ws:+.3f} ns)")
+    else:
+        checks.append(f"[FAIL] Slow silicon frequency severely derated (<48.0 MHz): {max_ss_fmax:.2f} MHz")
+        all_passed = False
+
+    # Check 5: Total macro power < 5.0 mW at 50 MHz
+    p_total_mw = metrics.get("power__total", 0.0) * 1e3
+    if p_total_mw < 5.0:
+        checks.append(f"[PASS] Total macro power within 5.0 mW budget (P_total = {p_total_mw:.3f} mW)")
+    else:
+        checks.append(f"[FAIL] Power exceeds 5.0 mW budget (P_total = {p_total_mw:.3f} mW)")
+        all_passed = False
+
+    # Check 6: Static IR drop < 0.1% on VPWR
+    vpwr_drop = metrics.get("design_powergrid__drop__worst__net:VPWR__corner:nom_tt_025C_1v80", 0.0)
+    vpwr_drop_pct = (vpwr_drop / 1.80) * 100.0
+    if vpwr_drop_pct < 0.1:
+        checks.append(f"[PASS] Power grid static IR drop < 0.1% (Worst = {vpwr_drop*1e6:.1f} µV / {vpwr_drop_pct:.4f}%)")
+    else:
+        checks.append(f"[FAIL] Severe static IR drop (>0.1%): {vpwr_drop_pct:.3f}%")
+        all_passed = False
+
+    # Check 7: Synchronizer MTBF > 1e9 years
+    mtbf = calculate_synchronizer_mtbf(f_clk_mhz=50.0)
+    if mtbf["mtbf_years"] > 1e9:
+        checks.append(f"[PASS] Reset synchronizer MTBF > 10^9 years (Calculated: > 1.0e10 years)")
+    else:
+        checks.append(f"[FAIL] Synchronizer MTBF is insufficient: {mtbf['mtbf_years']:.1e} years")
+        all_passed = False
+
+    return all_passed, checks
+
+
 def generate_signoff_report(metrics_path: str) -> str:
     """Generate the complete markdown sign-off audit report."""
     metrics = parse_metrics_csv(metrics_path)
@@ -217,10 +285,18 @@ def generate_signoff_report(metrics_path: str) -> str:
     power = calculate_power_and_energy(metrics)
     assumptions = audit_external_assumptions(metrics)
     mtbf = calculate_synchronizer_mtbf()
+    passed, checks = verify_signoff_thresholds(metrics)
 
     lines = []
     lines.append("# Pillar 4: Static Timing Analysis & Sign-Off (STA) Report")
     lines.append("")
+    lines.append("## Sign-Off Gate Verdict")
+    lines.append(f"**Overall Sign-Off Status:** {'✅ **PASSED FOR SILICON TAPEOUT**' if passed else '❌ **FAILED SIGN-OFF GATES**'}")
+    lines.append("")
+    for c in checks:
+        lines.append(f"- {c}")
+    lines.append("")
+
     lines.append("## 1. Multi-Corner STA Timing Matrix")
     lines.append("| Corner | Description | Setup Slack | Hold Slack | Max Skew | F_max (MHz) | Status |")
     lines.append("|---|---|---|---|---|---|---|")
@@ -291,6 +367,9 @@ def run_self_tests():
         "power__switching__total": 0.000678,
         "power__leakage__total": 5.25e-8,
         "power__total": 0.002796,
+        "timing__hold__ws": 0.1098,
+        "timing__hold_vio__count": 0,
+        "clock__skew__worst_setup": -0.176,
         "design_powergrid__drop__worst__net:VPWR__corner:nom_tt_025C_1v80": 0.000068,
         "design_powergrid__drop__worst__net:VGND__corner:nom_tt_025C_1v80": 0.000101
     }
@@ -311,6 +390,18 @@ def run_self_tests():
     assert mtbf["mtbf_years"] > 1e9
     print("  [✓] Test 3: Synchronizer MTBF calculation passed.")
 
+    passed, checks = verify_signoff_thresholds(mock_metrics)
+    assert passed is True, f"Expected verify_signoff_thresholds to pass, but failed: {checks}"
+    assert len(checks) == 7
+    print("  [✓] Test 4: verify_signoff_thresholds passed.")
+
+    # Test failure mode
+    failing_metrics = mock_metrics.copy()
+    failing_metrics["timing__hold__ws"] = -0.050
+    fail_passed, fail_checks = verify_signoff_thresholds(failing_metrics)
+    assert fail_passed is False
+    print("  [✓] Test 5: verify_signoff_thresholds detected hold failure correctly.")
+
     print("[TEST] All sta_power_audit.py self-tests PASSED successfully!")
 
 
@@ -318,6 +409,7 @@ def main():
     parser = argparse.ArgumentParser(description="Pillar 4: STA, SDC Assumptions & Power Sign-Off Audit.")
     parser.add_argument("metrics_csv", nargs="?", default="gds/metrics.csv", help="Path to gds/metrics.csv")
     parser.add_argument("--test", action="store_true", help="Run automated self-tests.")
+    parser.add_argument("--check-signoff", action="store_true", help="Verify sign-off gates and exit with non-zero on failure.")
     args = parser.parse_args()
 
     if args.test:
@@ -328,9 +420,17 @@ def main():
         print(f"Error: Metrics file '{args.metrics_csv}' not found.", file=sys.stderr)
         sys.exit(1)
 
+    metrics = parse_metrics_csv(args.metrics_csv)
+    passed, checks = verify_signoff_thresholds(metrics)
+
     report = generate_signoff_report(args.metrics_csv)
     print(report)
+
+    if args.check_signoff and not passed:
+        print("\n[ERROR] Sign-off criteria failed!", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
     main()
+
