@@ -1,6 +1,6 @@
 # Session Handoff: Path B (Mode 1 Removal & Clean 4:2 Compressor Sign-Off)
 
-- **Date:** 2026-10-03 23:30
+- **Date:** 2026-10-03 23:35
 - **Machine:** Host/PC (`juliusli`)
 - **Active Branch:** `test/path-b-streamlined` (Branched directly from `main`)
 - **Sept 23 Golden Archive:** Tagged at `v-sept23-openlane2-signoff`, branch `archive/sept23-openlane2-signoff`, and committed in `archive/sept23_openlane2_golden/`.
@@ -16,10 +16,10 @@
   - `verilator --lint-only -Wall -Wno-DECLFILENAME src/*.v`: **0 errors, 0 warnings**.
   - `make -C test test_all`: **100% PASSED** across all unit and full-core regressions (15/15 tests green).
 - **PnR Hardening Configuration (`src/config.json` & `config.yaml`):**
-  - Configured with clean OpenLane 2 schema (`PL_TARGET_DENSITY_PCT: 85`, `PL_ROUTABILITY_DRIVEN: 0`, `GPL_CELL_PADDING: 0`, margins 2/2/1/1, default routing layers).
+  - Restored canonical `0c88fea` configuration with `met1` derating and thread restrictions removed.
 
 ### 2. Next Immediate Action:
-- Commit and push to `origin/test/path-b-streamlined` to trigger Run #42.
-- Monitor GitHub Actions LibreLane 3 CI run (Run #42).
+- Commit and push to `origin/test/path-b-streamlined` to trigger Run #43.
+- Monitor GitHub Actions LibreLane 3 CI run (Run #43).
 - Inspect physical metrics (`metrics.csv`) upon 0 DRC completion.
 - Execute "Poking Holes" Red Team stress testing.

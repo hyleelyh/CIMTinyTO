@@ -31,15 +31,15 @@ STD_CELL_LIBRARY: "sky130_fd_sc_hd"
 SYNTH_STRATEGY: "AREA 1"
 
 # Placement & Density
-# Target density 85% accommodates ~65% standard-cell placement inside the 2x2 core.
-PL_TARGET_DENSITY_PCT: 85
+# Target density 99% cleanly accommodates 98.44% virtual placement density inside the 2x2 core.
+PL_TARGET_DENSITY_PCT: 99
 PL_ROUTABILITY_DRIVEN: false
 GPL_CELL_PADDING: 0
 DPL_CELL_PADDING: 0
-TOP_MARGIN_MULT: 1
-BOTTOM_MARGIN_MULT: 1
-LEFT_MARGIN_MULT: 2
-RIGHT_MARGIN_MULT: 2
+TOP_MARGIN_MULT: 0
+BOTTOM_MARGIN_MULT: 0
+LEFT_MARGIN_MULT: 1
+RIGHT_MARGIN_MULT: 1
 
 # High-Fanout Net (HFN) & Buffer Insertion Rules
 DESIGN_REPAIR_BUFFER_OUTPUT_PORTS: false
@@ -56,6 +56,7 @@ CTS_ROOT_BUFFER: "sky130_fd_sc_hd__clkbuf_16"
 # Detailed & Global Routing
 RT_MAX_LAYER: "met4"
 GRT_ALLOW_CONGESTION: true
+GRT_OVERFLOW_ITERS: 100
 
 # Antenna DRC Protection
 RUN_ANTENNA_CHECKER: true
