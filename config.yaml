@@ -36,14 +36,14 @@ PL_TARGET_DENSITY_PCT: 99
 PL_ROUTABILITY_DRIVEN: false
 GPL_CELL_PADDING: 0
 DPL_CELL_PADDING: 0
-TOP_MARGIN_MULT: 0
-BOTTOM_MARGIN_MULT: 0
-LEFT_MARGIN_MULT: 1
-RIGHT_MARGIN_MULT: 1
+TOP_MARGIN_MULT: 1
+BOTTOM_MARGIN_MULT: 1
+LEFT_MARGIN_MULT: 2
+RIGHT_MARGIN_MULT: 2
 
-# Floorplan & Pin Geometry: 1.0 um pin stub to eliminate boundary cell shorts
+# Floorplan & Pin Geometry: 0.9 um (H) / 1.0 um (V) pin stub to eliminate boundary cell shorts (0.00 um overlap)
 FP_SIZING: "absolute"
-IO_PIN_H_LENGTH: 1.0
+IO_PIN_H_LENGTH: 0.9
 IO_PIN_V_LENGTH: 1.0
 PDN_VPITCH: 38.87
 PDN_MULTILAYER: false
@@ -62,7 +62,7 @@ CTS_ROOT_BUFFER: "sky130_fd_sc_hd__clkbuf_16"
 
 # Detailed & Global Routing
 RT_MAX_LAYER: "met4"
-GRT_ALLOW_CONGESTION: true
+GRT_ALLOW_CONGESTION: false
 GRT_OVERFLOW_ITERS: 100
 
 # Antenna DRC Protection
