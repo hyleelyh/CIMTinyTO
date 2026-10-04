@@ -1,33 +1,28 @@
 # Session Handoff: Path B (Run 48: GDS Generation Achieved!)
 
-- **Date:** 2026-10-04 11:15
+- **Date:** 2026-10-04 11:25
 - **Machine:** Host/PC (`juliusli`)
 - **Active Branch:** `test/path-b-streamlined` (Branched directly from `main`)
 - **Sept 23 Golden Archive:** Tagged at `v-sept23-openlane2-signoff`, branch `archive/sept23-openlane2-signoff`, and committed in `archive/sept23_openlane2_golden/`.
-- **Target Deliverable:** Run #49 floorplan elevation (+0.34 um) to pass Tiny Tapeout precheck boundary and LEF pin verification.
+- **Target Deliverable:** Run #50 Option A (Symmetric 81 rows + AREA 2 ABC synthesis) for complete precheck boundary and LEF pin sign-off.
 
 ---
 
 ## Current Status & Next Actions
 
 ### 1. Completed in this Run:
-- **Run #48 Full Physical Verification Signed Off:**
-  - GDS generation completed in 24m 57s.
-  - Gate-Level Simulation (`gl_test`): **100% PASSED** (15/15 tests green).
-  - Magic DRC & KLayout DRC: **0 DRC errors**.
-  - Setup Slack: Positive ($\ge 0.00\,\text{ns}$ at 50 MHz); Hold Slack: $+0.22\,\text{ns}$ ($+220\,\text{ps}$).
-  - 3D Layout Viewer: deployed to GitHub Pages.
-- **Root-Cause Analysis of Precheck Overhang:**
-  - Identified $0.24\,\mu\text{m}$ bottom `met1` power rail overhang caused by Row 0 at $Y = 0.00\,\mu\text{m}$.
-  - Calibrated upward shift to exactly $+0.34\,\mu\text{m}$ (1 `met1` track pitch) to maintain on-grid routing access while securing $+0.10\,\mu\text{m}$ bottom clearance and $2.14\,\mu\text{m}$ top clearance.
-- **Configuration Updated for Run #49:**
-  - `DIE_AREA: [0.0, 0.0, 334.88, 225.76]`
-  - `CORE_AREA: [0.46, 0.34, 334.42, 223.38]`
-  - Preserves 82 rows (85.7% density), cleanly bypassing `[GPL-0301]`.
+- **Diagnosed Run #49 GPL-0301 Failure:**
+  - OpenROAD enforces row alignment to $H_{\text{site}} = 2.720\,\mu\text{m}$.
+  - Shifting lower-left by $0.340\,\mu\text{m}$ caused OpenROAD to snap $Y_{\min}$ up to $2.720\,\mu\text{m}$ (`[IFP-0028]`), dropping from 82 to 81 rows.
+  - In 81 rows, virtual utilization reached $100.554\%$ due to $9,855\,\mu\text{m}^2$ of GPL pin density padding, missing the 100% threshold by just $397\,\mu\text{m}^2$ ($0.554\%$).
+- **Configuration Updated for Run #50 (Option A):**
+  - `SYNTH_STRATEGY: "AREA 2"`: multi-pass iterative ABC area mapping to save $1\%\text{--}3\%$ gate area, comfortably overcoming the $0.554\%$ threshold.
+  - `CORE_AREA: [0.46, 2.72, 334.42, 223.04]`: symmetric 81-row floorplan with $+2.48\,\mu\text{m}$ safe clearance at both bottom and top edges.
+  - `FP_PDN_SKIPTRIM: false` (`0`): power strap boundary trimming enabled.
 
 ### 2. Next Immediate Action:
-- Commit and push to trigger Run #49 on GitHub Actions.
+- Commit and push to trigger Run #50 on GitHub Actions.
 - Monitor `gds`, `precheck`, and `gl_test`.
-- Verify 0 LEF errors and 100% Boundary PASS on `precheck`.
+- Confirm 0 LEF errors and 100% Boundary PASS on `precheck`.
 
 

@@ -5,8 +5,8 @@
   "//": "Placement Target Density: Set to 99% to accommodate 98.44% virtual placement density",
   "PL_TARGET_DENSITY_PCT": 99,
 
-  "//": "Synthesis Optimization Strategy: AREA 1 (proven minimal area 62,882 um^2)",
-  "SYNTH_STRATEGY": "AREA 1",
+  "//": "Synthesis Optimization Strategy: AREA 2 for iterative ABC optimization in 81 rows",
+  "SYNTH_STRATEGY": "AREA 2",
 
   "//": "Disable artificial cell padding to maintain true standard-cell density",
   "PL_ROUTABILITY_DRIVEN": 0,
@@ -40,14 +40,14 @@
   "GRT_ALLOW_CONGESTION": 1,
   "GRT_OVERFLOW_ITERS": 100,
 
-  "// Floorplan sizing: Absolute die area and elevated core area": "",
-  "// Elevated by +0.34 um (1 met1 track pitch) to pull Row 0 power rail inside Y >= 0.00": "",
-  "// Preserves 82 rows (85.7% density), leaving 2.14 um top escape channel": "",
+  "// Floorplan sizing: Absolute die area and symmetric 81-row core area": "",
+  "// Y in [2.72, 223.04] provides 2.48 um safe clearance at both top and bottom edges": "",
   "FP_SIZING": "absolute",
   "DIE_AREA": [0.0, 0.0, 334.88, 225.76],
-  "CORE_AREA": [0.46, 0.34, 334.42, 223.38],
+  "CORE_AREA": [0.46, 2.72, 334.42, 223.04],
   "IO_PIN_H_LENGTH": 0.4,
   "IO_PIN_V_LENGTH": 0.4,
+  "FP_PDN_SKIPTRIM": 0,
   "PDN_VPITCH": 38.87,
   "PDN_MULTILAYER": false,
 

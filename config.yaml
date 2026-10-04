@@ -27,23 +27,23 @@ pdk: "sky130A"
 STD_CELL_LIBRARY: "sky130_fd_sc_hd"
 
 # Synthesis Optimization Strategy
-# AREA 1: 2-pass iterative ABC area mapping for compact macro footprint (62,882 um²)
-SYNTH_STRATEGY: "AREA 1"
+# AREA 2: Multi-pass iterative ABC area mapping for compact macro footprint
+SYNTH_STRATEGY: "AREA 2"
 
 # Placement & Density
-# Target density 99% cleanly accommodates 98.44% virtual placement density inside the 2x2 core.
+# Target density 99% cleanly accommodates virtual placement density inside the 2x2 core.
 PL_TARGET_DENSITY_PCT: 99
 PL_ROUTABILITY_DRIVEN: false
 GPL_CELL_PADDING: 0
 DPL_CELL_PADDING: 0
-# Floorplan & Pin Geometry: Absolute die area and elevated core area
-# Elevated by +0.34 um (1 met1 track pitch) to pull Row 0 power rail inside Y >= 0.00
-# Preserves 82 rows (85.7% density), leaving 2.14 um top escape channel
+# Floorplan & Pin Geometry: Absolute die area and symmetric 81-row core area
+# Y in [2.72, 223.04] provides 2.48 um safe clearance at both top and bottom edges
 FP_SIZING: "absolute"
 DIE_AREA: [0.0, 0.0, 334.88, 225.76]
-CORE_AREA: [0.46, 0.34, 334.42, 223.38]
+CORE_AREA: [0.46, 2.72, 334.42, 223.04]
 IO_PIN_H_LENGTH: 0.4
 IO_PIN_V_LENGTH: 0.4
+FP_PDN_SKIPTRIM: false
 PDN_VPITCH: 38.87
 PDN_MULTILAYER: false
 
