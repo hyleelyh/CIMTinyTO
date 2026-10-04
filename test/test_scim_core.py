@@ -128,11 +128,12 @@ async def load_activations(dut, inputs_16):
 async def run_computation(dut, mode: int):
     """
     Trigger compute phase and wait for done assertion.
-    mode: 0, 1, or 2.
+    mode: 0 (Unipolar) or 1 (Hybrid ReLU).
     """
-    # Set mode and start bit (bit 7) via ctrl_strobe
+    # Set mode (bit 4) and start bit (bit 7) via ctrl_strobe
     await FallingEdge(dut.clk)
-    cmd = (1 << 7) | ((mode & 0x3) << 4)
+    mode_bit = 1 if mode in [1, 2] else 0
+    cmd = (1 << 7) | (mode_bit << 4)
     dut.ui_in.value = cmd
     dut.uio_in.value = (1 << 7)  # ctrl_strobe
     await FallingEdge(dut.clk)
@@ -320,17 +321,17 @@ async def test_scim_core_silicon_hardening(dut):
         )
     cocotb.log.info("✓ Hole #7 PASSED: Serial weight shift was cleanly interlocked during compute.")
 
-    # 2. Test Hole #10: Illegal mode 2'b11 clamping
+    # 2. Test Reserved Bit ui_in[5] Invariance
     cocotb.log.info("\n========================================================")
-    cocotb.log.info("TESTING HOLE #10 (Illegal Mode 2'b11 Clamping)")
+    cocotb.log.info("TESTING RESERVED BIT ui_in[5] INVARIANCE")
     cocotb.log.info("========================================================")
     await reset_core(dut)
     await load_weights_serial(dut, weights)
     await load_activations(dut, inputs)
 
-    # Start compute with mode = 3 (2'b11)
+    # Start compute with reserved bit 5 high: cmd = (1 << 7) | (1 << 5) | (0 << 4) -> Mode 0
     await FallingEdge(dut.clk)
-    cmd = (1 << 7) | (3 << 4)
+    cmd = (1 << 7) | (1 << 5) | (0 << 4)
     dut.ui_in.value = cmd
     dut.uio_in.value = (1 << 7)
     await FallingEdge(dut.clk)
@@ -340,17 +341,19 @@ async def test_scim_core_silicon_hardening(dut):
     while not dut.uio_out[1].value:
         await RisingEdge(dut.clk)
 
-    actual_m11 = await readback_accumulators(dut)
+    actual_res5 = await readback_accumulators(dut)
     for col in range(16):
-        assert actual_m11[col] == 0, f"Hole #10 FAILED: Col {col} accumulated {actual_m11[col]} under illegal mode 2'b11!"
-    cocotb.log.info("✓ Hole #10 PASSED: Undefined Mode 2'b11 clamped deltas to 0 (all accumulators = 0).")
+        assert actual_res5[col] == expected_all_255, (
+            f"Reserved bit 5 corrupted Mode 0 compute! Col {col} was {actual_res5[col]}"
+        )
+    cocotb.log.info("✓ Reserved Bit 5 Invariance PASSED: Toggling ui_in[5] does not alter Mode 0 operation.")
 
 
 @cocotb.test()
 async def test_scim_core_constrained_random(dut):
     """
     Hole #11: Constrained-Random Verification (CRV) Multi-Vector Stress.
-    Runs 15 randomized trials across Mode 0, Mode 1, and Mode 2 with arbitrary
+    Runs 15 randomized trials across Mode 0 (Unipolar) and Mode 1 (Hybrid ReLU) with arbitrary
     activation distributions and weight matrices, verifying bit-exact RTL equivalence
     against the Gate 0 Python golden reference model (SCIMTile).
     """
@@ -367,16 +370,16 @@ async def test_scim_core_constrained_random(dut):
     cocotb.log.info(f"========================================================")
 
     for trial in range(num_trials):
-        mode = trial % 3  # Rotate evenly across Modes 0, 1, 2
-        mode_str = ["Unipolar", "Bipolar", "Hybrid ReLU"][mode]
+        mode = trial % 2  # Rotate evenly across Mode 0 (Unipolar) and Mode 1 (Hybrid ReLU)
+        mode_str = ["Unipolar", "Hybrid ReLU"][mode]
 
         # Generate randomized activations
         activations = np.random.randint(0, 256, size=16, dtype=int)
-        if mode == 2 and trial % 2 == 1:
+        if mode == 1 and trial % 2 == 1:
             activations[activations < 128] = 0  # 50% ReLU sparsity on some runs
 
         # Generate randomized weights
-        if mode == 2:
+        if mode == 1:
             weights = np.random.choice([-1, 1], size=(16, 16))
         else:
             weights = np.random.randint(0, 2, size=(16, 16))
@@ -501,8 +504,8 @@ async def test_scim_core_saturation_sticky_overflow(dut):
     await FallingEdge(dut.clk)
     assert ((int(dut.uio_out.value) >> 3) & 1) == 0, "any_overflow was prematurely high before compute!"
 
-    # Run Mode 1 compute
-    await run_computation(dut, mode=1)
+    # Run Mode 0 compute (+16 delta per cycle -> +4096 theoretical sum -> clamps to +4095)
+    await run_computation(dut, mode=0)
 
     # When compute finishes, any_overflow MUST be 1
     uio_val = int(dut.uio_out.value)
@@ -569,10 +572,10 @@ async def test_scim_core_back_to_back_inferences(dut):
     actual_2 = await readback_accumulators(dut)
     cocotb.log.info(f"✓ Inference 2 complete without reset. Col 0 sum = {actual_2[0]}")
 
-    # Inference 3: Third back-to-back run in Mode 2 Hybrid ReLU
+    # Inference 3: Third back-to-back run in Mode 1 Hybrid ReLU
     acts_3 = [64, 0, 192, 0, 128, 0, 255, 0, 32, 0, 16, 0, 8, 0, 4, 0]
     await load_activations(dut, acts_3)
-    await run_computation(dut, mode=2)
+    await run_computation(dut, mode=1)
     actual_3 = await readback_accumulators(dut)
     cocotb.log.info(f"✓ Inference 3 complete without reset. Col 0 sum = {actual_3[0]}")
 

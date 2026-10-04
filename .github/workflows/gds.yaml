@@ -17,6 +17,7 @@ concurrency:
 jobs:
   gds:
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,8 +26,32 @@ jobs:
 
       - name: Build GDS via OpenLane 2
         uses: TinyTapeout/tt-gds-action@ttsky26d
+        timeout-minutes: 50
         with:
           pdk: sky130A
+
+      - name: Inspect Build Artifacts & DRC Reports
+        if: always()
+        shell: bash
+        run: |
+          echo "### Build Artifact & DRC Report Inventory" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          find runs/ -type f \( -name "*.drc" -o -name "*.rpt" -o -name "*.def" -o -name "*.odb" -o -name "*.log" \) 2>/dev/null | sort | head -n 50 >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Dump Layout & DRC Reports on Failure or Timeout
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: layout-debug-dump
+          path: |
+            runs/
+            runs/wokwi/**
+            src/*.gds
+            src/*.def
+            src/*.odb
+            src/*.lef
+          if-no-files-found: ignore
 
   precheck:
     needs: gds

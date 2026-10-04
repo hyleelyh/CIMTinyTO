@@ -36,8 +36,8 @@ pinout:
   ui[1]: "ui_in[1] (Data / Activation byte bit 1)"
   ui[2]: "ui_in[2] (Data / Activation byte bit 2)"
   ui[3]: "ui_in[3] (Data / Activation byte bit 3)"
-  ui[4]: "ui_in[4] (Data / Activation byte bit 4)"
-  ui[5]: "ui_in[5] (Data / Activation byte bit 5)"
+  ui[4]: "ui_in[4] (Data / Activation bit 4 / Command mode select: 0=Unipolar, 1=Hybrid ReLU)"
+  ui[5]: "ui_in[5] (Data / Activation bit 5 / Command reserved bit)"
   ui[6]: "ui_in[6] (Data / Activation byte bit 6)"
   ui[7]: "ui_in[7] (Data / Activation byte bit 7)"
 

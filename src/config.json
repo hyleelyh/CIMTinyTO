@@ -5,8 +5,8 @@
   "//": "Placement Target Density: Set to 99% to accommodate 98.44% virtual placement density",
   "PL_TARGET_DENSITY_PCT": 99,
 
-  "//": "Synthesis Optimization Strategy: AREA 1 (proven minimal area 62,882 um^2)",
-  "SYNTH_STRATEGY": "AREA 1",
+  "//": "Synthesis Optimization Strategy: AREA 2 for iterative ABC optimization in 81 rows",
+  "SYNTH_STRATEGY": "AREA 2",
 
   "//": "Disable artificial cell padding to maintain true standard-cell density",
   "PL_ROUTABILITY_DRIVEN": 0,
@@ -23,10 +23,10 @@
   "//": "Clock port name matching top-level wrapper",
   "CLOCK_PORT": "clk",
 
-  "//": "Hold Slack Margins: Enforce positive hold slack (T_slack, hold >= 0.10 ns)",
-  "//": "to physically eliminate silicon race conditions across all PVT corners.",
-  "PL_RESIZER_HOLD_SLACK_MARGIN": 0.1,
-  "GRT_RESIZER_HOLD_SLACK_MARGIN": 0.05,
+  "//": "Hold Slack Margins: Enforce positive hold slack (T_slack, hold >= 0.02 ns)",
+  "//": "alongside SDC 200 ps uncertainty, preventing redundant buffer flooding and DPL-0036 overflow.",
+  "PL_RESIZER_HOLD_SLACK_MARGIN": 0.02,
+  "GRT_RESIZER_HOLD_SLACK_MARGIN": 0.02,
 
   "//": "Linter settings: Strict Verilog linting enabled",
   "RUN_LINTER": 1,
@@ -40,20 +40,16 @@
   "GRT_ALLOW_CONGESTION": 1,
   "GRT_OVERFLOW_ITERS": 100,
 
-  "//": "Pad Frame & Periphery Margins: 1 site (0.46 um) left/right for I/O track clearance",
-  "//": "Yields 73,489.2 um^2 net core -> 98.44% density < 100% (clears GPL-0301)",
-  "TOP_MARGIN_MULT": 0,
-  "BOTTOM_MARGIN_MULT": 0,
-  "LEFT_MARGIN_MULT": 1,
-  "RIGHT_MARGIN_MULT": 1,
-
-  "//": "Floorplan sizing defined by Tiny Tapeout tile boundaries",
+  "// Floorplan sizing: Absolute die area and symmetric 81-row core area": "",
+  "// Y in [2.72, 223.04] provides 2.48 um safe clearance at both top and bottom edges": "",
   "FP_SIZING": "absolute",
-
-  "FP_IO_HLENGTH": 2,
-  "FP_IO_VLENGTH": 2,
-  "FP_PDN_VPITCH": 38.87,
-  "FP_PDN_MULTILAYER": 0,
+  "DIE_AREA": [0.0, 0.0, 334.88, 225.76],
+  "CORE_AREA": [0.46, 2.72, 334.42, 223.04],
+  "IO_PIN_H_LENGTH": 0.4,
+  "IO_PIN_V_LENGTH": 0.4,
+  "FP_PDN_SKIPTRIM": 0,
+  "PDN_VPITCH": 38.87,
+  "PDN_MULTILAYER": false,
 
   "//": "Don't put clock buffers on the outputs (matching official TT template)",
   "DESIGN_REPAIR_BUFFER_OUTPUT_PORTS": 0,

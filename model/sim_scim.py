@@ -187,8 +187,7 @@ class ProcessingElement:
           switching activity in the column adder tree and reducing dynamic power by >60%.
     """
     MODE_UNIPOLAR = 0
-    MODE_BIPOLAR = 1
-    MODE_HYBRID_RELU = 2
+    MODE_HYBRID_RELU = 1
 
     @staticmethod
     def compute_step(a_bit: int, w_val: int, mode: int) -> int:
@@ -197,27 +196,19 @@ class ProcessingElement:
         a_bit: stochastic bit {0, 1}
         w_val: 
           - Mode 0: binary weight {0, 1}
-          - Mode 1: bipolar bit {0, 1} (where 1 represents +1, 0 represents -1)
-          - Mode 2: bipolar weight sign {-1, +1}
-        mode: 0 (Unipolar), 1 (Bipolar), 2 (Hybrid ReLU)
+          - Mode 1: bipolar weight sign {-1, +1}
+        mode: 0 (Unipolar), 1 (Hybrid ReLU)
         
         Returns: integer step to column accumulator:
           - Mode 0: {0, +1}
-          - Mode 1: {-1, +1}
-          - Mode 2: {-1, 0, +1}
+          - Mode 1: {-1, 0, +1}
         """
         if mode == ProcessingElement.MODE_UNIPOLAR:
             # Mode 0: Single AND gate
             return 1 if (a_bit & w_val) else 0
 
-        elif mode == ProcessingElement.MODE_BIPOLAR:
-            # Mode 1: Single XNOR gate
-            # XNOR = 1 when bits are equal -> +1 step; XNOR = 0 -> -1 step
-            xnor_out = 1 if (a_bit == w_val) else 0
-            return +1 if xnor_out else -1
-
-        elif mode == ProcessingElement.MODE_HYBRID_RELU:
-            # Mode 2: Tri-State Step
+        elif mode == ProcessingElement.MODE_HYBRID_RELU or mode == 2:
+            # Mode 1 (Hybrid ReLU): Tri-State Step
             if a_bit == 0:
                 return 0  # Zero activation -> HOLD (no toggling)
             else:
@@ -366,21 +357,16 @@ class SCIMTile:
         acc_results = np.array([acc.read() for acc in self.accumulators], dtype=np.int32)
 
         # Compute exact mathematical ground truth based on mode
-        if mode == ProcessingElement.MODE_UNIPOLAR:
+        if mode == ProcessingElement.MODE_UNIPOLAR or mode == 0:
             # Activations in [0, 255], weights in {0, 1}
             # Expected accumulator value after 256 cycles: sum(a_i * w_ij)
             true_math = np.dot(activations, self.weights)
-        elif mode == ProcessingElement.MODE_BIPOLAR:
-            # Map binary {0, 1} weights to {-1, +1}
-            w_bipolar = np.where(self.weights == 1, 1, -1)
-            # Activations mapped to [-128, +127]
-            a_bipolar = (activations.astype(float) - 128.0) / 128.0
-            # Expected scaled output
-            true_math = np.dot(a_bipolar, w_bipolar) * 256.0
-        elif mode == ProcessingElement.MODE_HYBRID_RELU:
-            # Unipolar activations [0, 255] * bipolar weights {-1, +1}
+        elif mode == ProcessingElement.MODE_HYBRID_RELU or mode == 1 or mode == 2:
+            # Mode 1 (Hybrid ReLU): Unipolar activations [0, 255] * bipolar weights {-1, +1}
             w_sign = np.where(self.weights > 0, 1, -1)
             true_math = np.dot(activations, w_sign)
+        else:
+            raise ValueError(f"Unknown mode: {mode}")
 
         total_ops = switching_events + idle_events
         sparsity_pct = (idle_events / total_ops * 100.0) if total_ops > 0 else 0.0
@@ -476,13 +462,13 @@ class TestVectorGenerator:
                 "array_size": "16x16",
                 "bitstream_length_N": 256,
                 "accumulator_bits": 13,
-                "supported_modes": ["0: Unipolar AND", "1: Bipolar XNOR", "2: Hybrid ReLU"]
+                "supported_modes": ["0: Unipolar AND", "1: Hybrid ReLU"]
             },
             "vectors": []
         }
 
-        # Vector 1: Zero Vector x Zero Matrix (Mode 0, 1, 2)
-        for m in [0, 1, 2]:
+        # Vector 1: Zero Vector x Zero Matrix (Mode 0, 1)
+        for m in [0, 1]:
             a_zero = np.zeros(16, dtype=int)
             w_zero = np.zeros((16, 16), dtype=int)
             tile.load_weights(w_zero)
@@ -512,14 +498,14 @@ class TestVectorGenerator:
             "sparsity_pct": res_eye["sparsity_pct"]
         })
 
-        # Vector 3: Positive Saturation Extreme (Mode 2)
+        # Vector 3: Positive Saturation Extreme (Mode 1 - Hybrid ReLU)
         # All inputs = 255, All weights = +1 -> Expected: 16 * 255 = 4080 (near 4096 dynamic ceiling)
         w_pos = np.ones((16, 16), dtype=int)
         tile.load_weights(w_pos)
         res_pos = tile.run_mvm(a_max, mode=ProcessingElement.MODE_HYBRID_RELU, N=256)
         suite["vectors"].append({
-            "name": "positive_saturation_extreme_mode_2",
-            "mode": 2,
+            "name": "positive_saturation_extreme_mode_1",
+            "mode": 1,
             "description": "Full positive saturation (+4080 near 13-bit limit)",
             "inputs": a_max.tolist(),
             "weights": w_pos.tolist(),
@@ -527,14 +513,14 @@ class TestVectorGenerator:
             "sparsity_pct": res_pos["sparsity_pct"]
         })
 
-        # Vector 4: Negative Saturation Extreme (Mode 2)
+        # Vector 4: Negative Saturation Extreme (Mode 1 - Hybrid ReLU)
         # All inputs = 255, All weights = -1 -> Expected: -4080
         w_neg = np.full((16, 16), -1, dtype=int)
         tile.load_weights(w_neg)
         res_neg = tile.run_mvm(a_max, mode=ProcessingElement.MODE_HYBRID_RELU, N=256)
         suite["vectors"].append({
-            "name": "negative_saturation_extreme_mode_2",
-            "mode": 2,
+            "name": "negative_saturation_extreme_mode_1",
+            "mode": 1,
             "description": "Full negative saturation (-4080 near 13-bit negative limit)",
             "inputs": a_max.tolist(),
             "weights": w_neg.tolist(),
@@ -542,14 +528,14 @@ class TestVectorGenerator:
             "sparsity_pct": res_neg["sparsity_pct"]
         })
 
-        # Vector 5: Checkerboard Pattern (0xAA55)
+        # Vector 5: Checkerboard Pattern (0xAA55, Mode 1)
         a_check = np.array([0xAA if (i % 2 == 0) else 0x55 for i in range(16)], dtype=int)
         w_check = np.array([[1 if ((r + c) % 2 == 0) else -1 for c in range(16)] for r in range(16)], dtype=int)
         tile.load_weights(w_check)
         res_check = tile.run_mvm(a_check, mode=ProcessingElement.MODE_HYBRID_RELU, N=256)
         suite["vectors"].append({
-            "name": "checkerboard_0xAA55_mode_2",
-            "mode": 2,
+            "name": "checkerboard_0xAA55_mode_1",
+            "mode": 1,
             "description": "Alternating bit toggling pattern for cross-talk and parasitics check",
             "inputs": a_check.tolist(),
             "weights": w_check.tolist(),
@@ -557,7 +543,7 @@ class TestVectorGenerator:
             "sparsity_pct": res_check["sparsity_pct"]
         })
 
-        # Vector 6: Realistic Quantized Micro-ResNet Conv Layer
+        # Vector 6: Realistic Quantized Micro-ResNet Conv Layer (Mode 1)
         np.random.seed(42)
         a_resnet = np.random.randint(0, 256, size=16)
         a_resnet[a_resnet < 140] = 0  # ~60% ReLU sparsity
@@ -566,50 +552,13 @@ class TestVectorGenerator:
         res_resnet = tile.run_mvm(a_resnet, mode=ProcessingElement.MODE_HYBRID_RELU, N=256)
         suite["vectors"].append({
             "name": "micro_resnet_layer1_tile0",
-            "mode": 2,
+            "mode": 1,
             "description": "Quantized Micro-ResNet layer 1 with 60% ReLU sparsity",
             "inputs": a_resnet.tolist(),
             "weights": w_resnet.tolist(),
             "expected_accumulators": res_resnet["results"].tolist(),
             "true_math_expected": res_resnet["true_math"].tolist(),
             "sparsity_pct": res_resnet["sparsity_pct"]
-        })
-
-        # Vector 7: Bipolar Orthogonal Cancellation (Mode 1 - Hole #2 Closure)
-        # Rows 0-7: weight = 1 (match, +1 step), Rows 8-15: weight = 0 (mismatch, -1 step)
-        # Exactly 8 matches and 8 mismatches on every cycle -> Delta = 2(8) - 16 = 0 -> Net sum = 0
-        a_orth = np.full(16, 255, dtype=int)
-        w_orth = np.zeros((16, 16), dtype=int)
-        w_orth[:8, :] = 1
-        tile.load_weights(w_orth)
-        res_orth = tile.run_mvm(a_orth, mode=ProcessingElement.MODE_BIPOLAR, N=256)
-        suite["vectors"].append({
-            "name": "bipolar_orthogonal_cancellation_mode_1",
-            "mode": 1,
-            "description": "Bipolar orthogonal cancellation (8 pos, 8 neg PEs -> zero sum)",
-            "inputs": a_orth.tolist(),
-            "weights": w_orth.tolist(),
-            "expected_accumulators": res_orth["results"].tolist(),
-            "true_math_expected": res_orth["true_math"].tolist(),
-            "sparsity_pct": res_orth["sparsity_pct"]
-        })
-
-        # Vector 8: Bipolar Negative Saturation (Mode 1 - Hole #2 Closure)
-        # All inputs = 0, All weights = 1 -> XNOR(0, 1) = 0 for all 16 rows on all 256 cycles
-        # Delta = 2(0) - 16 = -16 on all 256 cycles -> Net sum = -4096 (13-bit dynamic floor)
-        a_neg = np.zeros(16, dtype=int)
-        w_neg = np.ones((16, 16), dtype=int)
-        tile.load_weights(w_neg)
-        res_neg = tile.run_mvm(a_neg, mode=ProcessingElement.MODE_BIPOLAR, N=256)
-        suite["vectors"].append({
-            "name": "bipolar_negative_saturation_mode_1",
-            "mode": 1,
-            "description": "Bipolar negative saturation (all mismatches -> -4096 dynamic floor)",
-            "inputs": a_neg.tolist(),
-            "weights": w_neg.tolist(),
-            "expected_accumulators": res_neg["results"].tolist(),
-            "true_math_expected": res_neg["true_math"].tolist(),
-            "sparsity_pct": res_neg["sparsity_pct"]
         })
 
         # Write to JSON

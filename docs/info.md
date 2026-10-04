@@ -2,7 +2,7 @@
 
 ## 1. Overview & Architectural Innovation
 
-**CIMTinyTO** is an open-source, standard-cell **Stochastic Compute-in-Memory (SCIM)** and **Digital Compute-in-Memory (DCIM)** accelerator macro designed for the **SkyWater 130nm** (`sky130_fd_sc_hd`) process on **Tiny Tapeout** ($1\times 2$ tile footprint).
+**CIMTinyTO** is an open-source, standard-cell **Stochastic Compute-in-Memory (SCIM)** and **Digital Compute-in-Memory (DCIM)** accelerator macro designed for the **SkyWater 130nm** (`sky130_fd_sc_hd`) process on **Tiny Tapeout** ($2\times 2$ tile footprint).
 
 Standard analog/mixed-signal CIM macros rely on custom analog SRAM bitcells, sensitive analog sense amplifiers, and power-hungry Flash/SAR ADCs—elements that are prone to PVT variation and violate standard digital ASIC flow rules. 
 
@@ -17,14 +17,12 @@ Standard analog/mixed-signal CIM macros rely on custom analog SRAM bitcells, sen
 
 ## 2. Operating Modes
 
-The accelerator natively supports three operating modes configured via `ui_in[1:0]` during a `ctrl_strobe` pulse:
+The accelerator natively supports two operating modes configured via `ui_in[4]` during a `ctrl_strobe` pulse (`ui_in[5]` is reserved):
 
-| Mode | Name | PE Operation | Mathematics | Applications |
-|---|---|---|---|---|
-| `2'b00` | **Mode 0: Unipolar** | Single `AND` gate | $W \in \{0, 1\}$, $X \in [0, 1]$ | Binary networks, boolean pattern matching |
-| `2'b01` | **Mode 1: Bipolar** | Single `XNOR` gate | $W \in \{-1, +1\}$, $X \in [-1, +1]$ | Binarized Neural Networks (BNN), XNOR-Nets |
-| `2'b10` | **Mode 2: Hybrid ReLU** | Masked `AND` gate | $W \in \{-1, +1\}$, $X \in [0, 1]$ | Quantized CNNs (Micro-ResNet, MobileNet) |
-| `2'b11` | *Reserved* | Clamped to 0 | Safety interlock (Hole #10 defense) | Suppresses invalid mode transitions |
+| Mode (`ui_in[4]`) | Name | PE Operation | Mathematics | Applications |
+|:---:|---|---|---|---|
+| `0` | **Mode 0: Unipolar** | Single `AND` gate | $W \in \{0, 1\}$, $X \in [0, 1] \implies \Delta = P$ | Binary networks, boolean pattern matching |
+| `1` | **Mode 1: Hybrid ReLU** | Single `AND` gate + Subtractor | $W \in \{-1, +1\}$, $X \in [0, 1] \implies \Delta = 2P - A$ | Quantized CNNs (Micro-ResNet, MobileNet) |
 
 ---
 
