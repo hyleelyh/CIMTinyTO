@@ -2,7 +2,7 @@
 
 ## 1. Overview & Architectural Innovation
 
-**CIMTinyTO** is an open-source, standard-cell **Stochastic Compute-in-Memory (SCIM)** and **Digital Compute-in-Memory (DCIM)** accelerator macro designed for the **SkyWater 130nm** (`sky130_fd_sc_hd`) process on **Tiny Tapeout** ($1\times 2$ tile footprint).
+**CIMTinyTO** is an open-source, standard-cell **Stochastic Compute-in-Memory (SCIM)** and **Digital Compute-in-Memory (DCIM)** accelerator macro designed for the **SkyWater 130nm** (`sky130_fd_sc_hd`) process on **Tiny Tapeout** ($2\times 2$ tile footprint).
 
 Standard analog/mixed-signal CIM macros rely on custom analog SRAM bitcells, sensitive analog sense amplifiers, and power-hungry Flash/SAR ADCs—elements that are prone to PVT variation and violate standard digital ASIC flow rules. 
 

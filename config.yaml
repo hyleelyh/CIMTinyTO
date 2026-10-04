@@ -36,13 +36,12 @@ PL_TARGET_DENSITY_PCT: 99
 PL_ROUTABILITY_DRIVEN: false
 GPL_CELL_PADDING: 0
 DPL_CELL_PADDING: 0
-TOP_MARGIN_MULT: 1
-BOTTOM_MARGIN_MULT: 0
-LEFT_MARGIN_MULT: 1
-RIGHT_MARGIN_MULT: 1
-
-# Floorplan & Pin Geometry: 0.4 um pin stubs for strictly 0.00 um cell overlap (0.40 um < 0.46 um margin)
+# Floorplan & Pin Geometry: Absolute die area and elevated core area
+# Elevated by +0.34 um (1 met1 track pitch) to pull Row 0 power rail inside Y >= 0.00
+# Preserves 82 rows (85.7% density), leaving 2.14 um top escape channel
 FP_SIZING: "absolute"
+DIE_AREA: [0.0, 0.0, 334.88, 225.76]
+CORE_AREA: [0.46, 0.34, 334.42, 223.38]
 IO_PIN_H_LENGTH: 0.4
 IO_PIN_V_LENGTH: 0.4
 PDN_VPITCH: 38.87
