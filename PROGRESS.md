@@ -7,6 +7,7 @@
 - **`test/gate_level_netlist.v`:** Synced to Run #51 post-layout gate-level netlist.
 - **`scripts/gls_power_audit.py`:** Enhanced with automated 6-gate physical sign-off verification (`verify_gls_signoff`), automated `--check-signoff` CLI flag, and JSON metrics generation (`docs/pillar5_power_metrics.json`).
 - **`test/Makefile`:** Added `gls_power_audit` target, added `waves_golden_vectors.vcd` generation for VCD-driven dynamic power analysis, and updated wave cleaning rules.
+- **`.github/workflows/docs.yaml` & `docs/info.md`:** Added official Tiny Tapeout `ttsky26d` documentation build workflow and reformatted datasheet template for seamless PDF datasheet compilation (100% green on CI).
 - **`docs/pillar5_gls_and_dynamic_power_signoff.md`:** Comprehensive sign-off report updated with Run #51 physical netlist metrics, VCD activity profiling, 6-gate physical sign-off scorecard, and silicon forensics.
 - **`docs/walkthrough_pillar5_gls_power.md`:** Verification walkthrough updated with 11/11 GLS test results, power profiling breakdown, and reproduction commands.
 - **`docs/pillar5_power_metrics.json`:** Structured JSON artifact containing exact dynamic switching power, energy-per-MAC, and hierarchical power domain breakdowns.
