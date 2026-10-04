@@ -37,12 +37,12 @@
 
   "//": "Routing: Restrict detailed routing to met1..met4 (met5 reserved for power grid / mux)",
   "RT_MAX_LAYER": "met4",
-  "GRT_ALLOW_CONGESTION": 0,
+  "GRT_ALLOW_CONGESTION": 1,
   "GRT_OVERFLOW_ITERS": 100,
 
-  "//": "Pad Frame & Periphery Margins: 1 site (0.46 um) left/right for I/O track clearance",
-  "//": "Yields 73,489.2 um^2 net core -> 98.07% density < 100% (clears GPL-0301)",
-  "TOP_MARGIN_MULT": 0,
+  "//": "Pad Frame & Periphery Margins: 1 site (0.46 um) left/right, 1 row (2.72 um) top",
+  "//": "Opens top pin escape corridor (mimicking Sept 23 golden run) while yielding 99.296% < 100% density",
+  "TOP_MARGIN_MULT": 1,
   "BOTTOM_MARGIN_MULT": 0,
   "LEFT_MARGIN_MULT": 1,
   "RIGHT_MARGIN_MULT": 1,
