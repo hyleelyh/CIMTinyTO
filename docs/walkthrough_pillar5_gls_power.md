@@ -54,23 +54,23 @@ The post-route netlist was simulated in Icarus Verilog via Cocotb across **20,34
 
 Using [`scripts/gls_power_audit.py`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/scripts/gls_power_audit.py), we correlated cycle-accurate VCD toggles against post-route SPEF parasitics:
 
-* **Physical Net Coverage:** **$5,988$ / $6,000$ nets mapped (99.8%)**
-* **Total Chip Wire & Pin Capacitance:** **$29.41\text{ pF}$**
+* **Physical Net Coverage:** **$5,779$ / $5,790$ nets mapped (99.8%)**
+* **Total Chip Wire & Pin Capacitance:** **$35.83\text{ pF}$**
 
 ### Power Breakdown Comparison ($50.0\text{ MHz}$, $1.80\text{ V}$ Nominal):
 
 | Metric | OpenROAD Static STA (Pillar 4) | VCD Workload-Driven (Pillar 5) | Variance & Physical Origin |
 |:---|:---:|:---:|:---|
-| **Interconnect Switching Power ($P_{\text{switch}}$)** | $0.679\text{ mW}$ | **$0.418\text{ mW}$** | **$-38.5\%$ lower.** Activation sparsity and unipolar zero-suppression keep internal multiplier nets quiescent. |
-| **Internal Standard-Cell Power ($P_{\text{int}}$)** | $2.119\text{ mW}$ | **$2.119\text{ mW}$** | Cell short-circuit ($V_{\text{DD}} I_{\text{sc}}$) and internal pin switching. |
-| **Sub-Threshold Leakage ($P_{\text{leak}}$)** | $52.54\text{ nW}$ | **$52.54\text{ nW}$** | Gate oxide sub-threshold leakage at $25^\circ\text{C}$. |
-| **TOTAL ACTIVE CORE POWER** | **$2.798\text{ mW}$** | **$2.536\text{ mW}$** | **$-9.4\%$ total active power savings.** |
+| **Interconnect Switching Power ($P_{\text{switch}}$)** | $0.806\text{ mW}$ | **$0.454\text{ mW}$** | **$-43.7\%$ lower.** Activation sparsity and unipolar zero-suppression keep internal multiplier nets quiescent. |
+| **Internal Standard-Cell Power ($P_{\text{int}}$)** | $2.441\text{ mW}$ | **$2.441\text{ mW}$** | Cell short-circuit ($V_{\text{DD}} I_{\text{sc}}$) and internal pin switching. |
+| **Sub-Threshold Leakage ($P_{\text{leak}}$)** | $87.31\text{ nW}$ | **$87.31\text{ nW}$** | Gate oxide sub-threshold leakage at $25^\circ\text{C}$. |
+| **TOTAL ACTIVE CORE POWER** | **$3.247\text{ mW}$** | **$2.895\text{ mW}$** | **$-10.8\%$ total active power savings.** |
 
 ### Computational Energy Efficiency:
 * **$16 \times 16$ MVM Duration:** $256 \times 20.0\text{ ns} = \mathbf{5.12\,\mu\text{s}}$
 * **Silicon Compute Throughput:** $\mathbf{50.0\text{ MMAC/s}}$ ($195.3\text{ kMVM/s}$)
-* **Dynamic Energy per $16 \times 16$ MVM:** $\mathbf{12.99\text{ nJ}}$
-* **Energy per MAC Operation:** **$50.73\text{ pJ / MAC}$**
+* **Dynamic Energy per $16 \times 16$ MVM:** $\mathbf{14.82\text{ nJ}}$
+* **Energy per MAC Operation:** **$57.91\text{ pJ / MAC}$**
 
 ---
 
@@ -80,11 +80,11 @@ The automated power audit identified the top dynamic power consumers in the core
 
 | Physical Net Identifier | Capacitance | Toggle Rate ($\alpha$) | Dynamic Power |
 |:---|:---:|:---:|:---:|
-| `clknet_2_1__leaf_clk` | $96.19\text{ fF}$ | $2.000\text{ toggles/cycle}$ | **$15.58\,\mu\text{W}$** |
-| `clknet_2_3__leaf_clk` | $92.76\text{ fF}$ | $2.000\text{ toggles/cycle}$ | **$15.03\,\mu\text{W}$** |
-| `clknet_2_0__leaf_clk` | $91.30\text{ fF}$ | $2.000\text{ toggles/cycle}$ | **$14.79\,\mu\text{W}$** |
-| `clknet_2_2__leaf_clk` | $85.66\text{ fF}$ | $2.000\text{ toggles/cycle}$ | **$13.88\,\mu\text{W}$** |
-| `clknet_1_0__leaf_clk` | $68.42\text{ fF}$ | $2.000\text{ toggles/cycle}$ | **$11.08\,\mu\text{W}$** |
+| `clknet_0_clk` | $88.23\text{ fF}$ | $2.000\text{ toggles/cycle}$ | **$14.29\,\mu\text{W}$** |
+| `clknet_3_6__leaf_clk` | $52.12\text{ fF}$ | $2.000\text{ toggles/cycle}$ | **$8.44\,\mu\text{W}$** |
+| `clknet_3_7__leaf_clk` | $49.00\text{ fF}$ | $2.000\text{ toggles/cycle}$ | **$7.94\,\mu\text{W}$** |
+| `clknet_3_2__leaf_clk` | $45.23\text{ fF}$ | $2.000\text{ toggles/cycle}$ | **$7.33\,\mu\text{W}$** |
+| `clknet_3_4__leaf_clk` | $44.64\text{ fF}$ | $2.000\text{ toggles/cycle}$ | **$7.23\,\mu\text{W}$** |
 
 ---
 

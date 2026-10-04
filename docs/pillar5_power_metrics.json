@@ -1,21 +1,22 @@
 {
   "v_dd": 1.8,
   "freq_mhz": 50.0,
-  "clock_cycles": 16388,
-  "total_dyn_switch_mw": 0.4175055686109009,
-  "static_p_switch_mw": 0.6787364254705608,
-  "total_workload_power_mw": 2.5364110322219435,
-  "energy_per_mvm_nj": 12.986424484976352,
-  "energy_per_mac_pj": 50.72822064443888,
+  "clock_cycles": 4249,
+  "total_dyn_switch_mw": 0.4543422452789175,
+  "static_p_switch_mw": 0.80632243771106,
+  "total_workload_power_mw": 2.8953340510559773,
+  "energy_per_mvm_nj": 14.824110341406605,
+  "energy_per_mac_pj": 57.90668102111955,
   "domain_power_mw": {
-    "Clock Network": 0.23557105974636683,
-    "Reset & Synchronizers": 5.7972927450476464e-05,
-    "SNG LFSR Bank": 0.012642419591017513,
+    "Clock Network": 0.26425705772609553,
+    "Reset & Synchronizers": 3.9277673664807406e-05,
+    "SNG LFSR Bank": 0.01563751941187103,
     "Weight Memory (256 DFFs)": 0.0,
-    "PE Array (16x16)": 0.006512813813470222,
+    "PE Array (16x16)": 0.01270193576507179,
     "Wallace Tree Compressors": 0.0,
-    "Accumulators (16x 13-bit)": 0.0097829947269424,
-    "Control & IO Pads": 0.00020061855174801854,
-    "Other Core Logic": 0.15273768925390707
-  }
+    "Accumulators (16x 13-bit)": 0.011442785143378209,
+    "Control & IO Pads": 0.00022753301563295557,
+    "Other Core Logic": 0.15003613654320255
+  },
+  "signoff_passed": true
 }

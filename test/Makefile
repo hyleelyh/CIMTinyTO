@@ -130,5 +130,9 @@ gls_waves_saturation: $(CURDIR)/gate_level_netlist.v
 gls_waves_overclock: $(CURDIR)/gate_level_netlist.v
 	$(MAKE) gls_waves TESTCASE=test_scim_core_overclocking_200mhz DUMPFILE=waves_overclock_200mhz.vcd
 
+gls_power_audit: gls_waves_golden
+	@python3 $(CURDIR)/../scripts/gls_power_audit.py --vcd $(CURDIR)/waves_golden_vectors.vcd --spef $(CURDIR)/../artifacts/tt_submission/tt_submission/tt_um_scim_core.nom.spef --metrics $(CURDIR)/../gds/metrics.csv --check-signoff
+
 clean_all: clean
 	rm -rf sim_build __pycache__ results.xml *.vcd *.fst gate_level_netlist.v
+

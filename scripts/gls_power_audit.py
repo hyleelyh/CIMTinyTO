@@ -434,6 +434,77 @@ def print_audit_report(results: Dict):
     print("=" * 78 + "\n")
 
 
+def verify_gls_signoff(results: Dict) -> Tuple[bool, List[str]]:
+    """Evaluates the 6 formal physical sign-off gates for Pillar 5."""
+    checks = []
+    all_passed = True
+
+    # Check 1: Physical netlist to SPEF mapping coverage >= 99.0%
+    cov_pct = results["matched_nets"] / max(1, results["total_tracked_nets"]) * 100.0
+    if cov_pct >= 99.0:
+        checks.append(f"[PASS] Netlist-to-SPEF parasitics mapping >= 99.0% (Achieved: {cov_pct:.1f}%)")
+    else:
+        checks.append(f"[FAIL] Netlist coverage below 99.0%: {cov_pct:.1f}%")
+        all_passed = False
+
+    # Check 2: Total accelerator active power <= 5.0 mW
+    p_tot = results["total_workload_power_mw"]
+    if p_tot <= 5.0:
+        checks.append(f"[PASS] Total active core power <= 5.0 mW budget (Measured: {p_tot:.3f} mW)")
+    else:
+        checks.append(f"[FAIL] Active power exceeds 5.0 mW budget: {p_tot:.3f} mW")
+        all_passed = False
+
+    # Check 3: Computational energy efficiency <= 100.0 pJ/MAC
+    e_mac = results["energy_per_mac_pj"]
+    if e_mac <= 100.0:
+        checks.append(f"[PASS] Energy efficiency <= 100.0 pJ/MAC (Achieved: {e_mac:.2f} pJ/MAC)")
+    else:
+        checks.append(f"[FAIL] Energy per MAC exceeds 100 pJ target: {e_mac:.2f} pJ/MAC")
+        all_passed = False
+
+    # Check 4: VCD-driven dynamic switching power <= 1.0 mW
+    p_sw = results["total_dyn_switch_mw"]
+    if p_sw <= 1.0:
+        checks.append(f"[PASS] Workload dynamic switching power <= 1.0 mW (Measured: {p_sw:.3f} mW)")
+    else:
+        checks.append(f"[FAIL] Dynamic switching power exceeds 1.0 mW: {p_sw:.3f} mW")
+        all_passed = False
+
+    # Check 5: Output pad quiescence verified (Power <= 0.005 mW)
+    pad_p = results["domain_power_mw"].get("Control & IO Pads", 0.0)
+    if pad_p <= 0.005:
+        checks.append(f"[PASS] Output pad quiescence verified (Pad switching: {pad_p*1000.0:.2f} µW <= 5.0 µW)")
+    else:
+        checks.append(f"[FAIL] Excessive pad switching during active operation: {pad_p:.4f} mW")
+        all_passed = False
+
+    # Check 6: Workload switching reduction vs. static STA expectation (< 100%)
+    ratio_pct = results["switching_power_ratio"] * 100.0
+    if ratio_pct < 100.0:
+        checks.append(f"[PASS] Workload dynamic power advantage vs. static STA (Achieved: {ratio_pct:.1f}% of static)")
+    else:
+        checks.append(f"[FAIL] Dynamic power exceeded static estimate: {ratio_pct:.1f}%")
+        all_passed = False
+
+    return all_passed, checks
+
+
+def print_signoff_scorecard(results: Dict):
+    """Outputs the formal Pillar 5 sign-off scorecard."""
+    passed, checks = verify_gls_signoff(results)
+    print("\n" + "=" * 78)
+    print(" PILLAR 5 PHYSICAL SIGN-OFF SCORECARD & SILICON GATES")
+    print("=" * 78)
+    for c in checks:
+        print(f" {c}")
+    print("-" * 78)
+    status_str = "✅ ALL 6 PHYSICAL GATES PASSED (TAPE-OUT READY)" if passed else "❌ SIGN-OFF CRITERIA FAILED"
+    print(f" OVERALL VERDICT: {status_str}")
+    print("=" * 78 + "\n")
+    return passed
+
+
 def run_self_tests():
     """Validates SPEF and power calculation formulas against mathematical references."""
     print("[TEST] Running self-test suite for gls_power_audit.py...")
@@ -461,6 +532,20 @@ def run_self_tests():
     assert DynamicPowerAuditor._classify_net("gen_accumulators[0].u_acc") == "Accumulators (16x 13-bit)"
     assert DynamicPowerAuditor._classify_net("uo_out[0]") == "Control & IO Pads"
 
+    # 4. Test Sign-off verification logic
+    mock_results = {
+        "matched_nets": 5779,
+        "total_tracked_nets": 5790,
+        "total_workload_power_mw": 2.895,
+        "energy_per_mac_pj": 57.91,
+        "total_dyn_switch_mw": 0.454,
+        "domain_power_mw": {"Control & IO Pads": 0.00015},
+        "switching_power_ratio": 0.563
+    }
+    pass_ok, checks = verify_gls_signoff(mock_results)
+    assert pass_ok is True, f"Expected mock results to pass, got: {checks}"
+    assert len(checks) == 6
+
     print("[TEST] All self-tests PASSED successfully!")
 
 
@@ -486,6 +571,7 @@ def main():
     parser.add_argument("--v_dd", type=float, default=1.80, help="Core VDD supply voltage (V)")
     parser.add_argument("--freq", type=float, default=50.0, help="Clock frequency (MHz)")
     parser.add_argument("--test", action="store_true", help="Run embedded self-test suite")
+    parser.add_argument("--check-signoff", action="store_true", help="Check sign-off gates and exit with non-zero on failure")
     parser.add_argument("--json", help="Path to write output metrics as JSON")
 
     args = parser.parse_args()
@@ -539,6 +625,7 @@ def main():
     results = auditor.compute_power_breakdown()
 
     print_audit_report(results)
+    passed = print_signoff_scorecard(results)
 
     if args.json:
         out_data = {
@@ -551,11 +638,17 @@ def main():
             "energy_per_mvm_nj": results["energy_per_mvm_nj"],
             "energy_per_mac_pj": results["energy_per_mac_pj"],
             "domain_power_mw": results["domain_power_mw"],
+            "signoff_passed": passed
         }
         with open(args.json, "w", encoding="utf-8") as f:
             json.dump(out_data, f, indent=2)
         print(f"[+] Output JSON written to: {args.json}")
 
+    if args.check_signoff and not passed:
+        print("[ERROR] One or more Pillar 5 sign-off criteria failed!", file=sys.stderr)
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
+

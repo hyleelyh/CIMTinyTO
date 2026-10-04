@@ -90,27 +90,27 @@ Each vector ran through serial weight loading (256 cycles), activation loading (
 
 ## 3. SPEF Parasitics & VCD-Driven Dynamic Power Breakdown
 
-Using our automated power audit engine ([`scripts/gls_power_audit.py`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/scripts/gls_power_audit.py)), we correlated the **44,458,558 signal transitions** dumped to [`test/tb.vcd`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/test/tb.vcd) against the extracted wire and pin capacitances from OpenROAD SPEF ([`tt_um_scim_core.nom.spef`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/artifacts/tt_submission/tt_submission/tt_um_scim_core.nom.spef)).
+Using our automated power audit engine ([`scripts/gls_power_audit.py`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/scripts/gls_power_audit.py)), we correlated the **3,165,853 signal transitions** dumped to [`test/waves_golden_vectors.vcd`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/test/waves_golden_vectors.vcd) against the extracted wire and pin capacitances from OpenROAD SPEF ([`tt_um_scim_core.nom.spef`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/artifacts/tt_submission/tt_submission/tt_um_scim_core.nom.spef)) generated from the official Run #51 Option A symmetric 81-row floorplan.
 
 ### Netlist Mapping Coverage
-* **Total Physical Nets in Netlist:** 6,000 nets
-* **Nets Directly Mapped to SPEF Parasitics:** **5,988 nets (99.8% coverage)**
-* **Total Die Parasitic Capacitance:** **$29.41\text{ pF}$** ($29,407\text{ fF}$)
+* **Total Physical Nets in Netlist:** 5,790 active physical nets
+* **Nets Directly Mapped to SPEF Parasitics:** **5,779 nets (99.8% coverage)**
+* **Total Die Parasitic Capacitance:** **$35.83\text{ pF}$** ($35,830\text{ fF}$)
 
 ### Dynamic Switching Power by Functional Domain ($50\text{ MHz}$, $1.80\text{ V}$)
 
 | Functional Domain | Physical Capacitance | Transitions | Dynamic Power ($P_{\text{switch}}$) | % of Switching Power |
 |:---|:---:|:---:|:---:|:---:|
-| **Clock Network** (`clk`, buffer tree) | $1,526.2\text{ fF}$ | $2,032,292$ | **$0.236\text{ mW}$** | $56.4\%$ |
-| **Reset & Synchronizers** (`rst_sync_*`) | $213.3\text{ fF}$ | $385$ | **$< 0.001\text{ mW}$** | $< 0.1\%$ |
-| **SNG LFSR Bank** (16x Galois LFSRs) | $1,177.9\text{ fF}$ | $449,839$ | **$0.013\text{ mW}$** | $3.0\%$ |
+| **Clock Network** (`clk`, CTS buffer tree) | $1,691.8\text{ fF}$ | $679,869$ | **$0.264\text{ mW}$** | $58.2\%$ |
+| **Reset & Synchronizers** (`rst_sync_*`) | $137.4\text{ fF}$ | $90$ | **$< 0.001\text{ mW}$** | $< 0.1\%$ |
+| **SNG LFSR Bank** (16x Galois LFSRs) | $906.5\text{ fF}$ | $115,828$ | **$0.016\text{ mW}$** | $3.4\%$ |
 | **Weight Memory** (256 DFFs) | $1,842.1\text{ fF}$ | Static in compute | **$< 0.001\text{ mW}$** | $< 0.1\%$ |
-| **PE Array** (256 XNOR/AND gates) | $1,339.3\text{ fF}$ | $306,886$ | **$0.007\text{ mW}$** | $1.6\%$ |
-| **Wallace Trees & Compressors** | $2,410.8\text{ fF}$ | $1,248,510$ | **$0.028\text{ mW}$** | $6.7\%$ |
-| **Accumulators** (16x 13-bit saturating) | $2,547.5\text{ fF}$ | $196,712$ | **$0.010\text{ mW}$** | $2.3\%$ |
-| **Control FSM & I/O Multiplexers** | $51.3\text{ fF}$ | $7,991$ | **$< 0.001\text{ mW}$** | $< 0.1\%$ |
-| **Other Core Interconnect** | $18,299.0\text{ fF}$ | $9,366,312$ | **$0.124\text{ mW}$** | $29.7\%$ |
-| **TOTAL DYNAMIC SWITCHING POWER** | **$29.41\text{ pF}$** | **$13,608,927$** | **$0.418\text{ mW}$** | **$100.0\%$** |
+| **PE Array** (16x16 AND gates) | $3,019.9\text{ fF}$ | $51,386$ | **$0.013\text{ mW}$** | $2.8\%$ |
+| **Wallace Trees & Compressors** | $2,410.8\text{ fF}$ | Embedded interconnect | **Included in Core** | - |
+| **Accumulators** (16x 13-bit saturating) | $3,072.9\text{ fF}$ | $41,337$ | **$0.011\text{ mW}$** | $2.5\%$ |
+| **Control FSM & I/O Multiplexers** | $108.8\text{ fF}$ | $1,862$ | **$< 0.001\text{ mW}$** | $0.1\%$ |
+| **Other Core Interconnect** | $26,746.4\text{ fF}$ | $2,327,371$ | **$0.150\text{ mW}$** | $33.0\%$ |
+| **TOTAL DYNAMIC SWITCHING POWER** | **$35.83\text{ pF}$** | **$3,165,853$** | **$0.454\text{ mW}$** | **$100.0\%$** |
 
 ---
 
@@ -118,27 +118,28 @@ Using our automated power audit engine ([`scripts/gls_power_audit.py`](file:///h
 
 ```
    Power (mW)
-    3.0 ┌────────────────────────────────────────────────────────┐
-        │  [OpenROAD Static STA: 2.80 mW]                        │
-    2.5 ├─────────────────────────┬──────────────────────────────┤
-        │                         │  [VCD Workload: 2.54 mW]     │
-    2.0 ├─────────────────────────┼──────────────────────────────┤
-        │                         │  Internal Cell: 2.12 mW      │
-    1.5 │  Internal Cell: 2.12 mW │  (Standard-Cell Gates)       │
+    3.5 ┌────────────────────────────────────────────────────────┐
+        │  [OpenROAD Static STA: 3.25 mW]                        │
+    3.0 ├─────────────────────────┬──────────────────────────────┤
+        │                         │  [VCD Workload: 2.895 mW]    │
+    2.5 ├─────────────────────────┼──────────────────────────────┤
+        │                         │  Internal Cell: 2.441 mW     │
+    2.0 │  Internal Cell: 2.441 mW│  (Standard-Cell Gates)       │
         │                         │                              │
-    1.0 ├─────────────────────────┼──────────────────────────────┤
-        │  Switching (Static):    │  Switching (Dynamic):        │
-    0.5 │  0.68 mW (alpha~0.15)   │  0.42 mW (38.5% SAVINGS!)    │
+    1.5 ├─────────────────────────┼──────────────────────────────┤
+        │  Switching (Static):    │                              │
+    1.0 │  0.806 mW (alpha~0.15)  │  Switching (Dynamic):        │
+    0.5 │                         │  0.454 mW (43.7% SAVINGS!)   │
         │                         ├──────────────────────────────┤
     0.0 └─────────────────────────┴──────────────────────────────┘
 ```
 
 | Power Component | OpenROAD Static STA (Pillar 4) | VCD-Driven Dynamic (Pillar 5) | Physical Origin & Delta |
 |:---|:---:|:---:|:---|
-| **Interconnect Switching ($P_{\text{switch}}$)** | $0.679\text{ mW}$ | **$0.418\text{ mW}$** | **$-38.5\%$ reduction.** OpenROAD assumes a uniform toggle rate ($\alpha \approx 0.15$). Real neural network workloads with sparse activations keep unipolar multipliers quiescent. |
-| **Internal Cell Power ($P_{\text{int}}$)** | $2.119\text{ mW}$ | **$2.119\text{ mW}$** | Standard-cell short-circuit ($V_{\text{DD}} I_{\text{sc}}$) and internal capacitance switching during clock transitions. |
-| **Sub-threshold Leakage ($P_{\text{leak}}$)** | $52.54\text{ nW}$ | **$52.54\text{ nW}$** | Drain-source sub-threshold leakage at $25^\circ\text{C}$ ($< 0.01\%$). |
-| **TOTAL CORE ACTIVE POWER** | **$2.798\text{ mW}$** | **$2.536\text{ mW}$** | **$-9.4\%$ total core power savings** under true execution. |
+| **Interconnect Switching ($P_{\text{switch}}$)** | $0.806\text{ mW}$ | **$0.454\text{ mW}$** | **$-43.7\%$ reduction.** OpenROAD assumes uniform synthetic toggle rates ($\alpha \approx 0.15$). True neural network workloads with sparse activations keep unipolar multipliers quiescent. |
+| **Internal Cell Power ($P_{\text{int}}$)** | $2.441\text{ mW}$ | **$2.441\text{ mW}$** | Standard-cell short-circuit ($V_{\text{DD}} I_{\text{sc}}$) and internal pin switching during clock edges. |
+| **Sub-threshold Leakage ($P_{\text{leak}}$)** | $87.31\text{ nW}$ | **$87.31\text{ nW}$** | Drain-source sub-threshold leakage at $25^\circ\text{C}$ ($< 0.01\%$). |
+| **TOTAL CORE ACTIVE POWER** | **$3.247\text{ mW}$** | **$2.895\text{ mW}$** | **$-10.8\%$ total active core power savings** under true neural execution. |
 
 ---
 
@@ -149,11 +150,11 @@ From cycle-accurate VCD telemetry at $50.0\text{ MHz}$ ($1.80\text{ V}$):
 * **$16 \times 16$ MVM Compute Duration:** $256 \text{ cycles} \times 20.0\text{ ns} = \mathbf{5.12\,\mu\text{s}}$
 * **Silicon Compute Throughput:** $\mathbf{50.0\text{ MMAC/s}}$ ($195.3\text{ kMVM/s}$)
 * **Dynamic Energy per $16 \times 16$ MVM:** 
-  $$E_{\text{MVM}} = 2.536\text{ mW} \times 5.12\,\mu\text{s} = \mathbf{12.99\text{ nJ}}$$
+  $$E_{\text{MVM}} = 2.895\text{ mW} \times 5.12\,\mu\text{s} = \mathbf{14.82\text{ nJ}}$$
 * **Energy per MAC Operation:**
-  $$E_{\text{MAC}} = \frac{12.99\text{ nJ}}{256\text{ MACs}} = \mathbf{50.73\text{ pJ / MAC}}$$
+  $$E_{\text{MAC}} = \frac{14.82\text{ nJ}}{256\text{ MACs}} = \mathbf{57.91\text{ pJ / MAC}}$$
 * **Peak Clock Branch Power:**
-  The top high-power physical net is the primary clock distribution leaf `clknet_2_1__leaf_clk` ($96.19\text{ fF}$ load, toggle rate $\alpha = 2.000$, dissipating $15.58\,\mu\text{W}$).
+  The top high-power physical net is the primary clock distribution leaf `clknet_0_clk` ($88.23\text{ fF}$ load, toggle rate $\alpha = 2.000$, dissipating $14.29\,\mu\text{W}$).
 
 ---
 
