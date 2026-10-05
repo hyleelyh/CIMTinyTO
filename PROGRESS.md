@@ -42,6 +42,8 @@
 - **Pillar 4 (Static Timing Analysis & PVT Sign-Off):** ✅ SIGNED OFF (All 9 PVT corners closed, 0 hold violations, 50 MHz closure).
 - **Pillar 5 (Gate-Level Simulation & Dynamic Power Sign-Off):** ✅ **100% COMPLETE & SIGNED OFF!**
   - 11/11 GLS tests passed; 6/6 physical sign-off gates passed; VCD-driven dynamic power signed off at $2.895\text{ mW}$ and $57.91\text{ pJ/MAC}$.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **SUBMITTED & VERIFIED!**
+  - PR #85 on `tinytapeout-sky-26d` verified with 100% green CI (`gds` + `docs` datasheet generation).
 
 ### [Next Steps]
 1. Transition to **Pillar 6: Pre-Silicon Emulation (FPGA Testbench)** in a **fresh chat session** per the Strict Single-Pillar Session Scope Directive.
