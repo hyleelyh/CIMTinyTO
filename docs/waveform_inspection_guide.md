@@ -67,18 +67,24 @@ uo_out[7:0]     ============[     STATIC 8'h00 (Hole #8 QUIESCENCE)     ]====[Da
                        PADS SILENT                                      busy drops
 ```
 
-#### Signal Probes to Add
-1. `tb.clk`, `tb.rst_n`
-2. `tb.uio_in[7]` (`ctrl_strobe`), `tb.uio_out[0]` (`busy`), `tb.uio_out[1]` (`done`)
-3. `tb.user_project.sng_bit[15:0]`
-4. `tb.user_project.col_delta[0][4:0]`
-5. `tb.user_project.acc_val[0][12:0]`
-6. `tb.uo_out[7:0]`
+#### Signal Probes to Add (GLS Physical Netlist)
+1. **System & Handshake:** `tb.clk`, `tb.rst_n`, `tb.uio_in[7]` (`ctrl_strobe`), `tb.uio_out[0]` (`busy`), `tb.uio_out[1]` (`done`)
+2. **External Data Pads:** `tb.ui_in[7:0]` (Inputs), `tb.uo_out[7:0]` (Readout Bus)
+3. **Internal Physical Registers:** 
+   - `tb.user_project.\cycle_cnt[0]` .. `\cycle_cnt[7]` (The 256-cycle counter flip-flops)
+   - `tb.user_project.acc_clr`, `tb.user_project.acc_en` (Accumulator control)
+   - `tb.user_project.\acc_val[0][0]` .. `tb.user_project.\acc_val[0][12]` (Column 0 Accumulator 13-bit flip-flops)
+
+> [!NOTE]
+> **Silicon Reality: Why `col_delta` is Not Present in Gate-Level Waveforms**
+> In behavioral RTL Verilog, `col_delta[0][4:0]` is a named combinational wire connecting the Wallace tree to the accumulator. However, in **Gate-Level Simulation (GLS)**, we simulate the post-synthesis, post-route physical netlist ([`gds/tt_um_scim_core.v`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/gds/tt_um_scim_core.v)). During standard-cell synthesis and technology mapping, Yosys and OpenLane flatten internal submodule boundaries and merge intermediate combinational wires directly into multi-stage standard-cell gates (`a21oi`, `fa`, `ha`). Because `col_delta` has no flip-flop register holding it, it is absorbed into anonymous physical interconnects (`_00xxx_` or gate pins). 
+> 
+> To observe Column 0 accumulating in GLS, probe the actual physical D-flip-flops: select `\acc_val[0][0]` through `\acc_val[0][12]` under `tb.user_project`, right-click -> **Combine Down** in GTKWave to form a 13-bit bus, and set format to **Signed Decimal** or **Analog (Step)**!
 
 #### What to Look For
 1. **The 256-Cycle Accumulation Run (Observe $T \approx 0$ to $12\,\mu\text{s}$):**
-   * Watch `uio_out[0]` (`busy`) assert `HIGH`. For exactly 256 consecutive clock cycles, the SNG LFSR bank progresses and `user_project.col_delta[0]` injects values between `0` and `16` on every cycle.
-   * Expand `acc_val[0][12:0]` as an **Analog/Step Waveform** in GTKWave (`Data Format -> Decimal`, `Toggle Trace Type -> Analog (Step)`). The accumulator ramps monotonically to its golden value with microscopic random walk variance.
+   * Watch `uio_out[0]` (`busy`) assert `HIGH`. For exactly 256 consecutive clock cycles, `cycle_cnt` increments from 0 to 255.
+   * As the 13-bit accumulator bus `acc_val[0]` is clocked on every rising edge of `clk`, you will see it ramp monotonically up to its golden value (e.g. `255` on the identity matrix test vector). In GTKWave, right-click the combined bus -> **Toggle Trace Type -> Analog (Step)** to see the continuous accumulation stair-step!
 2. **Hole #8 Pad Quiescence Verification:**
    * While `busy` is `HIGH`, observe `uo_out[7:0]`. It is held strictly flat at `8'h00` despite intense internal switching.
    * **Silicon Reality:** Board traces and PCB pins have capacitive loads of $10\text{–}15\text{ pF}$, whereas internal standard-cell wires are $\sim 5\text{–}10\text{ fF}$ ($1,500\times$ difference). Toggling 8 output pads on every cycle would burn $\approx 5.5\text{ mW}$ of dynamic pad power and create $L \cdot di/dt$ ground bounce on package bond wires. Gating the pads during compute completely prevents ground bounce.
