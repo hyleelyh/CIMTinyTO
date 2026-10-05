@@ -51,8 +51,9 @@ Whenever an agent nears completion of the active Pillar:
      - Next steps outlining the deliverables for the subsequent Pillar.
    - Update `HANDOFF.md` with machine session info, active branch, and sync status.
 
-3. **Git Commit & Push:**
-   - Follow Conventional Commits format (e.g., `feat(scim): complete and freeze Pillar 2 RTL and verification`).
+3. **Git Commit & Push (Mandatory `[skip ci]` Default):**
+   - Follow Conventional Commits format with mandatory `[skip ci]` tag (e.g., `feat(scim): complete and freeze Pillar 2 RTL and verification [skip ci]`).
+   - **STRICT CI GUARDRAIL:** Under NO circumstances should GitHub Actions CI workflows be triggered automatically on push. Every commit message MUST include `[skip ci]` unless the user has EXPLICITLY and UNAMBIGUOUSLY requested to run CI (e.g., "Run CI", "Trigger GDS build on GitHub Actions").
    - Push all changes to `origin/main`.
 
 4. **Chat Session Handoff:**

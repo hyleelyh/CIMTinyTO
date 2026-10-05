@@ -41,7 +41,9 @@ Whenever an agent executes a workflow, implements code, or modifies architecture
 
 * **Update `HANDOFF.md`** with machine session info, active branch, and sync status for seamless PC $\leftrightarrow$ Laptop switching.
 
-* **Git Commit Standard:** Produce concise, descriptive commit messages following Conventional Commits (e.g., `feat(scim): implement parameterized XNOR PE array`, `test(cocotb): add bipolar SNG regression suite`).
+* **Git Commit Standard & Strict CI Guardrail:** Produce concise, descriptive commit messages following Conventional Commits (e.g., `feat(scim): implement parameterized XNOR PE array [skip ci]`).
+  - **MANDATORY `[skip ci]` DEFAULT:** All commit messages MUST include `[skip ci]` by default. Under NO circumstances should GitHub Actions CI workflows be triggered automatically on push.
+  - **EXPLICIT OPT-IN ONLY:** CI workflows may ONLY be triggered if the user explicitly and unambiguously asks to run CI (e.g., "Run CI", "Trigger GDS build on CI"). This protects GitHub Actions runner quotas and avoids unwanted runs or cancellation marks in project history.
 
 ### 3. Strict Single-Pillar Session Scope Directive (CRITICAL)
 To maintain laser focus, clean context windows, and modular verification boundaries across the 7 ASIC Tapeout Pillars:
