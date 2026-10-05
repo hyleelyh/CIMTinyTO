@@ -35,6 +35,26 @@ PATH="/home/juliusli/Documents/AntiG/CIMTinyTO/.venv/bin:$PATH" make -C test wav
 PATH="/home/juliusli/Documents/AntiG/CIMTinyTO/.venv/bin:$PATH" make -C test gls_power_audit
 ```
 
+## Locally Generated Waveform Traces (Ready for Review)
+
+All gate-level traces have been simulated against the latest Path B post-layout netlist and are located in `test/`:
+
+| Waveform File | Size | Description / Target Inspection |
+| :--- | :---: | :--- |
+| [`test/tb.vcd`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/test/tb.vcd) / [`.fst`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/test/tb.fst) | $5.9\text{ MB}$ | **Full Gate-Level Regression (11/11 tests)** across all modes and stress scenarios. |
+| [`test/waves_golden_vectors.vcd`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/test/waves_golden_vectors.vcd) / [`.fst`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/test/waves_golden_vectors.fst) | $1.3\text{ MB}$ | **10 Golden Vectors** (Unipolar, Bipolar, Hybrid ReLU, Identity, ResNet tile). |
+| [`test/waves_dft_loopback.vcd`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/test/waves_dft_loopback.vcd) / [`.fst`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/test/waves_dft_loopback.fst) | $355\text{ KB}$ | **256-bit DFT Scan Loopback** showing serial weight shift through `w_dout` (`uio_out[2]`). |
+| [`test/waves_saturation.vcd`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/test/waves_saturation.vcd) / [`.fst`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/test/waves_saturation.fst) | $420\text{ KB}$ | **Extreme Saturation & Sticky Alarm** (+4095 clamp and latched `uio_out[3]`). |
+| [`test/waves_overclock_200mhz.vcd`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/test/waves_overclock_200mhz.vcd) / [`.fst`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/test/waves_overclock_200mhz.fst) | $325\text{ KB}$ | **Silicon Overclocking at 200 MHz** ($T=5.0\text{ ns}$) Wallace tree timing margin. |
+
+To inspect in **GTKWave**:
+```bash
+gtkwave test/waves_golden_vectors.vcd &
+# Or open the full regression trace:
+gtkwave test/tb.vcd &
+```
+*(Fast FST symlinks `test/*.fst` are also available for instantaneous loading or VS Code Surfer extension).*
+
 ---
 
 ## Next Action: Single-Pillar Scope Transition

@@ -112,10 +112,10 @@ test_gls: $(CURDIR)/gate_level_netlist.v
 	@echo "========================================================"
 
 gls_waves: $(CURDIR)/gate_level_netlist.v
-	$(MAKE) -B GATES=yes WAVES=1 TOPLEVEL=tb MODULE=test_scim_core DUMPFILE=$(DUMPFILE)
+	$(MAKE) -B GATES=yes WAVES=1 TOPLEVEL=tb MODULE=test_scim_core $(if $(DUMPFILE),DUMPFILE=$(DUMPFILE),)
 	@if [ -f results.xml ]; then sed -i 's/failures="0"/fails="0"/g' results.xml; fi
 	@echo "========================================================"
-	@echo " GLS WAVEFORMS DUMPED TO $(DUMPFILE) SUCCESSFULLY! "
+	@echo " GLS WAVEFORMS DUMPED TO $(if $(DUMPFILE),$(DUMPFILE),tb.vcd) SUCCESSFULLY! "
 	@echo "========================================================"
 
 gls_waves_golden: $(CURDIR)/gate_level_netlist.v

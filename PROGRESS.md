@@ -1,10 +1,17 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-04 15:20 (Run 52: COMPLETE 100% PILLAR 5 GLS & DYNAMIC POWER SIGN-OFF!)
+## Last Execution Run: 2026-10-04 21:35 (Run 53: Pillar 5 Waveform Generation & Local Review Readiness)
 
 ### [Built]
 - **`gds/tt_um_scim_core.v` / `gds/tt_um_scim_core.gds` / `gds/tt_um_scim_core.lef` / `gds/metrics.csv`:** Updated and synchronized with GitHub Actions Run #51 (`8378012`, Path B clean tapeout build with 1-bit mode and 256 single-gate AND PEs).
-- **`test/gate_level_netlist.v`:** Synced to Run #51 post-layout gate-level netlist.
+- **`test/gate_level_netlist.v`:** Synced to latest Path B post-layout gate-level netlist.
+- **Waveform Suite (`test/*.vcd` & `test/*.fst`):** Generated and verified locally against Path B netlist:
+  - `test/tb.vcd` / `test/tb.fst` ($5.9\text{ MB}$): Full 11-test gate-level regression suite (11/11 PASS).
+  - `test/waves_golden_vectors.vcd` / `test/waves_golden_vectors.fst` ($1.3\text{ MB}$): 10 Golden vectors.
+  - `test/waves_dft_loopback.vcd` / `test/waves_dft_loopback.fst` ($355\text{ KB}$): 256-bit serial scan chain loopback.
+  - `test/waves_saturation.vcd` / `test/waves_saturation.fst` ($420\text{ KB}$): Clamping & sticky overflow alarm.
+  - `test/waves_overclock_200mhz.vcd` / `test/waves_overclock_200mhz.fst` ($325\text{ KB}$): 200 MHz overclocking headroom.
+- **`test/Makefile`:** Fixed `DUMPFILE` forwarding so `make -C test gls_waves` defaults properly to `tb.vcd`.
 - **`scripts/gls_power_audit.py`:** Enhanced with automated 6-gate physical sign-off verification (`verify_gls_signoff`), automated `--check-signoff` CLI flag, and JSON metrics generation (`docs/pillar5_power_metrics.json`).
 - **`test/Makefile`:** Added `gls_power_audit` target, added `waves_golden_vectors.vcd` generation for VCD-driven dynamic power analysis, and updated wave cleaning rules.
 - **`.github/workflows/docs.yaml` & `docs/info.md`:** Added official Tiny Tapeout `ttsky26d` documentation build workflow and reformatted datasheet template for seamless PDF datasheet compilation (100% green on CI).
