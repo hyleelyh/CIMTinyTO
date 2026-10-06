@@ -46,7 +46,7 @@ The chip operates with a 50 MHz master clock. An end-to-end $16 \times 16$ Matri
    * Repeat 16 times; an internal counter automatically auto-increments the channel address from 0 to 15.
 4. **Compute Triggering:**
    * Set `ui_in[4]` to select mode (0 = Unipolar, 1 = Hybrid ReLU).
-   * Set `ui_in[2]` = 1 (`START_COMPUTE` command).
+   * Set `ui_in[7]` = 1 (`START_COMPUTE` command: `ui_in = 8'h80` for Mode 0, `8'h90` for Mode 1).
    * Pulse `uio[7]` (`ctrl_strobe`) = 1 for 1 clock cycle.
    * The core asserts `uio[0]` (`busy`) = 1 and computes for exactly 256 clock cycles.
 5. **Accumulator Readback:**
