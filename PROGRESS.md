@@ -24,7 +24,7 @@
   - Implementation Plan submitted and pending user review tomorrow.
 
 ### [Next Steps]
-1. Receive user review/approval on [`implementation_plan.md`](file:///home/juliusli/.gemini/antigravity/brain/949943ee-f9a8-4806-aa1d-78b30af64f66/implementation_plan.md).
+1. Receive user review/approval on [`implementation_plan.md`](file:///home/juliusli/.gemini/antigravity/brain/b7f6544b-fb70-432c-8eaf-25c7dba027c6/implementation_plan.md) on Laptop (`juliusli-MSI`).
 2. Implement and lint `fpga/pynq_z2/rtl/tt_scim_axi_wrapper.v`.
 3. Implement `fpga/de10_lite/rtl/de10_lite_top.v` and 7-segment hex decoder.
 4. Build Icarus Verilog / Cocotb simulation testbench verifying the AXI MMIO register bridge prior to FPGA synthesis.

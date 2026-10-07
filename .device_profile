@@ -1,0 +1,7 @@
+{
+  "hostname": "juliusli-MSI",
+  "role": "Laptop",
+  "os": "Linux Ubuntu",
+  "user": "juliusli",
+  "notes": "User's development and hardware bring-up Laptop (distinct from the user's desktop PC)."
+}
