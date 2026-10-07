@@ -1,12 +1,16 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-06 20:35 (Run 55: Pillar 6 Emulation Architecture Planning & Hardware Matrix Finalization)
+## Last Execution Run: 2026-10-07 07:58 (Run 56: Pillar 6 Workstation Roles & Emulation Matrix Formalization)
 
 ### [Built]
-- **`PROGRESS.md` & `HANDOFF.md`:** Synchronized state for Pillar 6 pre-silicon emulation architecture and complete hardware accessories matrix.
-- **`implementation_plan.md`:** Comprehensive design document establishing the dual-FPGA emulation architecture: PYNQ-Z2 AXI-Lite MMIO hardware bridge ($50\text{--}100\text{ MHz}$) and DE10-Lite tactile switch & 7-segment hex display console.
+- **`.agents/skills/lab-hardware-inventory/SKILL.md` & `AGENTS.md`:** Added Section 0 formally establishing the Desktop PC as the primary bring-up platform and the Laptop as the reviewing/planning/learning platform for Pillar 6.
+- **`.device_profile`:** Created local device profile identifying `juliusli-MSI` as the Laptop and recording its specific role.
+- **`HANDOFF.md` & `PROGRESS.md`:** Synchronized state for Pillar 6 pre-silicon emulation architecture and workstation role division.
 
 ### [Architecture Decisions & Silicon Forensics]
+- **Workstation Roles in Emulation & Bring-Up:**
+  - **Desktop PC (`juliusli`):** Primary bring-up platform for Pillar 6 hardware execution. Collocated with Korad KA3005P linear power supply, PYNQ-Z2, DE10-Lite, DSLogic Plus analyzer, breadboards, and dedicated AC outlets; provides superior compute/memory for Vivado/Quartus synthesis and live JTAG programming.
+  - **Laptop (`juliusli-MSI`):** Reviewing work, planning, architecture study, and learning from Pillar 6 activities. Testing or hardware debugging on the laptop occurs only when explicitly called out by the user.
 - **Hardware Cabling & Instrumentation Bill of Materials (BOM):**
   - **Bench DC Power:** Korad KA3005P linear supply to PYNQ-Z2 using $4\text{ mm}$ Banana $\rightarrow$ $5.5\times 2.1\text{ mm}$ DC barrel plug ($18\text{ AWG}$, Center-Positive, preset to $12.00\text{V}$, $2.20\text{A}$ OCP, $13.00\text{V}$ OVP).
   - **Edge Vision Camera Interconnect:** Validated native compatibility of existing **Raspberry Pi Camera Module v2 NoIR** (Sony IMX219) with Raspberry Pi 5 via 22-pin ($0.5\text{ mm}$ pitch) $\rightarrow$ 15-pin ($1.0\text{ mm}$ pitch) adapter ribbon cable. Delivers high-contrast infrared/grayscale edge features for the 12.5 FPS Micro-ResNet pipeline.

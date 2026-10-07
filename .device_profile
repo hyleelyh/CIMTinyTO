@@ -3,5 +3,5 @@
   "role": "Laptop",
   "os": "Linux Ubuntu",
   "user": "juliusli",
-  "notes": "User's development and hardware bring-up Laptop (distinct from the user's desktop PC)."
+  "workstation_role": "Reviewing, planning, study, and learning from Pillar 6 activities. Testing or hardware debugging on this laptop occurs only when explicitly called out by user."
 }

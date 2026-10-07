@@ -13,6 +13,25 @@ This skill records all bench equipment, development boards, and sensor modules o
 
 ---
 
+## 0. Development Workstation Roles & Emulation Matrix (PC vs. Laptop)
+
+To manage physical connectivity, compute performance, and bench safety during **Pillar 6 (Pre-Silicon Emulation)**:
+
+### 1. Desktop PC (`juliusli` / Primary Host)
+* **Designated Role:** **Main Bring-Up & Emulation Platform** for all Pillar 6 hardware execution.
+* **Operational Rationale:**
+  * All laboratory instruments and boards (Korad KA3005P power supply, PYNQ-Z2, DE10-Lite, DSLogic Plus analyzer, breadboards, cables) are physically collocated at the PC bench.
+  * Significantly higher compute and memory performance for FPGA toolchains (Xilinx Vivado, Intel Quartus Prime).
+  * Direct availability of dedicated USB ports, Gigabit Ethernet, and bench AC power outlets.
+* **Core Responsibilities:** FPGA overlay synthesis, JTAG bitstream programming, live AXI MMIO regressions via Jupyter, logic analyzer bus sniffing, and physical bench bring-up.
+
+### 2. Laptop (`juliusli-MSI` / Mobile Host)
+* **Designated Role:** **Reviewing, Planning, Architecture Study & Pedagogical Learning**.
+* **Core Responsibilities:** Reviewing implementation plans, PRs, RTL verification strategies, architectural documentation, and studying silicon/FPGA trade-offs.
+* **Hardware Exception Protocol:** On specific occasions where testing or hardware debugging is conducted directly from the laptop, the user will **explicitly call out** that the laptop is connected to or interacting with target hardware. Absent this explicit statement, the agent must treat the laptop environment as planning/review-centric without assuming live physical board connections.
+
+---
+
 ## 1. Laboratory Bench Power & Bring-Up Instrumentation
 
 ### Korad KA3005P Programmable Linear DC Power Supply
