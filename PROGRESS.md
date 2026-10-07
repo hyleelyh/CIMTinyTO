@@ -1,31 +1,30 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-05 22:05 (Run 54: Pillar 6 Pre-Silicon Emulation Kickoff & Bench Instrumentation Setup)
+## Last Execution Run: 2026-10-06 20:35 (Run 55: Pillar 6 Emulation Architecture Planning & Hardware Matrix Finalization)
 
 ### [Built]
-- **`PROGRESS.md` & `HANDOFF.md`:** Synchronized state for Pillar 6 pre-silicon FPGA emulation kickoff and power instrumentation protocols.
+- **`PROGRESS.md` & `HANDOFF.md`:** Synchronized state for Pillar 6 pre-silicon emulation architecture and complete hardware accessories matrix.
+- **`implementation_plan.md`:** Comprehensive design document establishing the dual-FPGA emulation architecture: PYNQ-Z2 AXI-Lite MMIO hardware bridge ($50\text{--}100\text{ MHz}$) and DE10-Lite tactile switch & 7-segment hex display console.
 
 ### [Architecture Decisions & Silicon Forensics]
-- **Pillar 6 FPGA Platform Power & Instrumentation Protocol:**
-  - **PYNQ-Z2 (Xilinx Zynq-7020 SoC):**
-    - Established Korad KA3005P linear bench power supply as the primary low-noise, active-protection power source ($12.00\text{V}$, $2.20\text{A}$ OCP, $13.00\text{V}$ OVP, Center-Positive $5.5\times 2.1\text{ mm}$ barrel jack).
-    - Ruled out legacy linear transformer adapters (e.g. AD-121A 12V 1A) due to open-circuit over-voltage floating ($>16\text{V}$) exceeding the Zynq $15.0\text{V}$ absolute maximum rating and inadequate current rating ($1\text{A} < 2\text{A}\text{--}3\text{A}$ required).
-    - Verified boot configuration: immutable silicon BootROM architecture with jumper `JP1` on `SD` mode; `JP5` on `REG` mode.
-  - **Terasic DE10-Lite (Intel MAX 10 FPGA):**
-    - Verified single-cable USB Type-B power & USB-Blaster II JTAG link ($5\text{V}$ bus powering internal $3.3\text{V}/2.5\text{V}/1.2\text{V}$ rails at $\sim 300\text{ mA}$).
+- **Hardware Cabling & Instrumentation Bill of Materials (BOM):**
+  - **Bench DC Power:** Korad KA3005P linear supply to PYNQ-Z2 using $4\text{ mm}$ Banana $\rightarrow$ $5.5\times 2.1\text{ mm}$ DC barrel plug ($18\text{ AWG}$, Center-Positive, preset to $12.00\text{V}$, $2.20\text{A}$ OCP, $13.00\text{V}$ OVP).
+  - **Edge Vision Camera Interconnect:** Validated native compatibility of existing **Raspberry Pi Camera Module v2 NoIR** (Sony IMX219) with Raspberry Pi 5 via 22-pin ($0.5\text{ mm}$ pitch) $\rightarrow$ 15-pin ($1.0\text{ mm}$ pitch) adapter ribbon cable. Delivers high-contrast infrared/grayscale edge features for the 12.5 FPS Micro-ResNet pipeline.
+  - **Signal Forensics & Bus Sniffing:** Established **DSLogic Plus (16-channel, 400 MSa/s)** as primary analyzer for full 8-bit accumulator output bus (`uo_out[7:0]`) + control flag inspection, and **HiLetgo 24M 8CH** as low-cost bus sniffer.
+  - **5V Electrical Destruction Guardrail:** Selected **TXS0108E** 8-channel auto-sensing bidirectional level shifter ($V_{CCA}=3.3\text{V} \le V_{CCB}=5.0\text{V}$) for Arduino Uno R3 testing, preventing dielectric oxide breakdown on Sky130 pads.
+- **Pillar 6 FPGA Architecture Roadmap:**
+  - **Component 1 (PYNQ-Z2):** Memory-Mapped AXI-Lite register bridge (`tt_scim_axi_wrapper.v`) exposing `ui_in`, `uo_out`, `uio_in`, `uio_out` to Python Jupyter via `/dev/mem` MMIO, with single-step software clock and free-running $50\text{ MHz}$ PLL modes.
+  - **Component 2 (DE10-Lite):** Pure RTL console (`de10_lite_top.v`) mapping 10 slide switches to input activations/control bits, pushbuttons to debounced single-clock pulses, and four 7-segment displays to real-time 13-bit signed accumulator hex values.
 
 ### [Current Pipeline State]
-- **Pillar 1 (Mathematical Modeling):** ✅ SIGNED OFF.
-- **Pillar 2 (Verilog RTL & Verification):** ✅ SIGNED OFF (0 Verilator errors/warnings, strictly 0 RTL changes).
-- **Pillar 3 (Physical ASIC Flow & Tapeout Hardening):** ✅ SIGNED OFF (GDSII clean, Magic/KLayout DRC 0, LVS 0).
-- **Pillar 4 (Static Timing Analysis & PVT Sign-Off):** ✅ SIGNED OFF (All 9 PVT corners closed, 0 hold violations, 50 MHz closure).
-- **Pillar 5 (Gate-Level Simulation & Dynamic Power Sign-Off):** ✅ SIGNED OFF (11/11 GLS tests passed; $2.895\text{ mW}$ total power; $57.91\text{ pJ/MAC}$).
-- **Tiny Tapeout SKY 26d Submission:** ✅ SUBMITTED & VERIFIED (PR #85 all green).
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ SUBMITTED & VERIFIED (PR #85 green).
 - **Pillar 6 (Pre-Silicon Emulation):** 🚀 **ACTIVE / IN PROGRESS.**
-  - Bench power & hardware bring-up safety constraints established.
-  - Ready for Vivado / Quartus synthesis of `tt_um_scim_core`, MMIO AXI wrapper generation, and Python PYNQ Jupyter testbench integration.
+  - Hardware power cabling and bench accessories defined.
+  - Implementation Plan submitted and pending user review tomorrow.
 
 ### [Next Steps]
-1. Synthesize `tt_um_scim_core` into PYNQ-Z2 Vivado overlay bitstream (`.bit` + `.hwh`).
-2. Design MMIO register map for driving input activation streams, clock stepping, and reading 13-bit accumulator outputs.
-3. Validate hardware-in-the-loop inference against Python Gate-0 golden model.
+1. Receive user review/approval on [`implementation_plan.md`](file:///home/juliusli/.gemini/antigravity/brain/949943ee-f9a8-4806-aa1d-78b30af64f66/implementation_plan.md).
+2. Implement and lint `fpga/pynq_z2/rtl/tt_scim_axi_wrapper.v`.
+3. Implement `fpga/de10_lite/rtl/de10_lite_top.v` and 7-segment hex decoder.
+4. Build Icarus Verilog / Cocotb simulation testbench verifying the AXI MMIO register bridge prior to FPGA synthesis.
