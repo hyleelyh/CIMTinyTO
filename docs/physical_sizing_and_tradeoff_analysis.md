@@ -206,6 +206,7 @@ An inventory audit of the user's available hardware fleet confirmed that the $16
 | **7. Optical Gesture & Proximity** | STM32 B-U585I | `VL53L5CX` ToF sensor | PMOD / SPI (3.3V) | 8x8 depth array downsampled to 16-channel swipe classifier |
 | **8. 8-Bit Microcontroller Math Offload** | Arduino Uno R3 | Synthetic vectors | SPI (+ Level Shifter) | Proves legacy 8-bit MCU can run deep learning via ASIC |
 | **9. In-Car CVT Predictive Diagnostics** | OBDLink LX + RPi5 | Vehicle CAN Bus Telemetry | Bluetooth $\rightarrow$ SPI | 16-PID engine & transmission thermal stress model |
+| **10. Stochastic Shuffling & Seed Study** | PYNQ-Z2 & RP2040 / RPi5 | Permuted Benchmark Vectors ($16! \approx 20.9\text{T}$ mappings) | PMOD / SPI (3.3V) | Seed effect, quantization variance & correlation suppression on physical silicon |
 
 ---
 

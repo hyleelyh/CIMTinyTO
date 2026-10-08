@@ -1,35 +1,34 @@
-# Session Handoff: Pillar 6 Pre-Silicon Emulation Planning & Bench Matrix Complete
+# Session Handoff: Pillar 6 Pre-Silicon Emulation & Stochastic Shuffling Research
 
-- **Date:** 2026-10-07 08:34
-- **Machine:** Laptop (`juliusli-MSI` / user `juliusli`)
-- **Workstation Role:** Reviewing, planning, study, and learning. (Primary bring-up platform collocated with hardware is Desktop PC).
+- **Date:** 2026-10-07 21:15
+- **Machine:** Desktop PC (`juliusli` / Primary Bring-Up Host)
 - **Active Branch:** `main`
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION (FPGA TESTBENCH)**
-- **Status:** Implementation Plan reviewed on Laptop, Option 1 approved; ready to implement AXI4-Lite wrapper and verification testbenches.
+- **Hardware Logistics:** Bench accessories (Banana-to-barrel cable, Pi 5 camera cable) arriving Sunday; live FPGA bring-up scheduled for next week.
+- **Status:** Implementation Plan reviewed and approved; Application #10 ("Stochastic Shuffling & Seed Permutation Study") integrated; ready to implement `tt_scim_axi_wrapper.v`.
 
 ---
 
-## Pillar 6 Hardware Bench & Cabling Matrix
+## 10-Application Demonstration & Experimental Matrix
 
-| Platform / Equipment | Interface & Cable Specs | Safety & Operating Parameter | Verification Role |
-| :--- | :--- | :--- | :--- |
-| **PYNQ-Z2** (Zynq-7020) | $4\text{ mm}$ Banana $\rightarrow$ $5.5\times 2.1\text{ mm}$ DC Barrel (Center +) | Korad KA3005P: $12.00\text{V}$, $2.20\text{A}$ OCP, `JP5` = `REG`, `JP1` = `SD` | High-speed $50\text{--}100\text{ MHz}$ AXI MMIO regressions via Jupyter |
-| **DE10-Lite** (MAX 10) | USB Type-A to Type-B (Standard printer cable) | USB Bus Power ($5\text{V} / 500\text{ mA}$) | Tactile switches, clock button & 6-digit 7-segment hex display |
-| **RPi 5 + NoIR Cam v2** | 22-pin ($0.5\text{ mm}$) to 15-pin ($1.0\text{ mm}$) FFC cable | Sony IMX219 native Linux `libcamera` | Micro-ResNet Live Video Inference (12.5 FPS) with night-vision |
-| **Logic Analyzer** | DSLogic Plus (16-ch) or HiLetgo (8-ch) | $+3.3\text{V}$ LVCMOS thresholds | Sniffing serial weight chain, accumulator bus, and control handshakes |
-| **Level Shifter** | TXS0108E (8-channel bidirectional) | $V_{CCA} = 3.3\text{V}$, $V_{CCB} = 5.0\text{V}$ | Arduino Uno R3 electrical isolation |
-
----
-
-## Current Architecture Document
-- [`implementation_plan.md`](file:///home/juliusli/.gemini/antigravity/brain/b7f6544b-fb70-432c-8eaf-25c7dba027c6/implementation_plan.md) is active and in review stage on Laptop.
+| # | Demo Application | Host Platform | Sensors / Input Source | Interface | SCIM Role |
+| :---: | :--- | :--- | :--- | :--- | :--- |
+| **1** | **Bit-Exact HW Verification** | PYNQ-Z2 FPGA | Python NumPy vectors | PMOD / MMIO (3.3V) | 50 MHz Parity Verification |
+| **2** | **RISC-V Coprocessor** | SiFive HiFive 1 | Synthetic Matrix Stream | SPI (3.3V) | Math Hardware Offload |
+| **3** | **Tactile Logic Console** | DE10-Lite | Slide Switches & Clock Button | 40-pin GPIO (3.3V) | 7-Segment Hex Display |
+| **4** | **Voice Keyword Spotting** | STM32 B-U585I | Dual `MP23DB01HP` Mics | PMOD / SPI (3.3V) | 16-channel MFCC Acoustic Model |
+| **5** | **Motor Vibration Anomaly** | STM32 B-U585I | `ISM330DHCX` 3D IMU | PMOD / SPI (3.3V) | 16-bin FFT Spectral Anomaly |
+| **6** | **Real-Time Video Vision** | Raspberry Pi 5 | NoIR Camera Module v2 | High-Speed SPI (3.3V) | Micro-ResNet @ 12.5 FPS |
+| **7** | **Optical Gesture / ToF** | STM32 B-U585I | `VL53L5CX` ToF Sensor | PMOD / SPI (3.3V) | 8x8 Depth Swipe Classifier |
+| **8** | **8-Bit MCU Math Offload** | Arduino Uno R3 | Synthetic vectors | SPI (+ TXS0108E) | Legacy 5V MCU Acceleration |
+| **9** | **In-Car CVT Diagnostics** | OBDLink LX + RPi5 | Car CAN Bus Telemetry | Bluetooth $\rightarrow$ SPI | 16-PID Engine/CVT Stress Model |
+| **10** | **Stochastic Shuffling Study** | PYNQ-Z2 & RP2040 / RPi5 | Permuted Benchmark Vectors | PMOD / SPI (3.3V) | Seed effect & noise decorrelation across 20.9T permutations |
 
 ---
 
 ## Next Steps for Pillar 6 Execution
 
-1. User reviews and approves `implementation_plan.md`.
-2. Implement `fpga/pynq_z2/rtl/tt_scim_axi_wrapper.v` (AXI4-Lite slave bridge for ARM PS MMIO).
-3. Implement `fpga/de10_lite/rtl/de10_lite_top.v` (Intel MAX 10 tactile wrapper and 7-segment driver).
-4. Run Verilator lint and Icarus Verilog testbench on the AXI wrapper.
-5. Create Vivado overlay batch synthesis scripts and PYNQ Jupyter notebook driver.
+1. Implement `fpga/pynq_z2/rtl/tt_scim_axi_wrapper.v` (AXI4-Lite slave bridge for ARM PS MMIO).
+2. Create `test/tb_fpga_axi.v` and Cocotb testbench to verify AXI read/write cycles and cycle latency counter.
+3. Implement `fpga/de10_lite/rtl/de10_lite_top.v`, debouncer, and 7-segment hex display decoder.
+4. Prepare Vivado overlay batch synthesis scripts (`build_overlay.tcl`) and PYNQ Jupyter notebook driver.

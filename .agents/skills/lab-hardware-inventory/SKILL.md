@@ -120,3 +120,4 @@ To manage physical connectivity, compute performance, and bench safety during **
 | **Motor Vibration Anomaly** | STM32 B-U585I | `ISM330DHCX` 3D IMU | PMOD / SPI (3.3V) | 16-bin FFT Spectral Anomaly |
 | **Real-Time Video Vision** | Raspberry Pi 5 | USB / MIPI CSI Camera | High-Speed SPI (3.3V) | Micro-ResNet @ 12.5 FPS |
 | **In-Car CVT Diagnostics** | OBDLink LX + RPi5 | Car CAN Bus Telemetry | Bluetooth $\rightarrow$ SPI | 16-PID Engine/CVT Stress Model |
+| **Stochastic Shuffling Study** | PYNQ-Z2 & RP2040 / RPi5 | Permuted Benchmark Matrices ($16! \approx 20.9\text{T}$ mappings) | PMOD / SPI (3.3V) | Seed-effect & noise decorrelation across 20.9T permutations with zero silicon overhead |
