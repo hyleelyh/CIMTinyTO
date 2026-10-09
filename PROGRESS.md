@@ -1,37 +1,33 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-07 21:15 (Run 57: Pillar 6 Implementation Plan Review & Stochastic Shuffling Research Formulation)
+## Last Execution Run: 2026-10-08 22:15 (Run 58: Pillar 6 Implementation Plan Finalization, Shuttle Mapping & Toolchain Setup)
 
 ### [Built]
-- **`.agents/skills/lab-hardware-inventory/SKILL.md`:** Added Application #10 ("Stochastic Shuffling & Seed Permutation Study") to the Master Hardware Demonstration Matrix.
-- **`docs/physical_sizing_and_tradeoff_analysis.md`:** Updated Table of Demonstrations with Application #10.
-- **`implementation_plan.md`:** Integrated Stochastic Shuffling and Seed Permutation regression into the Hardware-in-the-Loop verification plan.
-- **`PROGRESS.md` & `HANDOFF.md`:** Synchronized state, research formulations, traceability patterns, and lab hardware arrival timeline.
+- **`implementation_plan.md`:** Finalized detailed architectural specifications for Pillar 6 coding activities, including the 32-bit AXI4-Lite register map, dual-mode clocking, PMOD snooping breakout, and Cocotb pre-synthesis simulation suite.
+- **`PROGRESS.md` & `HANDOFF.md`:** Synchronized state, shuttle placement analysis, EDA toolchain installation guides, and session handoff records.
 
 ### [Architecture Decisions & Silicon Forensics]
-- **Stochastic Shuffling & Seed Permutation Theory (Zero Silicon Overhead):**
-  - Discovered that because Matrix-Vector Multiplication ($y_j = \sum a_i W_{ij}$) and the central Wallace activation tree ($A = \sum a_i$) are commutative and symmetric across all 16 rows, host software can evaluate $16! \approx 20.9\text{ Trillion}$ unique seed mappings on the physical silicon chip with **zero hardware modifications**.
-  - Host MCU software simply permutes input vector $\mathbf{a}$ and the rows of weight matrix $\mathbf{W}$ before transmission; the column outputs $y_j$ emerge mathematically identical and un-permuted.
-  - Combined with the 255 cyclic phase offsets achieved by running back-to-back inferences without asserting `rst_n` ($256 \pmod{255} = 1$), the physical chip provides $5.3 \times 10^{15}$ distinct operating states for academic study.
-- **Traceability & Debuggability Architecture:**
-  - Implemented deterministic test indexing (`perm_id` driving `RandomState(seed)`) to ensure 100% test reproducibility.
-  - Defined systematic permutation families for hardware isolation: Baseline (Identity), Cyclic Rotation, Pairwise Transposition, and Reverse Inversion.
-  - Correlated software indices with physical logic analyzer traces: address writes on `ui_in` map directly to logged permutation vectors.
-- **Hardware Logistics & Timeline:**
-  - Bench cabling and camera accessories (Banana-to-barrel cable, Pi 5 FFC cable) arrive **Sunday, Oct 11, 2026**.
-  - Physical FPGA board activities scheduled to begin next week on Desktop PC (`juliusli`).
-  - Pre-synthesis RTL development and local Icarus Verilog / Cocotb simulation of the AXI-Lite wrapper proceed in the interim.
+- **Tiny Tapeout Shuttle Physical Floorplan Verification (Mux Address 265):**
+  - Verified project location on the SkyWater 130nm shuttle die: 2x2 tile block situated in Columns 4 & 5 on the left bank (3 tiles from the central spine, adjacent to the dedicated analog switch row).
+  - Physical wire delay across the 3 tiles ($\sim 480\,\mu\text{m}$) is $< 0.15\text{ ns}$ on top-level metal layers, well within the $20.0\text{ ns}$ cycle budget at $50\text{ MHz}$ ($<0.7\%$ clock margin).
+  - Confirmed the location is in the optimal "Goldilocks Zone": buffered from central spine wiring track congestion while well protected from edge-of-die mechanical dicing stress and CMP thickness variations.
+- **AXI4-Lite Register Memory Map Architecture:**
+  - Resolved directional separation: `0x04: REG_DATA_IN` maps exclusively to dedicated input pins `ui_in[7:0]` (CPU $\rightarrow$ ASIC write path), while `0x0C: REG_DATA_OUT` maps exclusively to dedicated output pins `uo_out[7:0]` (ASIC $\rightarrow$ CPU read path), ensuring deterministic readback without asymmetric register side-effects.
+- **Desktop PC Toolchain Environment Setup (`juliusli`):**
+  - **AMD Xilinx Vivado 2022.2 ML Standard:** Web installer verified and executed on Ubuntu 24.04 with pre-installed `libtinfo5`/`libncurses5` compatibility libraries; configured for 7-Series / Zynq-7000 (`xc7z020`) for PYNQ-Z2 overlay synthesis.
+  - **Intel Quartus Prime Lite 23.1std:** Configured with MAX 10 device support (`10M50DAF484C7G`) for DE10-Lite; Questa simulator pruned to save $4.4\text{ GB}$ in favor of our local 1.5s Cocotb/Icarus verification suite.
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
-- **Tiny Tapeout SKY 26d Submission:** ✅ SUBMITTED & VERIFIED (PR #85 green).
+- **Tiny Tapeout SKY 26d Submission:** ✅ SUBMITTED & VERIFIED (PR #85 green, Mux 265 confirmed).
 - **Pillar 6 (Pre-Silicon Emulation):** 🚀 **ACTIVE / IN PROGRESS.**
-  - Implementation Plan reviewed and approved.
-  - Complete 10-application demonstration fleet defined.
-  - Bench accessories ordered; local RTL and testbench synthesis ready to begin.
+  - Implementation Plan reviewed, clarified, and approved.
+  - Shuttle physical floorplan confirmed.
+  - FPGA EDA toolchains configured on Desktop PC.
+  - Ready for RTL coding and pre-synthesis simulation verification.
 
 ### [Next Steps]
 1. Implement `fpga/pynq_z2/rtl/tt_scim_axi_wrapper.v` (AXI4-Lite slave bridge for ARM PS MMIO).
-2. Create `test/tb_fpga_axi.v` and Cocotb testbench verifying AXI read/write handshakes and cycle counters.
+2. Create `test/tb_fpga_axi.v` and Cocotb testbench (`test/test_fpga_axi.py`) verifying AXI read/write handshakes and cycle counters.
 3. Implement `fpga/de10_lite/rtl/de10_lite_top.v` with debounced clock stepping and 7-segment hex display decoder.
 4. Prepare Vivado overlay batch synthesis scripts (`build_overlay.tcl`) and PYNQ Jupyter testbench driver.

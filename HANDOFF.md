@@ -1,11 +1,11 @@
-# Session Handoff: Pillar 6 Pre-Silicon Emulation & Stochastic Shuffling Research
+# Session Handoff: Pillar 6 Pre-Silicon Emulation — Toolchain Setup & Plan Approved
 
-- **Date:** 2026-10-07 21:15
+- **Date:** 2026-10-08 22:15
 - **Machine:** Desktop PC (`juliusli` / Primary Bring-Up Host)
 - **Active Branch:** `main`
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION (FPGA TESTBENCH)**
-- **Hardware Logistics:** Bench accessories (Banana-to-barrel cable, Pi 5 camera cable) arriving Sunday; live FPGA bring-up scheduled for next week.
-- **Status:** Implementation Plan reviewed and approved; Application #10 ("Stochastic Shuffling & Seed Permutation Study") integrated; ready to implement `tt_scim_axi_wrapper.v`.
+- **Hardware Logistics:** Physical bench cables (Banana-to-barrel, Pi 5 camera ribbon) arriving Sunday; FPGA toolchains (Vivado 2022.2 & Quartus Prime Lite 23.1) configured on Desktop PC.
+- **Status:** Implementation Plan approved; shuttle physical die location verified (Mux 265, Cols 4 & 5); ready for RTL wrapper coding and pre-synthesis simulation tomorrow.
 
 ---
 
@@ -26,9 +26,9 @@
 
 ---
 
-## Next Steps for Pillar 6 Execution
+## Next Steps for Pillar 6 Execution Tomorrow
 
 1. Implement `fpga/pynq_z2/rtl/tt_scim_axi_wrapper.v` (AXI4-Lite slave bridge for ARM PS MMIO).
-2. Create `test/tb_fpga_axi.v` and Cocotb testbench to verify AXI read/write cycles and cycle latency counter.
+2. Create `test/tb_fpga_axi.v` and Cocotb testbench (`test/test_fpga_axi.py`) to verify AXI read/write cycles and cycle latency counter.
 3. Implement `fpga/de10_lite/rtl/de10_lite_top.v`, debouncer, and 7-segment hex display decoder.
 4. Prepare Vivado overlay batch synthesis scripts (`build_overlay.tcl`) and PYNQ Jupyter notebook driver.
