@@ -1,11 +1,24 @@
 # Session Handoff: Pillar 6 Pre-Silicon Emulation — Toolchain Setup & Plan Approved
 
-- **Date:** 2026-10-08 22:15
+- **Date:** 2026-10-10 12:40
 - **Machine:** Desktop PC (`juliusli` / Primary Bring-Up Host)
 - **Active Branch:** `main`
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION (FPGA TESTBENCH)**
 - **Hardware Logistics:** Physical bench cables (Banana-to-barrel, Pi 5 camera ribbon) arriving Sunday; FPGA toolchains (Vivado 2022.2 & Quartus Prime Lite 23.1) configured on Desktop PC.
-- **Status:** Implementation Plan approved; shuttle physical die location verified (Mux 265, Cols 4 & 5); ready for RTL wrapper coding and pre-synthesis simulation tomorrow.
+- **Status:** **Components 1 & 2 100% COMPLETE & VERIFIED.** PYNQ-Z2 AXI4-Lite slave bridge (`tt_scim_axi_wrapper.v`) implemented and fully verified via Cocotb regression suite (`test_fpga_axi.py`) with 5/5 PASS in 0.27s real time.
+
+---
+
+## Pillar 6 Verification Scorecard (Pre-Synthesis Simulation)
+
+| Test Case | Description | Simulated Time | Real Time | Status |
+| :--- | :--- | :---: | :---: | :---: |
+| `test_axi_handshake` | AMBA AXI4-Lite register access & decode logic | $1,030\text{ ns}$ | $< 0.01\text{ s}$ | ✅ **PASS** |
+| `test_reset_and_control` | Synchronous active-low reset & control strobes | $870\text{ ns}$ | $< 0.01\text{ s}$ | ✅ **PASS** |
+| `test_weight_shift_loopback`| 256-bit DFT scan chain serial loopback (`w_dout`) | $77,330\text{ ns}$ | $0.08\text{ s}$ | ✅ **PASS** |
+| `test_axi_mvm_computation` | 256-cycle MVM via MMIO + 16-channel readback | $44,730\text{ ns}$ | $0.10\text{ s}$ | ✅ **PASS** |
+| `test_stochastic_shuffling`| Application #10 permutation invariance | $44,730\text{ ns}$ | $0.09\text{ s}$ | ✅ **PASS** |
+| **Total** | **Full Pre-Synthesis Regression Suite** | **$168,690\text{ ns}$** | **$0.27\text{ s}$** | ✅ **5/5 PASS** |
 
 ---
 
@@ -26,9 +39,9 @@
 
 ---
 
-## Next Steps for Pillar 6 Execution Tomorrow
+## Next Steps for Pillar 6 Execution
 
-1. Implement `fpga/pynq_z2/rtl/tt_scim_axi_wrapper.v` (AXI4-Lite slave bridge for ARM PS MMIO).
-2. Create `test/tb_fpga_axi.v` and Cocotb testbench (`test/test_fpga_axi.py`) to verify AXI read/write cycles and cycle latency counter.
-3. Implement `fpga/de10_lite/rtl/de10_lite_top.v`, debouncer, and 7-segment hex display decoder.
-4. Prepare Vivado overlay batch synthesis scripts (`build_overlay.tcl`) and PYNQ Jupyter notebook driver.
+1. Implement DE10-Lite tactile console RTL (`fpga/de10_lite/rtl/`):
+   - `hex7seg_decoder.v`, `debounce.v`, `de10_lite_top.v`, `constrs/de10_lite.qsf`, and `scripts/build_max10.tcl`.
+2. Run Verilator lint checks (`verilator --lint-only -Wall -Isrc`) on all top wrappers.
+3. Implement Vivado overlay batch synthesis scripts (`fpga/pynq_z2/scripts/build_overlay.tcl`) and PYNQ Jupyter driver (`fpga/pynq_z2/jupyter/scim_pynq_driver.py`).

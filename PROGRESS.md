@@ -1,33 +1,38 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-08 22:15 (Run 58: Pillar 6 Implementation Plan Finalization, Shuttle Mapping & Toolchain Setup)
+## Last Execution Run: 2026-10-10 12:40 (Run 59: Pillar 6 PYNQ-Z2 AXI4-Lite Bridge Implementation & Cocotb Pre-Synthesis Regression 100% PASS)
 
 ### [Built]
-- **`implementation_plan.md`:** Finalized detailed architectural specifications for Pillar 6 coding activities, including the 32-bit AXI4-Lite register map, dual-mode clocking, PMOD snooping breakout, and Cocotb pre-synthesis simulation suite.
-- **`PROGRESS.md` & `HANDOFF.md`:** Synchronized state, shuttle placement analysis, EDA toolchain installation guides, and session handoff records.
+- **`fpga/pynq_z2/rtl/tt_scim_axi_wrapper.v`:** AMBA AXI4-Lite 32-bit slave MMIO bridge wrapping frozen `tt_um_scim_core.v`. Features single-cycle deterministic write/read response, dual-mode clocking (50 MHz free-running vs. software single-step), hardware latency counter (`REG_STATUS[31:16]`), and physical PMOD A/B logic analyzer snooping breakout.
+- **`test/tb_fpga_axi.v`:** Top-level simulation harness connecting the AXI-Lite wrapper to Cocotb GPI/VPI.
+- **`test/test_fpga_axi.py`:** Comprehensive 5-test Cocotb verification suite conforming strictly to ARM AMBA AXI4-Lite protocol handshakes.
+- **`test/Makefile`:** Added `test_fpga_axi` regression target.
 
-### [Architecture Decisions & Silicon Forensics]
-- **Tiny Tapeout Shuttle Physical Floorplan Verification (Mux Address 265):**
-  - Verified project location on the SkyWater 130nm shuttle die: 2x2 tile block situated in Columns 4 & 5 on the left bank (3 tiles from the central spine, adjacent to the dedicated analog switch row).
-  - Physical wire delay across the 3 tiles ($\sim 480\,\mu\text{m}$) is $< 0.15\text{ ns}$ on top-level metal layers, well within the $20.0\text{ ns}$ cycle budget at $50\text{ MHz}$ ($<0.7\%$ clock margin).
-  - Confirmed the location is in the optimal "Goldilocks Zone": buffered from central spine wiring track congestion while well protected from edge-of-die mechanical dicing stress and CMP thickness variations.
-- **AXI4-Lite Register Memory Map Architecture:**
-  - Resolved directional separation: `0x04: REG_DATA_IN` maps exclusively to dedicated input pins `ui_in[7:0]` (CPU $\rightarrow$ ASIC write path), while `0x0C: REG_DATA_OUT` maps exclusively to dedicated output pins `uo_out[7:0]` (ASIC $\rightarrow$ CPU read path), ensuring deterministic readback without asymmetric register side-effects.
-- **Desktop PC Toolchain Environment Setup (`juliusli`):**
-  - **AMD Xilinx Vivado 2022.2 ML Standard:** Web installer verified and executed on Ubuntu 24.04 with pre-installed `libtinfo5`/`libncurses5` compatibility libraries; configured for 7-Series / Zynq-7000 (`xc7z020`) for PYNQ-Z2 overlay synthesis.
-  - **Intel Quartus Prime Lite 23.1std:** Configured with MAX 10 device support (`10M50DAF484C7G`) for DE10-Lite; Questa simulator pruned to save $4.4\text{ GB}$ in favor of our local 1.5s Cocotb/Icarus verification suite.
+### [Architecture Decisions & Debug Forensics]
+- **AMBA AXI4-Lite Handshake Resolution:**
+  - *Symptom:* Initial simulation hung in an infinite loop inside `test_axi_handshake`, consuming background compute without advancing.
+  - *Root Cause Analysis:* The testbench driver asserted `RREADY` and checked `(ARREADY && RVALID)` concurrently in a loop. Because the single-cycle synchronous slave wrapper deasserted `RVALID` immediately upon acknowledging `RREADY`, the testbench missed sampling both signals high on the same edge.
+  - *Resolution:* Restructured `axi_write` and `axi_read` drivers to strictly follow decoupled two-phase AMBA handshakes (Address Phase completion followed by Data Phase capture).
+- **Zero-Deadlock Shift Strobe Timing:**
+  - Resolved shift register double-pulsing by generating clean, deterministic single-cycle synchronous pulses (`w_shift_pulse`, `wr_act_pulse`, `ctrl_strobe_pulse`) on AXI write acceptance.
+- **Latency Counter Verification:**
+  - Hardware counter measured exactly **257 clock cycles** from activation strobe to `done` assertion (256 stochastic accumulation cycles + 1 pipeline drain cycle), perfectly matching physical ASIC timing.
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
 - **Tiny Tapeout SKY 26d Submission:** ✅ SUBMITTED & VERIFIED (PR #85 green, Mux 265 confirmed).
 - **Pillar 6 (Pre-Silicon Emulation):** 🚀 **ACTIVE / IN PROGRESS.**
-  - Implementation Plan reviewed, clarified, and approved.
-  - Shuttle physical floorplan confirmed.
-  - FPGA EDA toolchains configured on Desktop PC.
-  - Ready for RTL coding and pre-synthesis simulation verification.
+  - **Component 1 (PYNQ-Z2 AXI4-Lite Wrapper):** ✅ 100% IMPLEMENTED & VERIFIED.
+  - **Component 2 (Pre-Synthesis Cocotb Regression):** ✅ **5/5 TESTS PASSED in 0.27s (0 failures, 0 errors, bit-exact match against Gate-0 Python model).**
+  - **Component 3 (DE10-Lite Console):** Next to implement.
+  - **Component 4 (Vivado Overlay Scripting & PYNQ Driver):** Next to implement.
 
 ### [Next Steps]
-1. Implement `fpga/pynq_z2/rtl/tt_scim_axi_wrapper.v` (AXI4-Lite slave bridge for ARM PS MMIO).
-2. Create `test/tb_fpga_axi.v` and Cocotb testbench (`test/test_fpga_axi.py`) verifying AXI read/write handshakes and cycle counters.
-3. Implement `fpga/de10_lite/rtl/de10_lite_top.v` with debounced clock stepping and 7-segment hex display decoder.
-4. Prepare Vivado overlay batch synthesis scripts (`build_overlay.tcl`) and PYNQ Jupyter testbench driver.
+1. Implement DE10-Lite tactile console RTL (`fpga/de10_lite/rtl/`):
+   - `hex7seg_decoder.v` (4-bit hex to 7-segment display).
+   - `debounce.v` (glitch-free pushbutton clock stepping filter).
+   - `de10_lite_top.v` (tactile mapping of switches, keys, LEDs, and 6 hex displays).
+   - `constrs/de10_lite.qsf` (MAX 10 pin assignments).
+   - `scripts/build_max10.tcl` (batch synthesis).
+2. Run Verilator lint checks (`verilator --lint-only -Wall -Isrc`) on all top wrappers.
+3. Implement Vivado overlay batch synthesis script (`fpga/pynq_z2/scripts/build_overlay.tcl`) and PYNQ Jupyter driver (`fpga/pynq_z2/jupyter/scim_pynq_driver.py`).
