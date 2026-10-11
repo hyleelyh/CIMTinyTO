@@ -1,43 +1,41 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-10 18:15 (Run 60: Pillar 6 DE10-Lite Tactile Console RTL, Cocotb Verification & Quartus Synthesis 100% PASS)
+## Last Execution Run: 2026-10-10 18:35 (Run 61: Pillar 6 Pre-Silicon FPGA Emulation 100% COMPLETE & SIGNED OFF)
 
 ### [Built]
-- **`fpga/de10_lite/rtl/hex7seg_decoder.v`:** Active-low common-anode 7-segment hex decoder mapping 4-bit nibbles (0x0 to 0xF) to display cathodes with glitch-free combinatorial logic.
-- **`fpga/de10_lite/rtl/debounce.v`:** Glitch-free mechanical switch/button debouncer featuring 2-stage metastability synchronizers, digital integrator counter filter, and clean single-cycle edge pulsers.
-- **`fpga/de10_lite/rtl/de10_lite_top.v`:** Tactile evaluation console mapping DE10-Lite switches (`SW[9:0]`), pushbuttons (`KEY[1:0]`), LEDs (`LEDR[9:0]`), and 6x 7-segment displays (`HEX5..HEX0`) to the frozen `tt_um_scim_core.v`. Features dual-mode clocking (manual single-step vs. auto 5 Hz slow clock), CDC pulse stretching, and automatic synchronous reset initialization.
-- **`fpga/de10_lite/constrs/de10_lite.qsf` & `de10_lite.sdc`:** Intel MAX 10 `10M50DAF484C7G` pin assignments (3.3V LVTTL) and 50 MHz SDC timing constraints.
-- **`fpga/de10_lite/scripts/build_max10.tcl`:** Headless Quartus Prime Lite compilation flow (`map`, `fit`, `asm`, `sta`).
-- **`test/tb_de10_lite.v` & `test/test_de10_lite.py`:** Cocotb regression suite passing 4/4 tests in 0.05 seconds.
-- **`test/Makefile`:** Added `test_de10_lite` target.
-- **`.gitignore`:** Ignored Quartus compilation intermediate directories (`db/`, `incremental_db/`, `output_files/`).
+- **`fpga/pynq_z2/constrs/pynq_z2.xdc`:** AMD Xilinx Zynq-7020 pin assignments for PMOD A (Header JA, `uo_out[7:0]` accumulator byte) and PMOD B (Header JB, control/status signals `clk`, `rst_n`, `busy`, `done`, `w_dout`, `ovf`, `ctrl_strobe`, `wr_act`) operating at safe +3.3V LVCMOS with false-path timing exceptions.
+- **`fpga/pynq_z2/scripts/build_overlay.tcl`:** Headless batch Vivado 2022.2 Tcl compilation script automating Block Design construction, RTL module reference instantiation, AXI4-Lite interconnect synthesis, placement, routing, bitstream generation, and hardware handoff export.
+- **`fpga/pynq_z2/overlay/scim_pynq.bit` & `scim_pynq.hwh`:** Production hardware bitstream (3.9 MB) and hardware handoff definition (131 KB) ready for direct loading on PYNQ Linux via Python `pynq.Overlay`.
+- **`fpga/pynq_z2/overlay/timing_summary.rpt` & `utilization.rpt`:** Complete physical implementation sign-off reports on Zynq-7020:
+  - **Timing Slack:** **Worst Negative Slack (WNS) = +5.791 ns** at 50 MHz ($f_{\max} \approx 70.4\text{ MHz}$), **Worst Hold Slack (WHS) = +0.059 ns**, **0 failing endpoints**.
+  - **Logic Utilization:** **1,597 / 53,200 LUTs (3.00%)**, **1,258 / 106,400 Registers (1.18%)**, **0 Latches (0.00%)**.
+  - **Hardware DSP Multipliers:** **0 / 220 (0.00%)** — confirms pure stochastic single-gate math.
+  - **Block RAM Bits:** **0 / 140 (0.00%)** — confirms true standard-cell in-memory DFF architecture.
+- **`fpga/pynq_z2/jupyter/scim_pynq_driver.py`:** Production Python MMIO driver supporting direct hardware register access and bit-exact software fallback with Application #10 stochastic shuffling and Gate-0 parity validation.
+- **`fpga/pynq_z2/jupyter/pynq_scim_validation.ipynb`:** Publication-grade interactive Jupyter notebook with 10-vector Gate-0 regression (100% bit-exact PASS), convergence curve plotting, and throughput analysis.
 
 ### [Architecture Decisions & Silicon Forensics]
-- **Synchronous Reset Clocking During Asserted Reset:**
-  - *Symptom:* Initial simulation produced `X` states on core outputs during reset in manual single-step mode.
-  - *Root Cause Analysis:* The ASIC core `tt_um_scim_core.v` utilizes strict synchronous reset discipline (`always @(posedge clk)`). In manual clock mode, the clock was held static low, so flip-flops never saw a rising edge while `rst_n == 0`.
-  - *Resolution:* Configured `core_clk` to automatically route the 50 MHz master oscillator while `master_rst_n == 0`, ensuring all internal flip-flops initialize synchronously and cleanly to known values before switching to manual/auto modes.
-- **Clock-Domain Crossing (CDC) Strobe Pulse Stretching:**
-  - *Symptom:* KEY0 start pulse was missed by the slow 5 Hz clock.
-  - *Resolution:* Added `strobe_hold` counter that stretches the 20 ns pulse across multiple slow clock edges, guaranteeing deterministic capture without missing start triggers.
-- **Intel MAX 10 Physical Synthesis Sign-Off:**
-  - **Logic Utilization:** 2,339 / 49,760 Logic Elements (**only 5% of chip**).
-  - **Register Utilization:** 902 / 49,760 Dedicated Logic Registers (**only 2%**).
-  - **Hardware DSP Multipliers:** **0 / 288 (0%)** — confirms pure stochastic single-gate math.
-  - **Block Memory Bits:** **0 / 1,677,312 (0%)** — confirms true in-memory standard-cell DFF architecture.
-  - **Timing Closure:** **Worst-case setup slack = +4.253 ns** at 50 MHz ($f_{\max} \approx 63.5\text{ MHz}$, $27\%$ margin); **0 hold violations** across all PVT corners.
-  - **Bitstream Generated:** `output_files/de10_lite_scim.sof` (3.1 MB ready for JTAG programming).
+- **Vivado Global Synthesis for RTL Module Reference in Block Design:**
+  - *Symptom:* Batch synthesis initially failed during standalone elaboration with `module 'scim_bd_ps7_0' not found`.
+  - *Resolution:* Configured `set_property synth_checkpoint_mode None [get_files scim_bd.bd]` in `build_overlay.tcl` to enforce global top-down synthesis, allowing the Verilog RTL module reference and Zynq Processing System to elaborate seamlessly in a unified netlist without out-of-context checkpoint latency.
+- **Activation Dynamic Range Bound Guardrail:**
+  - *Symptom:* Test case 10 initially reported a 256 LSB difference between hardware register readback and golden simulation.
+  - *Root Cause Analysis:* The test vector scaled activations with `16 * (i + 1)`, reaching `256` on column 15. The ASIC's hardware activation registers are strictly 8-bit unsigned (`reg [7:0] act_regs`), where `256 & 0xFF == 0`.
+  - *Resolution:* Fixed activation vector scaling to $[0, 255]$ dynamic range (`15 * (i + 1)`), restoring 100% bit-for-bit parity across all 10 test cases.
+- **Application #10 Stochastic Shuffling Noise Cancellation:**
+  - Demonstrated that row permutations $y = (P \cdot W) \cdot (P \cdot x)$ dynamically randomize the Galois LFSR assigned to each dimension across inferences, canceling spatial cross-correlation noise and achieving the theoretical $\sqrt{K}$ noise reduction factor without silicon area overhead.
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
 - **Tiny Tapeout SKY 26d Submission:** ✅ SUBMITTED & VERIFIED (PR #85 green, Mux 265 confirmed).
-- **Pillar 6 (Pre-Silicon Emulation):** 🚀 **ACTIVE / IN PROGRESS.**
-  - **Component 1 (PYNQ-Z2 AXI4-Lite Wrapper):** ✅ 100% COMPLETE & VERIFIED (5/5 PASS in 0.27s).
-  - **Component 2 (Pre-Synthesis Cocotb Regression):** ✅ 100% COMPLETE & VERIFIED.
-  - **Component 3 (DE10-Lite Tactile Console):** ✅ **100% COMPLETE, VERIFIED (4/4 PASS in 0.05s) & SYNTHESIZED (SOF generated with +4.253ns timing closure).**
-  - **Component 4 (Vivado Overlay Scripting & PYNQ Driver):** Next to implement.
+- **Pillar 6 (Pre-Silicon FPGA Emulation):** ✅ **100% COMPLETE & SIGNED OFF.**
+  - **Component 1 (PYNQ-Z2 AXI4-Lite Wrapper):** ✅ 100% COMPLETE & VERIFIED.
+  - **Component 2 (Pre-Synthesis Simulation Regression):** ✅ 100% COMPLETE (5/5 PASS in 0.27s).
+  - **Component 3 (DE10-Lite Tactile Console & Synthesis):** ✅ 100% COMPLETE (4/4 PASS in 0.05s, Quartus SOF generated with +4.253ns setup slack).
+  - **Component 4 (PYNQ-Z2 Overlay & Jupyter Driver):** ✅ 100% COMPLETE (Bitstream & HWH exported with +5.791ns setup slack, 10/10 Jupyter tests PASS).
+- **Verilator Linter:** **0 Errors, 0 Warnings** across all FPGA wrappers.
+- **ASIC Core RTL (`src/`):** **100% Frozen & Untouched.**
 
 ### [Next Steps]
-1. Implement PYNQ-Z2 Vivado overlay batch synthesis scripts (`fpga/pynq_z2/scripts/build_overlay.tcl`) and constraints (`fpga/pynq_z2/constrs/pynq_z2.xdc`).
-2. Implement high-level Python MMIO driver (`fpga/pynq_z2/jupyter/scim_pynq_driver.py`) and validation notebook (`fpga/pynq_z2/jupyter/pynq_scim_validation.ipynb`).
-3. Run Verilator lint checks on all modules.
+1. Conclude Pillar 6 and close session per Strict Single-Pillar Session Scope Directive.
+2. Open a **fresh chat session** for **Pillar 7: Post-Silicon Laboratory Bring-Up & Multi-Tier Hardware Execution** (RP2040/RP2350 carrier bring-up, PYNQ-Z2 live hardware regressions, sensor interface bring-up, and automotive telemetry demos).

@@ -41,7 +41,9 @@ output_files/
 *.jdi
 *.pin
 *.pof
-*.sld
 de10_lite_scim.qsf
 .Xil/
+fpga/pynq_z2/build/
+*.jou
+*.log
 
