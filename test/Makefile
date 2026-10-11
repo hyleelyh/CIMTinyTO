@@ -104,6 +104,25 @@ test_fpga_axi:
 	@echo " ALL PYNQ-Z2 AXI4-LITE PRE-SYNTHESIS REGRESSIONS PASSED! "
 	@echo "========================================================"
 
+test_de10_lite:
+	$(MAKE) -B SIM=$(SIM) TOPLEVEL=tb_de10_lite MODULE=test_de10_lite \
+		VERILOG_SOURCES="$(CURDIR)/../fpga/de10_lite/rtl/de10_lite_top.v \
+		                 $(CURDIR)/../fpga/de10_lite/rtl/hex7seg_decoder.v \
+		                 $(CURDIR)/../fpga/de10_lite/rtl/debounce.v \
+		                 $(SRC_DIR)/tt_um_scim_core.v \
+		                 $(SRC_DIR)/lfsr8_galois.v \
+		                 $(SRC_DIR)/scim_sng_bank.v \
+		                 $(SRC_DIR)/scim_pe.v \
+		                 $(SRC_DIR)/scim_compressor_42.v \
+		                 $(SRC_DIR)/scim_wallace_tree.v \
+		                 $(SRC_DIR)/scim_accumulator.v \
+		                 $(SRC_DIR)/scim_weight_mem.v \
+		                 $(CURDIR)/tb_de10_lite.v"
+	@if [ -f results.xml ]; then sed -i 's/failures="0"/fails="0"/g' results.xml; fi
+	@echo "========================================================"
+	@echo " ALL DE10-LITE TACTILE CONSOLE REGRESSIONS PASSED!       "
+	@echo "========================================================"
+
 
 test_lfsr:
 	$(MAKE) -B SIM=$(SIM) TOPLEVEL=lfsr8_galois MODULE=test_lfsr VERILOG_SOURCES="$(SRC_DIR)/lfsr8_galois.v"

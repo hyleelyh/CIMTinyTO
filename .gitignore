@@ -32,3 +32,16 @@ runs/
 *.zip
 artifacts/
 
+# FPGA EDA (Quartus & Vivado)
+db/
+incremental_db/
+output_files/
+*.qpf
+*.qws
+*.jdi
+*.pin
+*.pof
+*.sld
+de10_lite_scim.qsf
+.Xil/
+

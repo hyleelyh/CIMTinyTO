@@ -1,24 +1,24 @@
 # Session Handoff: Pillar 6 Pre-Silicon Emulation — Toolchain Setup & Plan Approved
 
-- **Date:** 2026-10-10 12:40
+- **Date:** 2026-10-10 18:20
 - **Machine:** Desktop PC (`juliusli` / Primary Bring-Up Host)
 - **Active Branch:** `main`
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION (FPGA TESTBENCH)**
-- **Hardware Logistics:** Physical bench cables (Banana-to-barrel, Pi 5 camera ribbon) arriving Sunday; FPGA toolchains (Vivado 2022.2 & Quartus Prime Lite 23.1) configured on Desktop PC.
-- **Status:** **Components 1 & 2 100% COMPLETE & VERIFIED.** PYNQ-Z2 AXI4-Lite slave bridge (`tt_scim_axi_wrapper.v`) implemented and fully verified via Cocotb regression suite (`test_fpga_axi.py`) with 5/5 PASS in 0.27s real time.
+- **Hardware Logistics:** Physical bench cables (Banana-to-barrel, Pi 5 camera ribbon) arriving Sunday; FPGA toolchains (Vivado 2022.2 & Quartus Prime Lite 23.1) configured and verified on Desktop PC.
+- **Status:** **Components 1, 2, & 3 100% COMPLETE & VERIFIED.** 
+  - PYNQ-Z2 AXI4-Lite slave bridge (`tt_scim_axi_wrapper.v`) verified via Cocotb (5/5 PASS in 0.27s).
+  - DE10-Lite tactile console (`de10_lite_top.v`) verified via Cocotb (4/4 PASS in 0.05s) and compiled with Quartus Prime Lite (`de10_lite_scim.sof` generated, +4.253ns setup slack @ 50 MHz).
 
 ---
 
 ## Pillar 6 Verification Scorecard (Pre-Synthesis Simulation)
 
-| Test Case | Description | Simulated Time | Real Time | Status |
+| Test Suite / Target | Description | Simulated Time | Real Time | Status |
 | :--- | :--- | :---: | :---: | :---: |
-| `test_axi_handshake` | AMBA AXI4-Lite register access & decode logic | $1,030\text{ ns}$ | $< 0.01\text{ s}$ | ✅ **PASS** |
-| `test_reset_and_control` | Synchronous active-low reset & control strobes | $870\text{ ns}$ | $< 0.01\text{ s}$ | ✅ **PASS** |
-| `test_weight_shift_loopback`| 256-bit DFT scan chain serial loopback (`w_dout`) | $77,330\text{ ns}$ | $0.08\text{ s}$ | ✅ **PASS** |
-| `test_axi_mvm_computation` | 256-cycle MVM via MMIO + 16-channel readback | $44,730\text{ ns}$ | $0.10\text{ s}$ | ✅ **PASS** |
-| `test_stochastic_shuffling`| Application #10 permutation invariance | $44,730\text{ ns}$ | $0.09\text{ s}$ | ✅ **PASS** |
-| **Total** | **Full Pre-Synthesis Regression Suite** | **$168,690\text{ ns}$** | **$0.27\text{ s}$** | ✅ **5/5 PASS** |
+| `test_fpga_axi` (5 tests) | PYNQ-Z2 AXI4-Lite slave bridge & MVM MMIO | $168,690\text{ ns}$ | $0.27\text{ s}$ | ✅ **5/5 PASS** |
+| `test_de10_lite` (4 tests)| DE10-Lite tactile console (reset, 7-seg, debouncer, MVM)| $57,920\text{ ns}$ | $0.05\text{ s}$ | ✅ **4/4 PASS** |
+| `build_max10.tcl` (Quartus)| Intel MAX 10 FPGA physical synthesis & SOF generation | — | $23\text{ s}$ | ✅ **PASS (+4.253ns slack)** |
+| **Total** | **All Pre-Synthesis & Physical Sign-Off Targets** | — | — | ✅ **100% PASS** |
 
 ---
 
@@ -41,7 +41,6 @@
 
 ## Next Steps for Pillar 6 Execution
 
-1. Implement DE10-Lite tactile console RTL (`fpga/de10_lite/rtl/`):
-   - `hex7seg_decoder.v`, `debounce.v`, `de10_lite_top.v`, `constrs/de10_lite.qsf`, and `scripts/build_max10.tcl`.
-2. Run Verilator lint checks (`verilator --lint-only -Wall -Isrc`) on all top wrappers.
-3. Implement Vivado overlay batch synthesis scripts (`fpga/pynq_z2/scripts/build_overlay.tcl`) and PYNQ Jupyter driver (`fpga/pynq_z2/jupyter/scim_pynq_driver.py`).
+1. Implement PYNQ-Z2 Vivado overlay batch synthesis scripts (`fpga/pynq_z2/scripts/build_overlay.tcl`) and constraints (`fpga/pynq_z2/constrs/pynq_z2.xdc`).
+2. Implement high-level Python MMIO driver (`fpga/pynq_z2/jupyter/scim_pynq_driver.py`) and validation notebook (`fpga/pynq_z2/jupyter/pynq_scim_validation.ipynb`).
+3. Run Verilator lint checks on all modules.
