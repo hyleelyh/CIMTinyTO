@@ -88,7 +88,7 @@ $(CURDIR)/gate_level_netlist.v:
 .PHONY: test_lfsr test_compressor test_wallace test_core test_fpga_axi test_all test_gls gls_waves gls_waves_golden gls_waves_dft gls_waves_saturation gls_waves_overclock clean_all
 
 test_fpga_axi:
-	$(MAKE) -B SIM=$(SIM) TOPLEVEL=tb_fpga_axi MODULE=test_fpga_axi \
+	$(MAKE) -B SIM=$(SIM) TOPLEVEL=tb_fpga_axi MODULE=test_fpga_axi COCOTB_TEST_MODULES=test_fpga_axi \
 		VERILOG_SOURCES="$(CURDIR)/../fpga/pynq_z2/rtl/tt_scim_axi_wrapper.v \
 		                 $(SRC_DIR)/tt_um_scim_core.v \
 		                 $(SRC_DIR)/lfsr8_galois.v \
@@ -105,7 +105,7 @@ test_fpga_axi:
 	@echo "========================================================"
 
 test_de10_lite:
-	$(MAKE) -B SIM=$(SIM) TOPLEVEL=tb_de10_lite MODULE=test_de10_lite \
+	$(MAKE) -B SIM=$(SIM) TOPLEVEL=tb_de10_lite MODULE=test_de10_lite COCOTB_TEST_MODULES=test_de10_lite \
 		VERILOG_SOURCES="$(CURDIR)/../fpga/de10_lite/rtl/de10_lite_top.v \
 		                 $(CURDIR)/../fpga/de10_lite/rtl/hex7seg_decoder.v \
 		                 $(CURDIR)/../fpga/de10_lite/rtl/debounce.v \
