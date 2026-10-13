@@ -1,8 +1,9 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-11 15:56 (Run 62: Application Architecture Blueprint & Physical Bring-Up Matrix Finalized)
+## Last Execution Run: 2026-10-13 08:05 (Run 63: DE10-Lite Reset Lint Hardening & Application Chat Isolation Strategic Alignment)
 
 ### [Built]
+- **`fpga/de10_lite/rtl/de10_lite_top.v`:** Hardened reset architecture by converting asynchronous reset checks to clean synchronous resets on the 50 MHz clock domain; added targeted pragmas; verified 100% clean Verilator `-Wall` linting across the entire FPGA RTL suite (0 Errors, 0 Warnings).
 - **`fpga/pynq_z2/constrs/pynq_z2.xdc`:** AMD Xilinx Zynq-7020 pin assignments for PMOD A (Header JA, `uo_out[7:0]` accumulator byte) and PMOD B (Header JB, control/status signals `clk`, `rst_n`, `busy`, `done`, `w_dout`, `ovf`, `ctrl_strobe`, `wr_act`) operating at safe +3.3V LVCMOS with false-path timing exceptions.
 - **`fpga/pynq_z2/scripts/build_overlay.tcl`:** Headless batch Vivado 2022.2 Tcl compilation script automating Block Design construction, RTL module reference instantiation, AXI4-Lite interconnect synthesis, placement, routing, bitstream generation, and hardware handoff export.
 - **`fpga/pynq_z2/overlay/scim_pynq.bit` & `scim_pynq.hwh`:** Production hardware bitstream (3.9 MB) and hardware handoff definition (131 KB) ready for direct loading on PYNQ Linux via Python `pynq.Overlay`.
@@ -24,18 +25,25 @@
   - *Resolution:* Fixed activation vector scaling to $[0, 255]$ dynamic range (`15 * (i + 1)`), restoring 100% bit-for-bit parity across all 10 test cases.
 - **Application #10 Stochastic Shuffling Noise Cancellation:**
   - Demonstrated that row permutations $y = (P \cdot W) \cdot (P \cdot x)$ dynamically randomize the Galois LFSR assigned to each dimension across inferences, canceling spatial cross-correlation noise and achieving the theoretical $\sqrt{K}$ noise reduction factor without silicon area overhead.
+- **Strategic Application Roadmap & Strict Chat Isolation Directive:**
+  - **Physical FPGA Hardware Bring-Up:** Bitstreams for both PYNQ-Z2 and DE10-Lite are synthesized and verified; physical bench testing on the hardware platforms will take place during the weekend on the Desktop PC (`juliusli`).
+  - **Dedicated Chats for Edge AI Applications:** Each individual application implementation (Micro-ResNet live camera vision, Voice Keyword Spotting, Motor Vibration Anomaly Detection, Stochastic Seed Shuffling variance reduction study) will be implemented in its **own dedicated, fresh chat session** once the baseline hardware handshake is validated, preserving modularity and context window clarity.
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
 - **Tiny Tapeout SKY 26d Submission:** ✅ SUBMITTED & VERIFIED (PR #85 green, Mux 265 confirmed).
 - **Pillar 6 (Pre-Silicon FPGA Emulation):** ✅ **100% COMPLETE & SIGNED OFF.**
   - **Component 1 (PYNQ-Z2 AXI4-Lite Wrapper):** ✅ 100% COMPLETE & VERIFIED.
-  - **Component 2 (Pre-Synthesis Simulation Regression):** ✅ 100% COMPLETE (5/5 PASS in 0.27s).
-  - **Component 3 (DE10-Lite Tactile Console & Synthesis):** ✅ 100% COMPLETE (4/4 PASS in 0.05s, Quartus SOF generated with +4.253ns setup slack).
+  - **Component 2 (Pre-Synthesis Simulation Regression):** ✅ 100% COMPLETE (5/5 PASS in 0.61s).
+  - **Component 3 (DE10-Lite Tactile Console & Synthesis):** ✅ 100% COMPLETE (4/4 PASS in 0.09s, Quartus SOF generated with +4.253ns setup slack).
   - **Component 4 (PYNQ-Z2 Overlay & Jupyter Driver):** ✅ 100% COMPLETE (Bitstream & HWH exported with +5.791ns setup slack, 10/10 Jupyter tests PASS).
-- **Verilator Linter:** **0 Errors, 0 Warnings** across all FPGA wrappers.
+- **Verilator Linter:** **0 Errors, 0 Warnings** with strict `-Wall` across all FPGA wrappers.
 - **ASIC Core RTL (`src/`):** **100% Frozen & Untouched.**
 
 ### [Next Steps]
-1. Conclude Pillar 6 and close session per Strict Single-Pillar Session Scope Directive.
-2. Open a **fresh chat session** for **Pillar 7: Post-Silicon Laboratory Bring-Up & Multi-Tier Hardware Execution** (RP2040/RP2350 carrier bring-up, PYNQ-Z2 live hardware regressions, sensor interface bring-up, and automotive telemetry demos).
+1. Weekend Physical Hardware Bring-Up on Desktop PC: Load `scim_pynq.bit` onto PYNQ-Z2 and run Jupyter regression; load `de10_lite_scim.sof` onto DE10-Lite and test tactile switches/displays.
+2. Open **fresh chat sessions** for specific application sprints:
+   - Application Sprint 1: Micro-ResNet Live Camera Video Inference (Raspberry Pi 5 + NoIR Cam).
+   - Application Sprint 2: Voice Keyword Spotting (STM32 B-U585I dual MEMS mics).
+   - Application Sprint 3: Motor Vibration Anomaly Detection (STM32 B-U585I ISM330DHCX IMU).
+   - Application Sprint 4: Stochastic Seed Shuffling & SNR Variance Reduction Study.

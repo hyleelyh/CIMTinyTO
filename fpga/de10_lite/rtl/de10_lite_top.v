@@ -59,7 +59,9 @@ module de10_lite_top #(
     wire key0_debounced;
     wire key0_press_pulse;
     wire key0_rel_pulse;
+    /* verilator lint_off SYNCASYNCNET */
     wire key1_debounced;
+    /* verilator lint_on SYNCASYNCNET */
     wire key1_press_pulse;
     wire key1_rel_pulse;
 
@@ -83,7 +85,11 @@ module de10_lite_top #(
         .pulse_release (key1_rel_pulse)
     );
 
+    // master_rst_n is a debounced synchronous FPGA signal driving both local
+    // synchronous logic and the frozen ASIC core's asynchronous pad reset synchronizer.
+    /* verilator lint_off SYNCASYNCNET */
     wire master_rst_n = key1_debounced;
+    /* verilator lint_on SYNCASYNCNET */
 
     // ========================================================================
     // 2. DUAL-MODE GLITCH-FREE CLOCK ENGINE
@@ -96,7 +102,7 @@ module de10_lite_top #(
     reg [3:0]  step_pulse_hold = 4'd0;
     reg        manual_clk      = 1'b0;
 
-    always @(posedge MAX10_CLK1_50 or negedge master_rst_n) begin
+    always @(posedge MAX10_CLK1_50) begin
         if (!master_rst_n) begin
             clk_div_cnt     <= 24'd0;
             auto_clk_5hz    <= 1'b0;
@@ -143,7 +149,7 @@ module de10_lite_top #(
 
     // CDC Pulse Stretcher: Stretches 1-cycle KEY0 press to span multiple slow auto_clk_5hz edges
     reg [23:0] strobe_hold = 24'd0;
-    always @(posedge MAX10_CLK1_50 or negedge master_rst_n) begin
+    always @(posedge MAX10_CLK1_50) begin
         if (!master_rst_n) begin
             strobe_hold <= 24'd0;
         end else begin
@@ -190,7 +196,7 @@ module de10_lite_top #(
     reg [15:0] cycle_cnt = 16'd0;
     wire core_busy = core_uio_out[0];
 
-    always @(posedge core_clk or negedge master_rst_n) begin
+    always @(posedge core_clk) begin
         if (!master_rst_n) begin
             cycle_cnt <= 16'd0;
         end else begin
