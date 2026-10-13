@@ -5,8 +5,8 @@
 - **Workstation Role:** Reviewing, planning, study, and learning. (Primary bring-up platform collocated with hardware is Desktop PC).
 - **Active Branch:** `main`
 - **Active Phase:** **PILLAR 6: APPLICATION SPRINTS & PHYSICAL BRING-UP PREPARATION**
-- **Hardware Logistics:** Physical bench testing on actual FPGA hardware (PYNQ-Z2 and DE10-Lite) scheduled for the weekend on the Desktop PC (`juliusli`).
-- **Status:** **Foundational Infrastructure Complete & Hardened; 100% Verilator -Wall Clean; Ready for Physical Bring-Up & Dedicated Application Sessions.**
+- **Hardware Logistics:** Physical bench testing on actual FPGA emulation platforms (PYNQ-Z2 and DE10-Lite) scheduled for the weekend on the Desktop PC (`juliusli`), distinct from Pillar 7 post-silicon ASIC chip bring-up.
+- **Status:** **Pillar 6 Emulation Infrastructure Complete & Hardened; 100% Verilator -Wall Clean; Ready for FPGA Emulation Bench Testing & Dedicated Application Sessions.**
 
 ---
 

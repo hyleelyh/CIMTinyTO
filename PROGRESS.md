@@ -26,7 +26,7 @@
 - **Application #10 Stochastic Shuffling Noise Cancellation:**
   - Demonstrated that row permutations $y = (P \cdot W) \cdot (P \cdot x)$ dynamically randomize the Galois LFSR assigned to each dimension across inferences, canceling spatial cross-correlation noise and achieving the theoretical $\sqrt{K}$ noise reduction factor without silicon area overhead.
 - **Strategic Application Roadmap & Strict Chat Isolation Directive:**
-  - **Physical FPGA Hardware Bring-Up:** Bitstreams for both PYNQ-Z2 and DE10-Lite are synthesized and verified; physical bench testing on the hardware platforms will take place during the weekend on the Desktop PC (`juliusli`).
+  - **Physical FPGA Emulation Bring-Up:** Bitstreams for both PYNQ-Z2 and DE10-Lite are synthesized and verified; physical bench testing on the FPGA emulation platforms will take place during the weekend on the Desktop PC (`juliusli`). This is strictly pre-silicon emulation (Pillar 6), distinct from post-silicon real ASIC chip bring-up (Pillar 7).
   - **Dedicated Chats for Edge AI Applications:** Each individual application implementation (Micro-ResNet live camera vision, Voice Keyword Spotting, Motor Vibration Anomaly Detection, Stochastic Seed Shuffling variance reduction study) will be implemented in its **own dedicated, fresh chat session** once the baseline hardware handshake is validated, preserving modularity and context window clarity.
 
 ### [Current Pipeline State]
@@ -41,7 +41,7 @@
 - **ASIC Core RTL (`src/`):** **100% Frozen & Untouched.**
 
 ### [Next Steps]
-1. Weekend Physical Hardware Bring-Up on Desktop PC: Load `scim_pynq.bit` onto PYNQ-Z2 and run Jupyter regression; load `de10_lite_scim.sof` onto DE10-Lite and test tactile switches/displays.
+1. Weekend Physical FPGA Emulation Bring-Up on Desktop PC: Load `scim_pynq.bit` onto PYNQ-Z2 and run Jupyter regression; load `de10_lite_scim.sof` onto DE10-Lite and test tactile switches/displays. (Pillar 6 pre-silicon validation, distinct from Pillar 7 real chip bring-up).
 2. Open **fresh chat sessions** for specific application sprints:
    - Application Sprint 1: Micro-ResNet Live Camera Video Inference (Raspberry Pi 5 + NoIR Cam).
    - Application Sprint 2: Voice Keyword Spotting (STM32 B-U585I dual MEMS mics).
