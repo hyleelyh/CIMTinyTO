@@ -1,8 +1,9 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-13 08:05 (Run 63: DE10-Lite Reset Lint Hardening & Application Chat Isolation Strategic Alignment)
+## Last Execution Run: 2026-10-13 08:44 (Run 64: Makefile Cocotb 2.x Cleanliness & Pillar 6.0 Handoff)
 
 ### [Built]
+- **`test/Makefile`:** Added `COCOTB_TEST_MODULES` alongside `MODULE` for `test_fpga_axi` and `test_de10_lite` targets, eliminating Cocotb 2.x deprecation warnings.
 - **`fpga/de10_lite/rtl/de10_lite_top.v`:** Hardened reset architecture by converting asynchronous reset checks to clean synchronous resets on the 50 MHz clock domain; added targeted pragmas; verified 100% clean Verilator `-Wall` linting across the entire FPGA RTL suite (0 Errors, 0 Warnings).
 - **`fpga/pynq_z2/constrs/pynq_z2.xdc`:** AMD Xilinx Zynq-7020 pin assignments for PMOD A (Header JA, `uo_out[7:0]` accumulator byte) and PMOD B (Header JB, control/status signals `clk`, `rst_n`, `busy`, `done`, `w_dout`, `ovf`, `ctrl_strobe`, `wr_act`) operating at safe +3.3V LVCMOS with false-path timing exceptions.
 - **`fpga/pynq_z2/scripts/build_overlay.tcl`:** Headless batch Vivado 2022.2 Tcl compilation script automating Block Design construction, RTL module reference instantiation, AXI4-Lite interconnect synthesis, placement, routing, bitstream generation, and hardware handoff export.
