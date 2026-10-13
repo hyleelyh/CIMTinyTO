@@ -31,12 +31,16 @@
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
-- **Tiny Tapeout SKY 26d Submission:** ✅ SUBMITTED & VERIFIED (PR #85 green, Mux 265 confirmed).
-- **Pillar 6 (Pre-Silicon FPGA Emulation):** ✅ **100% COMPLETE & SIGNED OFF.**
-  - **Component 1 (PYNQ-Z2 AXI4-Lite Wrapper):** ✅ 100% COMPLETE & VERIFIED.
-  - **Component 2 (Pre-Synthesis Simulation Regression):** ✅ 100% COMPLETE (5/5 PASS in 0.61s).
-  - **Component 3 (DE10-Lite Tactile Console & Synthesis):** ✅ 100% COMPLETE (4/4 PASS in 0.09s, Quartus SOF generated with +4.253ns setup slack).
-  - **Component 4 (PYNQ-Z2 Overlay & Jupyter Driver):** ✅ 100% COMPLETE (Bitstream & HWH exported with +5.791ns setup slack, 10/10 Jupyter tests PASS).
+- **Tiny Tapeout SKY 26d Submission:** ✅ SUBMITTED & VERIFIED (PR #85 green, Mux 265 confirmed, shuttle closes end of November 2026).
+- **Pillar 6 (Pre-Silicon FPGA Emulation & Software Development, Oct 2026 – June 2027):** 🚀 **ACTIVE / IN PROGRESS.**
+  - **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & VERIFIED.**
+    * Component 1 (PYNQ-Z2 AXI4-Lite Wrapper): ✅ 100% COMPLETE & VERIFIED.
+    * Component 2 (Pre-Synthesis Simulation Regression): ✅ 100% COMPLETE (5/5 PASS in 0.61s).
+    * Component 3 (DE10-Lite Tactile Console & Synthesis): ✅ 100% COMPLETE (4/4 PASS in 0.09s, Quartus SOF generated with +4.253ns setup slack).
+    * Component 4 (PYNQ-Z2 Overlay & Jupyter Driver): ✅ 100% COMPLETE (Bitstream & HWH exported with +5.791ns setup slack, 10/10 Jupyter tests PASS).
+  - **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Pipeline):** ⏳ **NEXT UP (To be launched in a fresh chat session).**
+  - **Pillars 6.2–6.5 (Voice KWS, Motor Vibration, Seed Shuffling, Driver Polish):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon and carrier board delivery.
 - **Verilator Linter:** **0 Errors, 0 Warnings** with strict `-Wall` across all FPGA wrappers.
 - **ASIC Core RTL (`src/`):** **100% Frozen & Untouched.**
 

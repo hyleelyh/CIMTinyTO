@@ -1,12 +1,13 @@
-# Session Handoff: Pillar 6 Pre-Silicon Emulation 100% COMPLETE & SIGNED OFF
+# Session Handoff: Pillar 6.0 Baseline Emulation Complete & Ready for Pillar 6.1 (Micro-ResNet)
 
-- **Date:** 2026-10-13 08:05
+- **Date:** 2026-10-13 08:15
 - **Machine:** Laptop (`juliusli-MSI` / user `juliusli`)
 - **Workstation Role:** Reviewing, planning, study, and learning. (Primary bring-up platform collocated with hardware is Desktop PC).
 - **Active Branch:** `main`
-- **Active Phase:** **PILLAR 6: APPLICATION SPRINTS & PHYSICAL BRING-UP PREPARATION**
-- **Hardware Logistics:** Physical bench testing on actual FPGA emulation platforms (PYNQ-Z2 and DE10-Lite) scheduled for the weekend on the Desktop PC (`juliusli`), distinct from Pillar 7 post-silicon ASIC chip bring-up.
-- **Status:** **Pillar 6 Emulation Infrastructure Complete & Hardened; 100% Verilator -Wall Clean; Ready for FPGA Emulation Bench Testing & Dedicated Application Sessions.**
+- **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
+- **Timeline Context:** Shuttle tapeout closes end of November 2026; physical packaged silicon & carrier board delivery arrives ~June 2027. All work between October 2026 and June 2027 constitutes **Pillar 6 pre-silicon emulation, software driver polish, and application pipelines**. Pillar 7 (physical chip bring-up) begins strictly in June 2027 upon physical silicon arrival.
+- **Hardware Logistics:** Physical bench testing on actual FPGA emulation platforms (PYNQ-Z2 and DE10-Lite) scheduled for the weekend on the Desktop PC (`juliusli`).
+- **Status:** **Pillar 6.0 Baseline Handshake & Emulation Infrastructure Complete; Ready for Pillar 6.1 (Micro-ResNet Emulation) in a fresh chat session.**
 
 ---
 
@@ -76,7 +77,8 @@ fpga/
 
 ---
 
-## Mandatory Handoff Instruction
+## Mandatory Sub-Pillar Session Handoff Instruction
 Per the **Strict Single-Pillar Session Scope Directive** in `AGENTS.md`:
-- **Pillar 6 is 100% COMPLETE.** No further tasks may be executed in this chat session.
-- Please open a **FRESH CHAT SESSION** for **Pillar 7: Post-Silicon Laboratory Bring-Up & Multi-Tier Hardware Execution**.
+* **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake) is complete, hardened, and verified.**
+* **Pillar 6 remains active through June 2027:** Each discrete Edge AI application sprint will be executed in its own dedicated, fresh chat session under Pillar 6.
+* Please open a **FRESH CHAT SESSION** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.

@@ -28,10 +28,16 @@ This skill enforces strict microarchitectural, verification, and physical design
    - SDC timing constraints, arrival times, setup/hold slack closure across PVT corners, multicycle paths, clock skew analysis.
 5. **Pillar 5: Gate-Level Simulation (GLS) & Power Analysis**
    - Post-synthesis and post-route netlist simulation, SDF back-annotation, VCD-driven dynamic switching power estimation.
-6. **Pillar 6: Pre-Silicon Emulation (FPGA Testbench)**
-   - High-speed 50–100 MHz validation on PYNQ-Z2 (Xilinx Zynq-7020) and DE10-Lite (Intel MAX 10), MMIO AXI driver, hardware-in-the-loop testing.
-7. **Pillar 7: Post-Silicon Bring-Up & Board Characterization**
-   - Tiny Tapeout RP2040/RP2350 carrier board bring-up, lab oscilloscope characterization, end-to-end Micro-ResNet inference demonstration.
+6. **Pillar 6: Pre-Silicon Emulation & Software Development (Active: Oct 2026 – June 2027)**
+   - High-speed 50–100 MHz validation on PYNQ-Z2 (Xilinx Zynq-7020) and DE10-Lite (Intel MAX 10), MMIO AXI driver, software pipeline optimization, and application development during the 8-month wafer fabrication window.
+   - **Sub-Pillar Chat Session Isolation Protocol:** Each discrete application sprint under Pillar 6 MUST be executed in its **own dedicated, fresh chat session**:
+     * **Pillar 6.0:** Baseline Emulation Infrastructure & Handshake (AXI bridge, tactile console, synthesis).
+     * **Pillar 6.1:** Micro-ResNet Pre-Silicon Emulation & Live Edge Vision Pipeline.
+     * **Pillar 6.2:** Voice Keyword Spotting Pipeline (Dual MEMS mics, MFCC frontend).
+     * **Pillar 6.3:** Motor Vibration Anomaly Detection Pipeline (ISM330DHCX IMU, spectral analysis).
+     * **Pillar 6.4:** Stochastic Seed Shuffling & SNR Variance Reduction Study.
+7. **Pillar 7: Post-Silicon Bring-Up & Board Characterization (Starts ~June 2027 Upon Silicon Delivery)**
+   - Tiny Tapeout RP2040/RP2350 carrier board bring-up, lab oscilloscope characterization, smoke testing, and end-to-end physical chip inference demonstrations upon physical packaged silicon arrival.
 
 ---
 

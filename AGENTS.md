@@ -47,12 +47,13 @@ Whenever an agent executes a workflow, implements code, or modifies architecture
 
 ### 3. Strict Single-Pillar Session Scope Directive (CRITICAL)
 To maintain laser focus, clean context windows, and modular verification boundaries across the 7 ASIC Tapeout Pillars:
-* **One Pillar Per Chat Session:** Each conversation session MUST focus strictly on ONE Pillar. Implementing or transitioning between multiple Pillars within the same chat is **strictly forbidden**.
-* **Session Conclusion & Handoff:** Once all verification targets, defenses, and deliverables of the current Pillar are signed off:
+* **One Pillar / Sub-Pillar Per Chat Session:** Each conversation session MUST focus strictly on ONE Pillar or Sub-Pillar. Under Pillar 6 (Pre-Silicon Emulation & Software Development, spanning October 2026 to June 2027), each application sprint (Pillar 6.0 Baseline Handshake, Pillar 6.1 Micro-ResNet, Pillar 6.2 Voice KWS, Pillar 6.3 Vibration, Pillar 6.4 Shuffling Study) MUST run in its **own dedicated, fresh chat session**. Implementing or transitioning between multiple Pillars/Sub-Pillars within the same chat is **strictly forbidden**.
+* **Timeline Context:** Tiny Tapeout shuttle deadline is end of November 2026; physical packaged silicon delivery is ~June 2027. All work from October 2026 through June 2027 resides within **Pillar 6** (emulation, software drivers, edge AI pipelines). **Pillar 7** (physical post-silicon chip bring-up) begins strictly in June 2027 upon physical hardware delivery.
+* **Session Conclusion & Handoff:** Once all verification targets and deliverables of the current Pillar/Sub-Pillar are signed off:
   1. Synchronize state to `PROGRESS.md` and `HANDOFF.md`.
-  2. Commit and push all changes with a Conventional Commit.
-  3. Close out the chat session by summarizing the achievements and instructing the user to open a **fresh chat session** for the next Pillar.
-* **Scope Guard:** If a user or prompt attempts to advance to the next Pillar within an existing session, the agent must decline to proceed in that chat and direct the user to launch a new chat.
+  2. Commit and push all changes with a Conventional Commit (`[skip ci]`).
+  3. Close out the chat session by summarizing the achievements and instructing the user to open a **fresh chat session** for the next Sub-Pillar.
+* **Scope Guard:** If a user or prompt attempts to advance to the next Pillar/Sub-Pillar within an existing session, the agent must decline to proceed in that chat and direct the user to launch a new chat.
 
 ---
 
