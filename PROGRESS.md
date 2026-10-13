@@ -31,7 +31,7 @@
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
-- **Tiny Tapeout SKY 26d Submission:** ✅ SUBMITTED & VERIFIED (PR #85 green, Mux 265 confirmed, shuttle closes end of November 2026).
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles, Mux 265 confirmed; shuttle closes end of November 2026).
 - **Pillar 6 (Pre-Silicon FPGA Emulation & Software Development, Oct 2026 – June 2027):** 🚀 **ACTIVE / IN PROGRESS.**
   - **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & VERIFIED.**
     * Component 1 (PYNQ-Z2 AXI4-Lite Wrapper): ✅ 100% COMPLETE & VERIFIED.
