@@ -1,6 +1,38 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-13 08:44 (Run 64: Makefile Cocotb 2.x Cleanliness & Pillar 6.0 Handoff)
+## Last Execution Run: 2026-10-13 21:12 (Run 65: Architectural Clarifications on Memory Organization & Pillar 6.0 Wrap-Up)
+
+### [Built]
+- Architectural analysis and visual documentation of memory addressability (byte vs bit vs word addressing, IBM System/360 legacy, DRAM cache-line burst realities, and AXI4-Lite byte write strobes `wstrb`).
+
+### [Architecture Decisions & Silicon Forensics]
+- **Granularity Trade-off in Digital Architecture:**
+  - Bit-addressable memory introduces severe pointer bloat (3 extra bits per pointer address) and prohibitive silicon MUX routing overhead.
+  - Word-addressable memory wastes up to 75% memory capacity when handling 8-bit text characters and adds latency with read-modify-write masking operations.
+  - Byte-addressability represents the optimal Goldilocks compromise: native character processing (ASCII/UTF-8), power-of-two arithmetic, and compact pointer sizes.
+  - In silicon, hardware buses physically move multi-byte blocks (cache lines / 32-bit words) using parallel byte write strobes (`s_axi_wstrb`), maintaining high throughput while presenting a byte-addressable ISA abstraction.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles, Mux 265 confirmed; shuttle closes end of November 2026).
+- **Pillar 6 (Pre-Silicon FPGA Emulation & Software Development, Oct 2026 – June 2027):** 🚀 **ACTIVE / IN PROGRESS.**
+  - **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & VERIFIED.**
+    * Component 1 (PYNQ-Z2 AXI4-Lite Wrapper): ✅ 100% COMPLETE & VERIFIED.
+    * Component 2 (Pre-Synthesis Simulation Regression): ✅ 100% COMPLETE (5/5 PASS in 0.61s).
+    * Component 3 (DE10-Lite Tactile Console & Synthesis): ✅ 100% COMPLETE (4/4 PASS in 0.09s, Quartus SOF generated with +4.253ns setup slack).
+    * Component 4 (PYNQ-Z2 Overlay & Jupyter Driver): ✅ 100% COMPLETE (Bitstream & HWH exported with +5.791ns setup slack, 10/10 Jupyter tests PASS).
+  - **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Pipeline):** ⏳ **NEXT UP (To be launched in a fresh chat session).**
+  - **Pillars 6.2–6.5 (Voice KWS, Motor Vibration, Seed Shuffling, Driver Polish):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon and carrier board delivery.
+- **Verilator Linter:** **0 Errors, 0 Warnings** with strict `-Wall` across all FPGA wrappers.
+- **ASIC Core RTL (`src/`):** **100% Frozen & Untouched.**
+
+### [Next Steps]
+1. Note for Laptop (`juliusli-MSI`): Continue reviewing **The Python MMIO driver & Application #10** (`fpga/pynq_z2/jupyter/scim_pynq_driver.py` and `fpga/pynq_z2/jupyter/pynq_scim_validation.ipynb`).
+2. Physical FPGA bench testing on Desktop PC when bench cables arrive.
+3. Launch a **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+
+## Previous Execution Run: 2026-10-13 08:44 (Run 64: Makefile Cocotb 2.x Cleanliness & Pillar 6.0 Handoff)
 
 ### [Built]
 - **`test/Makefile`:** Added `COCOTB_TEST_MODULES` alongside `MODULE` for `test_fpga_axi` and `test_de10_lite` targets, eliminating Cocotb 2.x deprecation warnings.
