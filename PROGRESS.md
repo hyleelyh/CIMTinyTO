@@ -1,16 +1,19 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-13 21:12 (Run 65: Architectural Clarifications on Memory Organization & Pillar 6.0 Wrap-Up)
+## Last Execution Run: 2026-10-14 08:24 (Run 66: Educational Walkthrough on RTL Realities, Auto-Clear Circuits & SoC Interconnects)
 
 ### [Built]
-- Architectural analysis and visual documentation of memory addressability (byte vs bit vs word addressing, IBM System/360 legacy, DRAM cache-line burst realities, and AXI4-Lite byte write strobes `wstrb`).
+- In-depth pedagogical analysis of hardware auto-clearing mechanisms, Verilog non-blocking assignment override rules (`wr_act_pulse`), physical standard-cell DFF synthesis, and contrasting against software toggle failure modes.
+- Comprehensive architectural study of large-scale industrial SoC engineering (Apple/NVIDIA/Intel), codebase scales (10M RTL vs 100M+ verification), standardized communication contracts (AMBA AXI/CHI/UCIe), packetized Networks-on-Chip (NoC), and single-source register generation (SystemRDL/IP-XACT).
 
 ### [Architecture Decisions & Silicon Forensics]
-- **Granularity Trade-off in Digital Architecture:**
-  - Bit-addressable memory introduces severe pointer bloat (3 extra bits per pointer address) and prohibitive silicon MUX routing overhead.
-  - Word-addressable memory wastes up to 75% memory capacity when handling 8-bit text characters and adds latency with read-modify-write masking operations.
-  - Byte-addressability represents the optimal Goldilocks compromise: native character processing (ASCII/UTF-8), power-of-two arithmetic, and compact pointer sizes.
-  - In silicon, hardware buses physically move multi-byte blocks (cache lines / 32-bit words) using parallel byte write strobes (`s_axi_wstrb`), maintaining high throughput while presenting a byte-addressable ISA abstraction.
+- **Hardware Auto-Clearing vs. Software Toggle:**
+  - Evaluated the physical failure mode of software clearing: OS thread preemption or AXI bus latency stretches strobe pulses across tens of cycles, destroying shift-register and activation latch integrity.
+  - Formulated the exact synthesized gate structure ($D = \text{Write\_Condition} \land \text{wdata}[6]$), guaranteeing a deterministic 1-clock-cycle pulse with zero software overhead.
+- **Microarchitecture Scope: Handcrafted vs. Automated Generators:**
+  - Documented why the CIMTinyTO ASIC core avoids on-chip AXI buses (saving >50% silicon area and operating within the 24-pin budget) while the FPGA emulation uses a hybrid model (Vivado SmartConnect crossbar + hand-crafted zero-wait-state single-cycle AXI slave wrapper).
+- **Educational Walkthrough Roadmap:**
+  - Code review transitioned into a structured pedagogical walkthrough across our implementation, to be continued on the Desktop PC (`juliusli`).
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
@@ -28,9 +31,11 @@
 - **ASIC Core RTL (`src/`):** **100% Frozen & Untouched.**
 
 ### [Next Steps]
-1. Note for Laptop (`juliusli-MSI`): Continue reviewing **The Python MMIO driver & Application #10** (`fpga/pynq_z2/jupyter/scim_pynq_driver.py` and `fpga/pynq_z2/jupyter/pynq_scim_validation.ipynb`).
-2. Physical FPGA bench testing on Desktop PC when bench cables arrive.
+1. Continue educational walkthrough of implementation subsystems on Desktop PC (`juliusli`).
+2. Physical FPGA bench testing on Desktop PC when bench hardware is connected.
 3. Launch a **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+
+## Previous Execution Run: 2026-10-13 21:12 (Run 65: Architectural Clarifications on Memory Organization & Pillar 6.0 Wrap-Up)
 
 ## Previous Execution Run: 2026-10-13 08:44 (Run 64: Makefile Cocotb 2.x Cleanliness & Pillar 6.0 Handoff)
 
