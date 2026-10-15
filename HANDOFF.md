@@ -1,6 +1,6 @@
 # Session Handoff: Pillar 6.0 Baseline Emulation Complete & Ready for Pillar 6.1 (Micro-ResNet)
 
-- **Date:** 2026-10-14 08:24
+- **Date:** 2026-10-15 08:30
 - **Machine:** Laptop (`juliusli-MSI` / user `juliusli`)
 - **Workstation Role:** Reviewing, planning, study, and learning. (Primary bring-up platform collocated with bench hardware is Desktop PC).
 - **Active Branch:** `main`
@@ -11,7 +11,11 @@
 
 > [!IMPORTANT]
 > **Action Note for Desktop PC (`juliusli`):**
-> Continue the educational walkthrough of the different parts of the CIMTinyTO implementation (ASIC core stochastic datapath, LFSR Galois generators, Wallace tree compressors, and FPGA AXI bridge).
+> Continue the educational walkthrough of the CIMTinyTO physical implementation:
+> 1. Stochastic Number Generator Bank & Galois LFSRs (`src/scim_sng_bank.v` & `src/lfsr8_galois.v`).
+> 2. Processing Element Array (`src/scim_pe.v`).
+> 3. 16-to-5 Wallace Tree Compressors (`src/scim_compressor_42.v` & `src/scim_wallace_tree.v`).
+> 4. 13-bit Saturating Accumulator (`src/scim_accumulator.v`).
 
 ---
 

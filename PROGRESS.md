@@ -1,19 +1,22 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-14 21:55 (Run 67: Systems Architecture Analysis, AXI-DMA Feasibility & Application #11 Formalization)
+## Last Execution Run: 2026-10-15 08:30 (Run 68: Educational Walkthrough on Reset Synchronizers, AASD Latency & Stationary Weight Memory)
 
 ### [Built]
-- **`HANDOFF.md`:** Updated Application Demonstration Matrix. Formalized priority hierarchy: Applications 1–10 are the core physical demonstration commitment; added **Application #11: Multi-Tier Micro-ResNet Throughput & AXI-DMA Benchmark** as a "Nice-to-Try" stretch exploration with quantitative performance tiers ($0.7\text{ FPS} \rightarrow 8.3\text{ FPS} \rightarrow 21.3\text{ FPS}$).
+- Detailed pedagogical analysis and architectural breakdown of `tt_um_scim_core.v` and `scim_weight_mem.v`.
+- Mathematical and silicon analysis of Asynchronous Assert, Synchronous Deassert (AASD) 2-stage DFF reset topology, distinguishing 0-cycle assertion vs 2-cycle synchronized release.
+- Circuit dissection of High-Fanout Net (HFN) register cloning (`rst_sync_*`) with `(* keep = "true" *)` synthesis pragmas.
+- Architectural exploration of standard-cell DFF stationary weight storage, 256-bit serial-in parallel-out shift chains, and single-pin DFT scan loopback (`w_dout`).
 
 ### [Architecture Decisions & Silicon Forensics]
-- **Bandwidth Impedance Mismatch Analysis:**
-  - Evaluated AXI-DMA vs. CIMTinyTO serial ingest bandwidth. DMA line rate ($200\text{ MB/s}$) exceeds ASIC weight ingestion rate ($50\text{ Mbps}$, 1 bit/cycle) by $32\times$, and during the 256-cycle compute phase the ASIC accepts 0 input bits. Direct connection requires an FPGA BRAM FIFO and rate-adapting state machine with `TREADY` backpressure.
-- **Amdahl's Law & Bottleneck Identification:**
-  - Rigorously proved that the ASIC is NOT the current bottleneck: physical silicon computation takes only $6.08\text{ }\mu\text{s}$ per $16\times 16$ tile, while Python MMIO bus transactions take $\sim 180\text{ }\mu\text{s}$ (ASIC sits idle 97% of the time).
-  - Removing software overhead via autonomous FPGA feeding unlocks the full 42.1 MMAC/s silicon potential, enabling $21.3\text{ FPS}$ on Micro-ResNet ($32\times 32$) and sub-millisecond Voice KWS ($0.2\text{ ms}$).
-- **Application Priority Policy:**
-  - Applications 1–10: High-priority core deliverables to be fully implemented barring unrecoverable hardware failure.
-  - Application 11+: Extended "Nice to Try" explorations.
+- **Asymmetric Reset Latency (AASD):**
+  - Going INTO reset (`1 -> 0`) triggers the asynchronous clear (`CLR_B`) pull-downs across both synchronizer stages in parallel, achieving instantaneous zero-clock-cycle clamping for power/fault safety.
+  - Coming OUT of reset (`0 -> 1`) requires two full clock edges to propagate `1'b1` through Stage 0 and Stage 1, eliminating metastability and guaranteeing that all 761 core DFFs exit reset on the exact same clock edge without recovery/removal violations.
+- **Stationary Memory vs. 6T SRAM:**
+  - 256 standard-cell DFFs enable 100% automated OpenLane/OpenROAD digital synthesis and provide continuous, 0-cycle parallel access to all 256 weights without bitline pre-charging or sense amplifiers.
+  - Zero dynamic switching power during computation ($P_{\text{dyn}} = C V^2 f = 0$) because `w_shift_en` remains deasserted throughout the 256-cycle compute phase.
+- **DFT Silicon Diagnostic:**
+  - Routing `shift_reg[255]` directly to `uio_out[2]` (`w_dout`) enables complete scan-chain validation of all 256 DFFs on Day-1 physical silicon with zero dedicated test pads.
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
@@ -24,8 +27,15 @@
 - **ASIC Core RTL (`src/`):** **100% Frozen & Untouched.**
 
 ### [Next Steps]
-1. Launch a **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+1. Continue educational walkthrough on Desktop PC (`juliusli`):
+   - Stochastic Number Generator Bank (`scim_sng_bank.v` & `lfsr8_galois.v`).
+   - 1-Bit Processing Elements (`scim_pe.v`).
+   - 16-to-5 Wallace Tree Compressor (`scim_compressor_42.v` & `scim_wallace_tree.v`).
+   - 13-bit Saturating Accumulator (`scim_accumulator.v`).
 2. Bench testing on Desktop PC when hardware cables arrive.
+3. Launch a **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+
+## Previous Execution Run: 2026-10-14 21:55 (Run 67: Systems Architecture Analysis, AXI-DMA Feasibility & Application #11 Formalization)
 
 ## Previous Execution Run: 2026-10-14 08:24 (Run 66: Educational Walkthrough on RTL Realities, Auto-Clear Circuits & SoC Interconnects)
 
