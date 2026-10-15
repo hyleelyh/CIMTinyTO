@@ -64,20 +64,39 @@ fpga/
 
 ---
 
-## 10-Application Demonstration Matrix for Pillar 7 Bring-Up
+## Application Demonstration Matrix
 
-| # | Demo Application | Host Platform | Sensors / Input Source | Interface | SCIM Role |
-| :---: | :--- | :--- | :--- | :--- | :--- |
-| **1** | **Bit-Exact HW Verification** | PYNQ-Z2 FPGA | Python NumPy vectors | PMOD / MMIO (3.3V) | 50 MHz Parity Verification |
-| **2** | **RISC-V Coprocessor** | SiFive HiFive 1 | Synthetic Matrix Stream | SPI (3.3V) | Math Hardware Offload |
-| **3** | **Tactile Logic Console** | DE10-Lite | Slide Switches & Clock Button | 40-pin GPIO (3.3V) | 7-Segment Hex Display |
-| **4** | **Voice Keyword Spotting** | STM32 B-U585I | Dual `MP23DB01HP` Mics | PMOD / SPI (3.3V) | 16-channel MFCC Acoustic Model |
-| **5** | **Motor Vibration Anomaly** | STM32 B-U585I | `ISM330DHCX` 3D IMU | PMOD / SPI (3.3V) | 16-bin FFT Spectral Anomaly |
-| **6** | **Real-Time Video Vision** | Raspberry Pi 5 | NoIR Camera Module v2 | High-Speed SPI (3.3V) | Micro-ResNet @ 12.5 FPS |
-| **7** | **Optical Gesture / ToF** | STM32 B-U585I | `VL53L5CX` ToF Sensor | PMOD / SPI (3.3V) | 8x8 Depth Swipe Classifier |
-| **8** | **8-Bit MCU Math Offload** | Arduino Uno R3 | Synthetic vectors | SPI (+ TXS0108E) | Legacy 5V MCU Acceleration |
-| **9** | **In-Car CVT Diagnostics** | OBDLink LX + RPi5 | Car CAN Bus Telemetry | Bluetooth $\rightarrow$ SPI | 16-PID Engine/CVT Stress Model |
-| **10** | **Stochastic Shuffling Study** | PYNQ-Z2 & RP2040 / RPi5 | Permuted Benchmark Vectors | PMOD / SPI (3.3V) | Seed effect & noise decorrelation across 20.9T permutations |
+### Core Demonstration Portfolio (Applications 1–10: High Priority)
+*Targeted for full physical implementation across pre-silicon emulation (Pillar 6) and post-silicon bring-up (Pillar 7) barring unexpected hardware failures.*
+
+| # | Demo Application | Host Platform | Sensors / Input Source | Interface | SCIM Role | Status |
+| :---: | :--- | :--- | :--- | :--- | :--- | :---: |
+| **1** | **Bit-Exact HW Verification** | PYNQ-Z2 FPGA | Python NumPy vectors | PMOD / MMIO (3.3V) | 50 MHz Parity Verification | ✅ Signed Off |
+| **2** | **RISC-V Coprocessor** | SiFive HiFive 1 | Synthetic Matrix Stream | SPI (3.3V) | Math Hardware Offload | ⏳ Upcoming |
+| **3** | **Tactile Logic Console** | DE10-Lite | Slide Switches & Clock Button | 40-pin GPIO (3.3V) | 7-Segment Hex Display | ✅ Signed Off |
+| **4** | **Voice Keyword Spotting** | STM32 B-U585I | Dual `MP23DB01HP` Mics | PMOD / SPI (3.3V) | 16-channel MFCC Acoustic Model | ⏳ Upcoming |
+| **5** | **Motor Vibration Anomaly** | STM32 B-U585I | `ISM330DHCX` 3D IMU | PMOD / SPI (3.3V) | 16-bin FFT Spectral Anomaly | ⏳ Upcoming |
+| **6** | **Real-Time Video Vision** | Raspberry Pi 5 | NoIR Camera Module v2 | High-Speed SPI (3.3V) | Micro-ResNet @ 12.5 FPS | ⏳ Upcoming |
+| **7** | **Optical Gesture / ToF** | STM32 B-U585I | `VL53L5CX` ToF Sensor | PMOD / SPI (3.3V) | 8x8 Depth Swipe Classifier | ⏳ Upcoming |
+| **8** | **8-Bit MCU Math Offload** | Arduino Uno R3 | Synthetic vectors | SPI (+ TXS0108E) | Legacy 5V MCU Acceleration | ⏳ Upcoming |
+| **9** | **In-Car CVT Diagnostics** | OBDLink LX + RPi5 | Car CAN Bus Telemetry | Bluetooth $\rightarrow$ SPI | 16-PID Engine/CVT Stress Model | ⏳ Upcoming |
+| **10** | **Stochastic Shuffling Study** | PYNQ-Z2 & RP2040 / RPi5 | Permuted Benchmark Vectors | PMOD / SPI (3.3V) | Seed effect & noise decorrelation across 20.9T permutations | ✅ Signed Off |
+
+---
+
+### Extended / "Nice-to-Try" Applications (Beyond Application 10)
+*Applications beyond #10 are categorized as **Nice to Try / Stretch Explorations** and will remain secondary unless experimental findings or specific performance requirements justify moving up their priority.*
+
+#### **Application #11: Multi-Tier Micro-ResNet Throughput & AXI-DMA Benchmark**
+* **Host Platform:** PYNQ-Z2 FPGA
+* **Input Source:** $32 \times 32$ CIFAR-10 / Camera Stream ($\approx 7,800$ tiles per frame)
+* **Goal:** Quantify and benchmark the software-to-hardware speedup across the three transport tiers, testing the transition from interpreted MMIO to full hardware line-rate streaming:
+
+| Implementation Tier | How It Works | Time per $16 \times 16$ Tile | Total Time per Frame | Achievable Frame Rate | Project Role / Priority |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| **Tier 1: Pure Python MMIO** | Python `for` loops call `self.mmio.write()` in Jupyter. Bytecode & AXI stalls dominate. | $\sim 180\text{ }\mu\text{s}$ | $7,800 \times 180\text{ }\mu\text{s} = \mathbf{1.4\text{ s}}$ | **$\approx 0.7\text{ FPS}$** | **Pillar 6.1 Baseline (Verification & Debug)** |
+| **Tier 2: Compiled C/C++ MMIO** | Direct `/dev/mem` user-space pointer access via ARM assembly `STR`/`LDR` instructions. | $\sim 15\text{ }\mu\text{s}$ | $7,800 \times 15\text{ }\mu\text{s} = \mathbf{0.12\text{ s}}$ | **$\approx 8.3\text{ FPS}$** | **Nice to Try (Fast Software Upgrade)** |
+| **Tier 3: Autonomous Feeder / AXI-DMA** | Dedicated FPGA state machine / AXI-DMA loops through tiles at 50 MHz without CPU intervention. | $\mathbf{6.08\text{ }\mu\text{s}}$ | $7,800 \times 6.08\text{ }\mu\text{s} = \mathbf{0.047\text{ s}}$ | **$\approx 21.3\text{ FPS}$** | **Nice to Try (Full Silicon Line Rate)** |
 
 ---
 

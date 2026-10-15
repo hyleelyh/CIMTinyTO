@@ -1,6 +1,33 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-14 08:24 (Run 66: Educational Walkthrough on RTL Realities, Auto-Clear Circuits & SoC Interconnects)
+## Last Execution Run: 2026-10-14 21:55 (Run 67: Systems Architecture Analysis, AXI-DMA Feasibility & Application #11 Formalization)
+
+### [Built]
+- **`HANDOFF.md`:** Updated Application Demonstration Matrix. Formalized priority hierarchy: Applications 1–10 are the core physical demonstration commitment; added **Application #11: Multi-Tier Micro-ResNet Throughput & AXI-DMA Benchmark** as a "Nice-to-Try" stretch exploration with quantitative performance tiers ($0.7\text{ FPS} \rightarrow 8.3\text{ FPS} \rightarrow 21.3\text{ FPS}$).
+
+### [Architecture Decisions & Silicon Forensics]
+- **Bandwidth Impedance Mismatch Analysis:**
+  - Evaluated AXI-DMA vs. CIMTinyTO serial ingest bandwidth. DMA line rate ($200\text{ MB/s}$) exceeds ASIC weight ingestion rate ($50\text{ Mbps}$, 1 bit/cycle) by $32\times$, and during the 256-cycle compute phase the ASIC accepts 0 input bits. Direct connection requires an FPGA BRAM FIFO and rate-adapting state machine with `TREADY` backpressure.
+- **Amdahl's Law & Bottleneck Identification:**
+  - Rigorously proved that the ASIC is NOT the current bottleneck: physical silicon computation takes only $6.08\text{ }\mu\text{s}$ per $16\times 16$ tile, while Python MMIO bus transactions take $\sim 180\text{ }\mu\text{s}$ (ASIC sits idle 97% of the time).
+  - Removing software overhead via autonomous FPGA feeding unlocks the full 42.1 MMAC/s silicon potential, enabling $21.3\text{ FPS}$ on Micro-ResNet ($32\times 32$) and sub-millisecond Voice KWS ($0.2\text{ ms}$).
+- **Application Priority Policy:**
+  - Applications 1–10: High-priority core deliverables to be fully implemented barring unrecoverable hardware failure.
+  - Application 11+: Extended "Nice to Try" explorations.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles, Mux 265 confirmed; shuttle closes end of November 2026).
+- **Pillar 6 (Pre-Silicon FPGA Emulation & Software Development, Oct 2026 – June 2027):** 🚀 **ACTIVE / IN PROGRESS.**
+  - **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & VERIFIED.**
+  - **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Pipeline):** ⏳ **NEXT UP (To be launched in a fresh chat session).**
+- **ASIC Core RTL (`src/`):** **100% Frozen & Untouched.**
+
+### [Next Steps]
+1. Launch a **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+2. Bench testing on Desktop PC when hardware cables arrive.
+
+## Previous Execution Run: 2026-10-14 08:24 (Run 66: Educational Walkthrough on RTL Realities, Auto-Clear Circuits & SoC Interconnects)
 
 ### [Built]
 - In-depth pedagogical analysis of hardware auto-clearing mechanisms, Verilog non-blocking assignment override rules (`wr_act_pulse`), physical standard-cell DFF synthesis, and contrasting against software toggle failure modes.
