@@ -1,37 +1,35 @@
-# Session Handoff: Pillar 6.0 Baseline Emulation Complete & Ready for Pillar 6.1 (Micro-ResNet)
+# Session Handoff: Pillar 6.0 Physical Silicon Emulation Complete & Ready for Pillar 6.1 (Micro-ResNet)
 
-- **Date:** 2026-10-17 18:15
+- **Date:** 2026-10-18 15:30
 - **Machine:** Desktop PC (`juliusli` / user `juliusli`)
 - **Workstation Role:** Primary bring-up platform collocated with bench hardware (Korad supply, PYNQ-Z2, DE10-Lite, logic analyzer).
 - **Active Branch:** `main`
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `750 *`). Shuttle closes end of November 2026; physical packaged silicon & carrier board delivery arrives ~June 2027. All work between October 2026 and June 2027 constitutes **Pillar 6 pre-silicon emulation, software driver polish, and application pipelines**. Pillar 7 (physical chip bring-up) begins strictly in June 2027 upon physical silicon arrival.
-- **Hardware Logistics:** Terasic DE10-Lite tactile mode **100% verified on physical silicon**; PYNQ-Z2 board ready on bench, pending Ethernet cable.
-- **Status:** **Target 1 (DE10-Lite) Signed Off on Silicon; Ready for Target 2 (PYNQ-Z2) Automated Regression.**
+- **Hardware Logistics:** Both Terasic DE10-Lite tactile mode AND AMD PYNQ-Z2 50 MHz AXI4-Lite Macro **100% verified on physical silicon hardware**.
+- **Status:** **Pillar 6.0 Baseline Emulation Infrastructure & Handshake SIGNED OFF ON SILICON; Ready for Pillar 6.1 (Micro-ResNet) in a Fresh Chat Session.**
 
 > [!IMPORTANT]
-> **Bench Bring-Up Status & Next Action:**
-> 1. **DE10-Lite (Target 1):** ✅ **100% SIGNED OFF ON PHYSICAL HARDWARE SILICON** (bitstream flashed, reset synchronizer verified, 5 Hz auto and manual single-step 256-cycle MVM verified, back-to-back runs hardened).
-> 2. **PYNQ-Z2 (Target 2):** Connect Ethernet cable to PYNQ-Z2, power up board, and run the 50 MHz automated AXI MMIO regression suite via `pynq_scim_validation.ipynb`.
+> **Bench Bring-Up Status & Verification Milestone:**
+> 1. **DE10-Lite (Target 1):** ✅ **100% SIGNED OFF ON PHYSICAL SILICON** (bitstream flashed, reset synchronizer verified, 5 Hz auto and manual single-step 256-cycle MVM verified, back-to-back runs hardened).
+> 2. **PYNQ-Z2 (Target 2):** ✅ **100% SIGNED OFF ON PHYSICAL SILICON** (50 MHz AXI4-Lite MMIO macro, 10/10 Gate-0 regression vectors bit-exact with 0 LSB divergence, Application #10 stochastic shuffling verified live on Zynq-7020 ARM Linux).
 
 ---
 
-## Pillar 6 Verification Scorecard
+## Pillar 6.0 Physical Verification Scorecard
 
 | Test Suite / Target | Description | Timing Closure | Real Time | Status |
 | :--- | :--- | :---: | :---: | :---: |
 | `test_fpga_axi` (5 tests) | PYNQ-Z2 AXI4-Lite slave bridge & MVM MMIO | — | $0.27\text{ s}$ | ✅ **5/5 PASS** |
 | `test_de10_lite` (4 tests)| DE10-Lite tactile console (reset, 7-seg, debouncer, MVM)| — | $0.05\text{ s}$ | ✅ **4/4 PASS** |
-| `scim_pynq_driver.py` (3 tests)| Production Python MMIO driver & Application #10 | — | $1.8\text{ s}$ | ✅ **3/3 PASS** |
-| `pynq_scim_validation.ipynb` (10 tests)| Interactive Jupyter notebook 10-vector regression | — | $7.2\text{ s}$ | ✅ **10/10 PASS** |
+| `scim_pynq_driver.py` (3 tests)| Physical Python MMIO driver & Application #10 on Zynq | — | Real Hardware | ✅ **3/3 PASS (0 LSB Diff)** |
+| `pynq_scim_validation.ipynb` (10 tests)| Live 10-vector Gate-0 regression on physical FPGA | — | Real Hardware | ✅ **10/10 PASS (100% Bit-Exact)** |
 | `build_max10.tcl` (Quartus)| Intel MAX 10 FPGA synthesis & SOF generation | **+4.331 ns** slack | $17\text{ s}$ | ✅ **SOF Generated** |
 | **DE10-Lite Physical Silicon**| Tactile 256-cycle MVM, 5 Hz auto/manual clock on Max 10 | — | Real Hardware | ✅ **100% VERIFIED** |
 | `build_overlay.tcl` (Vivado)| Xilinx Zynq-7020 synthesis & bitstream generation | **+5.791 ns** slack | $1\text{m } 40\text{s}$ | ✅ **BIT + HWH Generated** |
+| **PYNQ-Z2 Physical Silicon**| Live 50 MHz AXI4-Lite Stochastic MVM on XC7Z020 | **+5.791 ns** slack | Real Hardware | ✅ **100% VERIFIED** |
 | `verilator` linting | All FPGA wrappers (`de10_lite_top.v`, `tt_scim_axi_wrapper.v`) | — | $1.2\text{ s}$ | ✅ **0 Errors, 0 Warnings** |
-| **Total** | **All Pre-Silicon FPGA Emulation Sign-Off Targets** | — | — | ✅ **100% PASS** |
-| `build_overlay.tcl` (Vivado)| Xilinx Zynq-7020 synthesis & bitstream generation | **+5.791 ns** slack | $1\text{m } 40\text{s}$ | ✅ **BIT + HWH Generated** |
-| `verilator` linting | All FPGA wrappers (`de10_lite_top.v`, `tt_scim_axi_wrapper.v`) | — | $1.2\text{ s}$ | ✅ **0 Errors, 0 Warnings** |
-| **Total** | **All Pre-Silicon FPGA Emulation Sign-Off Targets** | — | — | ✅ **100% PASS** |
+| **Total** | **All Pre-Silicon FPGA Emulation Sign-Off Targets** | — | — | ✅ **100% PASS ON SILICON** |
 
 ---
 

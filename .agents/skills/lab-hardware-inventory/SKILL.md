@@ -47,9 +47,17 @@ To manage physical connectivity, compute performance, and bench safety during **
 
 ## 2. FPGA Emulation & Logic Verification Platforms (3.3V Native)
 
-### PYNQ-Z2 (Xilinx Zynq-7020 SoC)
-* **Architecture:** Dual ARM Cortex-A9 @ 650 MHz + Artix-7 FPGA fabric (85K logic cells, 220 DSP slices).
-* **Interfaces:** 2x PMOD (PMOD A, PMOD B), Arduino Uno shield headers, Raspberry Pi 40-pin header, Ethernet, USB Host, HDMI In/Out.
+### PYNQ-Z2 (TUL / Xilinx Zynq-7020 SoC, XC7Z020-1CLG400C)
+* **Architecture:** Dual ARM Cortex-A9 @ 650 MHz + Artix-7 FPGA fabric (13.3K slices / 85K logic cells, 220 DSP slices, 630 KB BRAM, 512 MB DDR3).
+* **Reference Manual:** `FeasibilityStudy/pynqz2_user_manual_v1_0.pdf`
+* **Jumpers & Power Configuration:**
+  * **Power Selection Jumper (`J9`):** Set to **`USB`** for standard 5V USB-powered bench operation via Micro-USB `J8`. (Set to `REG` only if using external 7V–15V DC via `DC1` barrel jack).
+  * **Boot Mode Jumper (`JP1`):** Set to **`SD`** to boot PYNQ Linux from the MicroSD slot (`J13`). (Other options: `QSPI`, `JTAG`).
+  * **Power Switch:** The horizontal slide switch located on the left board edge **directly between the Micro-USB port (`J8`) and the DC barrel jack (`DC1`)**. Silk-screen labels: **`OFF`** (left) / **`ON`** (right). Slide right to power ON. (Note: `SW0` and `SW1` are user GPIO DIP switches, NOT the power switch!).
+  * **Micro-USB Port (`J8`):** Labeled `PROG UART` (FTDI FT2232HL bridge for JTAG programming, USB-UART console, and 5V USB power).
+  * **External DC Jack (`DC1`):** 2.1mm center-positive barrel jack, 7V–15V DC (12V recommended).
+* **Interfaces & I/O:** 2x PMOD (PMOD A, PMOD B), Arduino Uno shield headers, Raspberry Pi 40-pin header, Gigabit Ethernet (Realtek RTL8211E-VL PHY), USB 2.0 Host (`J12`), HDMI In/Out (`J10`/`J11`), ADAU1761 Audio Codec.
+* **User I/O:** 4x Push buttons (`BTN0`–`BTN3`), 2x User DIP slide switches (`SW0`–`SW1` on pins M20 and M19, located right next to J9), 4x User LEDs (`LED0`–`LED3`), 2x RGB LEDs (`LD4`–`LD5`), System Reset button (`SRST`), PL Reconfigure button (`PROG`).
 * **Logic Levels:** Safe **$+3.3\text{V}$ LVCMOS**.
 * **Primary Role:** Pillar 6 Pre-Silicon Emulation, automated regression testing at 10–50 MHz, and interactive Jupyter Notebook bit-exact verification against Python NumPy.
 

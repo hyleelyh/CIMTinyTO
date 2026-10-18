@@ -1,6 +1,37 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-17 18:15 (Run 69: Physical Bench Emulation Bring-Up Signed Off on Terasic DE10-Lite FPGA)
+## Last Execution Run: 2026-10-18 15:30 (Run 70: Physical Bench Emulation Signed Off on AMD PYNQ-Z2 FPGA at 50 MHz)
+
+### [Built]
+- **`fpga/pynq_z2/jupyter/scim_pynq_driver.py`:** Hardened driver path resolution to auto-detect both local and repository `model/` directories; added automatic bitstream detection for physical PYNQ boards; added `self.reset()` in `verify_against_golden` to align on-chip LFSR initial seeds with the Python golden model.
+- **`fpga/pynq_z2/jupyter/pynq_scim_validation.ipynb`:** Added `driver.reset()` to regression loop; executed live on AMD PYNQ-Z2 (Xilinx Zynq-7020) over Ethernet at 50 MHz via `nbconvert` with outputs captured and synced.
+- **`.agents/skills/lab-hardware-inventory/SKILL.md`:** Documented official PYNQ-Z2 silk-screen designators (`J9` power jumper, `JP1` boot mode jumper, `J8` PROG UART, and the horizontal power slide switch between `J8` and `DC1`), clearly distinguishing user GPIO DIP switches `SW0`/`SW1`.
+
+### [Architecture Decisions & Silicon Forensics]
+- **Physical Silicon Verification of PYNQ-Z2 50 MHz Macro:**
+  - Successfully brought up PYNQ v3.1.1 (Linux 6.6, Python 3.10) on physical AMD PYNQ-Z2 (Xilinx XC7Z020-1CLG400C).
+  - Configured passwordless SSH, `/dev/dri/renderD128` XRT user permissions, and `/etc/sudoers.d/xilinx`.
+  - Loaded `scim_pynq.bit` into the physical FPGA fabric and verified AXI4-Lite MMIO register access to `scim_core_0` at `0x40000000`.
+- **LFSR Pseudo-Random Phase Alignment:**
+  - Diagnosed that unreset stochastic MVM runs advance the 16 on-chip Galois LFSRs to cycle 257+, causing minor phase divergence compared to a freshly initialized software golden model. Calling `driver.reset()` resets all LFSRs to their initial seeds, yielding **10/10 PASS (100% BIT-FOR-BIT EXACT MATCH, 0 LSB DIVERGENCE)** across all 16 channels at 50 MHz!
+- **Application #10 Stochastic Shuffling Sign-Off:**
+  - Verified dynamic row permutation and ensemble averaging on physical hardware, confirming noise decorrelation across randomized input permutations.
+- **Pillar 6.0 Completion:**
+  - With both Target 1 (Terasic DE10-Lite) and Target 2 (AMD PYNQ-Z2) 100% verified on physical silicon, Pillar 6.0 is officially closed and signed off.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; shuttle closes end of November 2026).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% SIGNED OFF ON PHYSICAL SILICON (Both DE10-Lite and PYNQ-Z2 targets verified on real hardware).**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Pipeline):** ⏳ **UPCOMING (To be launched in a dedicated, fresh chat session).**
+- **ASIC Core RTL (`src/`):** **100% Frozen & Untouched.**
+
+### [Next Steps]
+1. Synchronize repository state and push commit (`[skip ci]`).
+2. Close Pillar 6.0 chat session.
+3. Open a **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+
+## Previous Execution Run: 2026-10-17 18:15 (Run 69: Physical Bench Emulation Bring-Up Signed Off on Terasic DE10-Lite FPGA)
 
 ### [Built]
 - **`fpga/de10_lite/rtl/de10_lite_top.v`:** Hardened CDC strobe handshake circuit by replacing open-loop timer with a closed-loop level-to-busy handshake (`auto_strobe_reg`), clearing strictly on `core_uio_out[0]` (`core_busy`) to eliminate timer truncation and enable back-to-back runs without reset.

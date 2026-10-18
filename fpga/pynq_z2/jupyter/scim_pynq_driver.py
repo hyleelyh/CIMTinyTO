@@ -38,9 +38,9 @@ import numpy as np
 # Add project root and model directory to system path
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJ_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "../../.."))
-MODEL_DIR = os.path.join(PROJ_ROOT, "model")
-if MODEL_DIR not in sys.path:
-    sys.path.insert(0, MODEL_DIR)
+for candidate in [os.path.join(CURRENT_DIR, "model"), os.path.join(PROJ_ROOT, "model")]:
+    if os.path.exists(candidate) and candidate not in sys.path:
+        sys.path.insert(0, candidate)
 
 try:
     from sim_scim import SCIMTile, ProcessingElement
@@ -397,6 +397,7 @@ class SCIMPynqDriver:
         if not HAS_GOLDEN_MODEL:
             raise RuntimeError("sim_scim.py golden model not available for verification.")
 
+        self.reset()
         self.load_weights(weights_16x16)
         hw_res = self.run_mvm(activations_16, mode=mode)["results"]
 
@@ -416,9 +417,14 @@ if __name__ == "__main__":
     print("=" * 70)
     print(" CIMTinyTO PYNQ-Z2 Python Driver Self-Test & Regression")
     print("=" * 70)
+    bitfile = None
+    for cand in [os.path.join(CURRENT_DIR, "overlay", "scim_pynq.bit"),
+                 os.path.join(CURRENT_DIR, "../overlay/scim_pynq.bit")]:
+        if os.path.exists(cand):
+            bitfile = cand
+            break
 
-    driver = SCIMPynqDriver(force_emulation=True)
-
+    driver = SCIMPynqDriver(bitstream_path=bitfile, force_emulation=(bitfile is None or not HAS_PYNQ))
     # 1. Identity Matrix Test
     W_eye = np.eye(16, dtype=int)
     act_test = np.array([10 * (i + 1) for i in range(16)], dtype=int)
