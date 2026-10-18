@@ -1,6 +1,39 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-15 08:30 (Run 68: Educational Walkthrough on Reset Synchronizers, AASD Latency & Stationary Weight Memory)
+## Last Execution Run: 2026-10-17 18:15 (Run 69: Physical Bench Emulation Bring-Up Signed Off on Terasic DE10-Lite FPGA)
+
+### [Built]
+- **`fpga/de10_lite/rtl/de10_lite_top.v`:** Hardened CDC strobe handshake circuit by replacing open-loop timer with a closed-loop level-to-busy handshake (`auto_strobe_reg`), clearing strictly on `core_uio_out[0]` (`core_busy`) to eliminate timer truncation and enable back-to-back runs without reset.
+- **Physical Bitstream Sign-Off:** Recompiled `fpga/de10_lite/output_files/de10_lite_scim.sof` with Quartus Prime Lite (**+4.331 ns setup slack**, **+0.148 ns hold slack**); flashed into physical Intel MAX 10 FPGA (`10M50DAF484C7G`) via onboard USB-Blaster in 2 seconds.
+
+### [Architecture Decisions & Silicon Forensics]
+- **Physical Silicon Verification of DE10-Lite Tactile Mode:**
+  - Successfully verified on physical hardware: power-on reset (`KEY[1]`), debouncing, 5 Hz auto-clocking (`SW[9]`), manual single-stepping (`KEY[0]`), FSM state progression (`IDLE -> CLEAR -> COMPUTE -> DONE`), 256-cycle stochastic MVM counting (`0000 -> 0100` on 7-segment displays), and channel multiplexing.
+- **24-Bit Timer Truncation Forensic:**
+  - Diagnosed that `(CLK_DIV_LIMIT << 2) + 10` ($19,999,996$) overflowed the 24-bit register `reg [23:0] strobe_hold` ($16,777,215$ max), wrapping to $3,222,780$ ($0.064\text{ s}$ delay), which vanished between the $0.200\text{ s}$ edges of the 5 Hz clock. Replaced with closed-loop handshake holding strobe until `core_busy` asserts.
+- **Sticky State Isolation in FSM Handshaking:**
+  - Diagnosed that clearing `auto_strobe_reg` on `core_uio_out[1]` (`done`) blocked Run 2 from starting because `done` remains asserted at the end of Run 1. Clearing strictly on `core_busy` resolved the lockup, allowing continuous back-to-back runs.
+- **ASIC Core Immutability:**
+  - Confirmed that all fixes were strictly confined to the FPGA testbench wrapper. `src/` remains 100% frozen, untouched, and green.
+- **Tiny Tapeout Shuttle Multiplexer Update:**
+  - Investigated the provisional shuttle re-packing (`Mux address: 750 *`). Confirmed that 2D bin-packing of the shuttle floorplan is automated and has zero impact on our merged PR #86 GDSII layout.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; shuttle closes end of November 2026).
+- **Pillar 6 (Pre-Silicon FPGA Emulation & Software Development, Oct 2026 – June 2027):** 🚀 **ACTIVE / IN PROGRESS.**
+  - **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):**
+    * DE10-Lite Tactile Console & Synthesis: ✅ **100% VERIFIED ON PHYSICAL HARDWARE SILICON.**
+    * PYNQ-Z2 AXI4-Lite Overlay & Driver: ⏳ **Bitstream compiled, pending Ethernet cable for live Jupyter regression.**
+  - **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Pipeline):** ⏳ **UPCOMING (To be launched in a fresh chat session).**
+- **ASIC Core RTL (`src/`):** **100% Frozen & Untouched.**
+
+### [Next Steps]
+1. Connect Ethernet cable to PYNQ-Z2 board and boot PYNQ Linux.
+2. Load `scim_pynq.bit` & `scim_pynq.hwh` and run [`pynq_scim_validation.ipynb`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/fpga/pynq_z2/jupyter/pynq_scim_validation.ipynb) live at 50 MHz.
+3. Launch a **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+
+## Previous Execution Run: 2026-10-15 08:30 (Run 68: Educational Walkthrough on Reset Synchronizers, AASD Latency & Stationary Weight Memory)
 
 ### [Built]
 - Detailed pedagogical analysis and architectural breakdown of `tt_um_scim_core.v` and `scim_weight_mem.v`.

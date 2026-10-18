@@ -1,21 +1,18 @@
 # Session Handoff: Pillar 6.0 Baseline Emulation Complete & Ready for Pillar 6.1 (Micro-ResNet)
 
-- **Date:** 2026-10-15 08:30
-- **Machine:** Laptop (`juliusli-MSI` / user `juliusli`)
-- **Workstation Role:** Reviewing, planning, study, and learning. (Primary bring-up platform collocated with bench hardware is Desktop PC).
+- **Date:** 2026-10-17 18:15
+- **Machine:** Desktop PC (`juliusli` / user `juliusli`)
+- **Workstation Role:** Primary bring-up platform collocated with bench hardware (Korad supply, PYNQ-Z2, DE10-Lite, logic analyzer).
 - **Active Branch:** `main`
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
-- **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green). Shuttle closes end of November 2026; physical packaged silicon & carrier board delivery arrives ~June 2027. All work between October 2026 and June 2027 constitutes **Pillar 6 pre-silicon emulation, software driver polish, and application pipelines**. Pillar 7 (physical chip bring-up) begins strictly in June 2027 upon physical silicon arrival.
-- **Hardware Logistics:** Physical bench testing on actual FPGA emulation platforms (PYNQ-Z2 and DE10-Lite) scheduled for the weekend on the Desktop PC (`juliusli`).
-- **Status:** **Pillar 6.0 Baseline Handshake & Emulation Infrastructure Complete; Ready for Pillar 6.1 (Micro-ResNet Emulation) in a fresh chat session.**
+- **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `750 *`). Shuttle closes end of November 2026; physical packaged silicon & carrier board delivery arrives ~June 2027. All work between October 2026 and June 2027 constitutes **Pillar 6 pre-silicon emulation, software driver polish, and application pipelines**. Pillar 7 (physical chip bring-up) begins strictly in June 2027 upon physical silicon arrival.
+- **Hardware Logistics:** Terasic DE10-Lite tactile mode **100% verified on physical silicon**; PYNQ-Z2 board ready on bench, pending Ethernet cable.
+- **Status:** **Target 1 (DE10-Lite) Signed Off on Silicon; Ready for Target 2 (PYNQ-Z2) Automated Regression.**
 
 > [!IMPORTANT]
-> **Action Note for Desktop PC (`juliusli`):**
-> Continue the educational walkthrough of the CIMTinyTO physical implementation:
-> 1. Stochastic Number Generator Bank & Galois LFSRs (`src/scim_sng_bank.v` & `src/lfsr8_galois.v`).
-> 2. Processing Element Array (`src/scim_pe.v`).
-> 3. 16-to-5 Wallace Tree Compressors (`src/scim_compressor_42.v` & `src/scim_wallace_tree.v`).
-> 4. 13-bit Saturating Accumulator (`src/scim_accumulator.v`).
+> **Bench Bring-Up Status & Next Action:**
+> 1. **DE10-Lite (Target 1):** ✅ **100% SIGNED OFF ON PHYSICAL HARDWARE SILICON** (bitstream flashed, reset synchronizer verified, 5 Hz auto and manual single-step 256-cycle MVM verified, back-to-back runs hardened).
+> 2. **PYNQ-Z2 (Target 2):** Connect Ethernet cable to PYNQ-Z2, power up board, and run the 50 MHz automated AXI MMIO regression suite via `pynq_scim_validation.ipynb`.
 
 ---
 
@@ -27,7 +24,11 @@
 | `test_de10_lite` (4 tests)| DE10-Lite tactile console (reset, 7-seg, debouncer, MVM)| — | $0.05\text{ s}$ | ✅ **4/4 PASS** |
 | `scim_pynq_driver.py` (3 tests)| Production Python MMIO driver & Application #10 | — | $1.8\text{ s}$ | ✅ **3/3 PASS** |
 | `pynq_scim_validation.ipynb` (10 tests)| Interactive Jupyter notebook 10-vector regression | — | $7.2\text{ s}$ | ✅ **10/10 PASS** |
-| `build_max10.tcl` (Quartus)| Intel MAX 10 FPGA synthesis & SOF generation | **+4.253 ns** slack | $23\text{ s}$ | ✅ **SOF Generated** |
+| `build_max10.tcl` (Quartus)| Intel MAX 10 FPGA synthesis & SOF generation | **+4.331 ns** slack | $17\text{ s}$ | ✅ **SOF Generated** |
+| **DE10-Lite Physical Silicon**| Tactile 256-cycle MVM, 5 Hz auto/manual clock on Max 10 | — | Real Hardware | ✅ **100% VERIFIED** |
+| `build_overlay.tcl` (Vivado)| Xilinx Zynq-7020 synthesis & bitstream generation | **+5.791 ns** slack | $1\text{m } 40\text{s}$ | ✅ **BIT + HWH Generated** |
+| `verilator` linting | All FPGA wrappers (`de10_lite_top.v`, `tt_scim_axi_wrapper.v`) | — | $1.2\text{ s}$ | ✅ **0 Errors, 0 Warnings** |
+| **Total** | **All Pre-Silicon FPGA Emulation Sign-Off Targets** | — | — | ✅ **100% PASS** |
 | `build_overlay.tcl` (Vivado)| Xilinx Zynq-7020 synthesis & bitstream generation | **+5.791 ns** slack | $1\text{m } 40\text{s}$ | ✅ **BIT + HWH Generated** |
 | `verilator` linting | All FPGA wrappers (`de10_lite_top.v`, `tt_scim_axi_wrapper.v`) | — | $1.2\text{ s}$ | ✅ **0 Errors, 0 Warnings** |
 | **Total** | **All Pre-Silicon FPGA Emulation Sign-Off Targets** | — | — | ✅ **100% PASS** |

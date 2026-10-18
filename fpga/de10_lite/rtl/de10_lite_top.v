@@ -147,20 +147,24 @@ module de10_lite_top #(
     //      SW[3]: ctrl_strobe
     //      SW[7:4]: Selected accumulator channel for display readout (0 to 15)
 
-    // CDC Pulse Stretcher: Stretches 1-cycle KEY0 press to span multiple slow auto_clk_5hz edges
-    reg [23:0] strobe_hold = 24'd0;
+    // CDC Strobe Handshake:
+    // When KEY0 is pressed, assert strobe and hold it high until the core acknowledges
+    // by asserting core_busy (core_uio_out[0]).
+    // NOTE: Do NOT clear on core_uio_out[1] (done), because done remains asserted
+    // after a run finishes, which would prematurely squash the next start strobe!
+    reg auto_strobe_reg = 1'b0;
     always @(posedge MAX10_CLK1_50) begin
         if (!master_rst_n) begin
-            strobe_hold <= 24'd0;
+            auto_strobe_reg <= 1'b0;
         end else begin
-            if (key0_press_pulse && SW[9]) begin
-                strobe_hold <= (CLK_DIV_LIMIT[23:0] << 2) + 24'd10;
-            end else if (strobe_hold > 24'd0) begin
-                strobe_hold <= strobe_hold - 24'd1;
+            if (key0_press_pulse) begin
+                auto_strobe_reg <= 1'b1;
+            end else if (core_uio_out[0]) begin // Clear ONLY when core_busy asserts!
+                auto_strobe_reg <= 1'b0;
             end
         end
     end
-    wire auto_strobe = (strobe_hold > 24'd0);
+    wire auto_strobe = auto_strobe_reg;
 
     wire [7:0] core_ui_in = SW[7:0];
 
