@@ -1,23 +1,22 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-18 15:30 (Run 70: Physical Bench Emulation Signed Off on AMD PYNQ-Z2 FPGA at 50 MHz)
+## Last Execution Run: 2026-10-19 08:35 (Run 71: Educational Walkthrough on Galois SNG Banks, 2D Crossbar Sharing & Error Tolerance in Deep Learning)
 
 ### [Built]
-- **`fpga/pynq_z2/jupyter/scim_pynq_driver.py`:** Hardened driver path resolution to auto-detect both local and repository `model/` directories; added automatic bitstream detection for physical PYNQ boards; added `self.reset()` in `verify_against_golden` to align on-chip LFSR initial seeds with the Python golden model.
-- **`fpga/pynq_z2/jupyter/pynq_scim_validation.ipynb`:** Added `driver.reset()` to regression loop; executed live on AMD PYNQ-Z2 (Xilinx Zynq-7020) over Ethernet at 50 MHz via `nbconvert` with outputs captured and synced.
-- **`.agents/skills/lab-hardware-inventory/SKILL.md`:** Documented official PYNQ-Z2 silk-screen designators (`J9` power jumper, `JP1` boot mode jumper, `J8` PROG UART, and the horizontal power slide switch between `J8` and `DC1`), clearly distinguishing user GPIO DIP switches `SW0`/`SW1`.
+- Detailed architectural analysis of the Stochastic Number Generator bank (`scim_sng_bank.v`) and Galois LFSR generator (`lfsr8_galois.v`).
+- Mathematical formulation of the 255-state Galois ring modular arithmetic ($255 = 17 \times 15$), explaining the Stride-15 seed spacing, the 16-channel range (Steps 1 to 226), and the 30-cycle wrap-around buffer (Step 241).
+- Physical silicon crossbar analysis: 16 horizontal broadcast rows sharing 16 LFSRs across 16 columns, saving 1,920 flip-flops and XOR gates vs. 256 individual LFSRs.
+- Exhaustive systems study on error resilience: why Deep Learning tolerates systematic hardware bias (ranking invariance, offline bias absorption $b - \Delta$, ReLU thresholding) vs. domains where systematic errors are fatal (inertial navigation $t^2$ drift, PDE exponential divergence, medical imaging CT ring artifacts).
 
 ### [Architecture Decisions & Silicon Forensics]
-- **Physical Silicon Verification of PYNQ-Z2 50 MHz Macro:**
-  - Successfully brought up PYNQ v3.1.1 (Linux 6.6, Python 3.10) on physical AMD PYNQ-Z2 (Xilinx XC7Z020-1CLG400C).
-  - Configured passwordless SSH, `/dev/dri/renderD128` XRT user permissions, and `/etc/sudoers.d/xilinx`.
-  - Loaded `scim_pynq.bit` into the physical FPGA fabric and verified AXI4-Lite MMIO register access to `scim_core_0` at `0x40000000`.
-- **LFSR Pseudo-Random Phase Alignment:**
-  - Diagnosed that unreset stochastic MVM runs advance the 16 on-chip Galois LFSRs to cycle 257+, causing minor phase divergence compared to a freshly initialized software golden model. Calling `driver.reset()` resets all LFSRs to their initial seeds, yielding **10/10 PASS (100% BIT-FOR-BIT EXACT MATCH, 0 LSB DIVERGENCE)** across all 16 channels at 50 MHz!
-- **Application #10 Stochastic Shuffling Sign-Off & Bias Decomposition:**
-  - Demonstrated dynamic 50-permutation ensemble averaging on physical hardware. Diagnosed the $+5.06\text{ LSB}$ constant DC offset caused by the 256th wrap-around clock cycle on 255-state Galois LFSRs. Demonstrated that stochastic shuffling suppresses random spatial variance by **$7.33\text{x}$** (matching theoretical $\sqrt{50} = 7.07\text{x}$), reducing stochastic RMSE from $1.17\text{ LSBs} \rightarrow 0.16\text{ LSBs}$ while the predictable DC offset is absorbed offline into neural network bias parameters ($b_{\text{comp}} = b - \Delta$).
-- **Pillar 6.0 Completion:**
-  - With both Target 1 (Terasic DE10-Lite) and Target 2 (AMD PYNQ-Z2) 100% verified on physical silicon, Pillar 6.0 is officially closed and signed off.
+- **Galois vs. Fibonacci LFSR Topology:**
+  - Fibonacci requires external multi-tap XOR cascades ($T_{\text{xor}} \cdot \log_2(\text{taps})$), degrading setup timing margin.
+  - Galois implements distributed internal XORs with strictly $O(1)$ critical path delay ($\sim 0.25\text{ ns}$ in Sky130), enabling push-button $+5.791\text{ ns}$ slack at 50 MHz.
+- **Application #10 Co-Design Symmetry:**
+  - Confirmed that within a single inference pass, all 16 columns in row $i$ share the exact same LFSR bitstream.
+  - Proved that row permutation $\mathbf{y} = (\mathbf{P} \cdot \mathbf{W}) \cdot (\mathbf{P} \cdot \mathbf{x})$ shifts data across physical rows between consecutive runs, scrambling static correlation into zero-mean white noise without requiring reconfigurable hardware crossbars.
+- **Throughput vs. Accuracy Trade-Off:**
+  - Formulated practical deployment strategies for shuffling: small ensembles ($K=4$ cuts noise by $50\%$), layer-selective shuffling (only final classification head), temporal shuffling across 30 FPS video frames, and low-bandwidth audio/vibration streaming where hardware compute ($6.08\text{ }\mu\text{s}$) is thousands of times faster than sensor sampling ($10\text{--}20\text{ ms}$).
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
@@ -27,9 +26,13 @@
 - **ASIC Core RTL (`src/`):** **100% Frozen & Untouched.**
 
 ### [Next Steps]
-1. Synchronize repository state and push commit (`[skip ci]`).
-2. Close Pillar 6.0 chat session.
-3. Open a **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+1. Continue educational walkthrough on hardware datapath:
+   - 1-Bit Processing Elements (`src/scim_pe.v`).
+   - 16-to-5 Wallace Tree Compressors (`src/scim_compressor_42.v` & `src/scim_wallace_tree.v`).
+   - 13-bit Saturating Accumulator (`src/scim_accumulator.v`).
+2. Close Pillar 6.0 session and launch **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+
+## Previous Execution Run: 2026-10-18 15:30 (Run 70: Physical Bench Emulation Signed Off on AMD PYNQ-Z2 FPGA at 50 MHz)
 
 ## Previous Execution Run: 2026-10-17 18:15 (Run 69: Physical Bench Emulation Bring-Up Signed Off on Terasic DE10-Lite FPGA)
 

@@ -1,8 +1,8 @@
 # Session Handoff: Pillar 6.0 Physical Silicon Emulation Complete & Ready for Pillar 6.1 (Micro-ResNet)
 
-- **Date:** 2026-10-18 15:30
-- **Machine:** Desktop PC (`juliusli` / user `juliusli`)
-- **Workstation Role:** Primary bring-up platform collocated with bench hardware (Korad supply, PYNQ-Z2, DE10-Lite, logic analyzer).
+- **Date:** 2026-10-19 08:35
+- **Machine:** Laptop (`juliusli-MSI` / user `juliusli`)
+- **Workstation Role:** Reviewing, planning, study, and learning. (Primary bring-up platform collocated with bench hardware is Desktop PC).
 - **Active Branch:** `main`
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `750 *`). Shuttle closes end of November 2026; physical packaged silicon & carrier board delivery arrives ~June 2027. All work between October 2026 and June 2027 constitutes **Pillar 6 pre-silicon emulation, software driver polish, and application pipelines**. Pillar 7 (physical chip bring-up) begins strictly in June 2027 upon physical silicon arrival.
@@ -10,9 +10,11 @@
 - **Status:** **Pillar 6.0 Baseline Emulation Infrastructure & Handshake SIGNED OFF ON SILICON; Ready for Pillar 6.1 (Micro-ResNet) in a Fresh Chat Session.**
 
 > [!IMPORTANT]
-> **Bench Bring-Up Status & Verification Milestone:**
-> 1. **DE10-Lite (Target 1):** ✅ **100% SIGNED OFF ON PHYSICAL SILICON** (bitstream flashed, reset synchronizer verified, 5 Hz auto and manual single-step 256-cycle MVM verified, back-to-back runs hardened).
-> 2. **PYNQ-Z2 (Target 2):** ✅ **100% SIGNED OFF ON PHYSICAL SILICON** (50 MHz AXI4-Lite MMIO macro, 10/10 Gate-0 regression vectors bit-exact with 0 LSB divergence, Application #10 stochastic shuffling verified live on Zynq-7020 ARM Linux).
+> **Action Note for Next Session:**
+> Continue the educational walkthrough of the CIMTinyTO physical implementation:
+> 1. 1-Bit Processing Element Array (`src/scim_pe.v` & Path B unified column reduction).
+> 2. 16-to-5 Wallace Tree Compressors (`src/scim_compressor_42.v` & `src/scim_wallace_tree.v`).
+> 3. 13-bit Saturating Accumulator (`src/scim_accumulator.v`).
 
 ---
 
