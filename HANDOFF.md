@@ -1,6 +1,6 @@
 # Session Handoff: Pillar 6.0 Physical Silicon Emulation Complete & Ready for Pillar 6.1 (Micro-ResNet)
 
-- **Date:** 2026-10-19 08:35
+- **Date:** 2026-10-20 07:38
 - **Machine:** Laptop (`juliusli-MSI` / user `juliusli`)
 - **Workstation Role:** Reviewing, planning, study, and learning. (Primary bring-up platform collocated with bench hardware is Desktop PC).
 - **Active Branch:** `main`
@@ -11,10 +11,9 @@
 
 > [!IMPORTANT]
 > **Action Note for Next Session:**
-> Continue the educational walkthrough of the CIMTinyTO physical implementation:
-> 1. 1-Bit Processing Element Array (`src/scim_pe.v` & Path B unified column reduction).
-> 2. 16-to-5 Wallace Tree Compressors (`src/scim_compressor_42.v` & `src/scim_wallace_tree.v`).
-> 3. 13-bit Saturating Accumulator (`src/scim_accumulator.v`).
+> Complete the final submodule of the hardware datapath walkthrough:
+> 1. 13-bit Saturating Accumulator (`src/scim_accumulator.v`) and 2-gate sign-bit overflow clamping.
+> 2. Conclude Pillar 6.0 and open a dedicated fresh chat for Pillar 6.1 (Micro-ResNet).
 
 ---
 

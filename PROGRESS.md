@@ -1,22 +1,19 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-19 08:35 (Run 71: Educational Walkthrough on Galois SNG Banks, 2D Crossbar Sharing & Error Tolerance in Deep Learning)
+## Last Execution Run: 2026-10-20 07:38 (Run 72: Educational Walkthrough on Single-Gate PEs, Path B Reduction & 4:2 Wallace Trees)
 
 ### [Built]
-- Detailed architectural analysis of the Stochastic Number Generator bank (`scim_sng_bank.v`) and Galois LFSR generator (`lfsr8_galois.v`).
-- Mathematical formulation of the 255-state Galois ring modular arithmetic ($255 = 17 \times 15$), explaining the Stride-15 seed spacing, the 16-channel range (Steps 1 to 226), and the 30-cycle wrap-around buffer (Step 241).
-- Physical silicon crossbar analysis: 16 horizontal broadcast rows sharing 16 LFSRs across 16 columns, saving 1,920 flip-flops and XOR gates vs. 256 individual LFSRs.
-- Exhaustive systems study on error resilience: why Deep Learning tolerates systematic hardware bias (ranking invariance, offline bias absorption $b - \Delta$, ReLU thresholding) vs. domains where systematic errors are fatal (inertial navigation $t^2$ drift, PDE exponential divergence, medical imaging CT ring artifacts).
+- Architectural walkthrough and mathematical derivation of the 1-bit Processing Element (`src/scim_pe.v`): Path B unified column reduction identity ($W \cdot a = (2w - 1)a = 2(w \land a) - a$), reducing PE logic to pure 2-input AND gates and eliminating 528 standard cells and global mode routing congestion.
+- Detailed silicon circuit dissection of the 4:2 compressor (`src/scim_compressor_42.v`): arithmetic identity ($x_1 + x_2 + x_3 + x_4 + c_{\text{in}} = \text{sum} + 2(\text{carry} + c_{\text{out}})$) and zero-ripple horizontal carry-out ($c_{\text{out}} = (x_1 \oplus x_2) \ ? \ x_3 : x_1$, strictly independent of $c_{\text{in}}$).
+- Structural walkthrough of the 16-to-5 Wallace Tree (`src/scim_wallace_tree.v`): carry-save reduction tree cutting spatial addition delay from $6.0\text{ ns} \to 1.30\text{ ns}$ in Sky130 and suppressing $\sim 40\%$ dynamic glitch power.
 
 ### [Architecture Decisions & Silicon Forensics]
-- **Galois vs. Fibonacci LFSR Topology:**
-  - Fibonacci requires external multi-tap XOR cascades ($T_{\text{xor}} \cdot \log_2(\text{taps})$), degrading setup timing margin.
-  - Galois implements distributed internal XORs with strictly $O(1)$ critical path delay ($\sim 0.25\text{ ns}$ in Sky130), enabling push-button $+5.791\text{ ns}$ slack at 50 MHz.
-- **Application #10 Co-Design Symmetry:**
-  - Confirmed that within a single inference pass, all 16 columns in row $i$ share the exact same LFSR bitstream.
-  - Proved that row permutation $\mathbf{y} = (\mathbf{P} \cdot \mathbf{W}) \cdot (\mathbf{P} \cdot \mathbf{x})$ shifts data across physical rows between consecutive runs, scrambling static correlation into zero-mean white noise without requiring reconfigurable hardware crossbars.
-- **Throughput vs. Accuracy Trade-Off:**
-  - Formulated practical deployment strategies for shuffling: small ensembles ($K=4$ cuts noise by $50\%$), layer-selective shuffling (only final classification head), temporal shuffling across 30 FPS video frames, and low-bandwidth audio/vibration streaming where hardware compute ($6.08\text{ }\mu\text{s}$) is thousands of times faster than sensor sampling ($10\text{--}20\text{ ms}$).
+- **Path B Architectural Revolution:**
+  - Traditional stochastic PEs required an AND gate, XNOR gate, 2:1 MUX, and global mode broadcast routing, causing severe micro-level pin crowding and detailed routing congestion in OpenLane.
+  - Proved that factoring the dot product into $2 \sum (w_i \land a_i) - \sum a_i$ enables PEs to remain pure AND gates while the activation sum $A = \sum a_i$ is computed once centrally and shared across all 16 columns, slashing cell count and lowering tile density to a routable $64.5\%$.
+- **Zero Horizontal Carry Propagation:**
+  - Ripple-carry addition chains scale as $O(N)$ with cascading carry dependencies.
+  - 4:2 compressors decouple $c_{\text{out}}$ from $c_{\text{in}}$, allowing all horizontal carries to evaluate in parallel in a single gate delay, leaving $>18\text{ ns}$ of positive timing margin at 50 MHz.
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
@@ -27,10 +24,10 @@
 
 ### [Next Steps]
 1. Continue educational walkthrough on hardware datapath:
-   - 1-Bit Processing Elements (`src/scim_pe.v`).
-   - 16-to-5 Wallace Tree Compressors (`src/scim_compressor_42.v` & `src/scim_wallace_tree.v`).
-   - 13-bit Saturating Accumulator (`src/scim_accumulator.v`).
-2. Close Pillar 6.0 session and launch **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+   - 13-bit Saturating Accumulator (`src/scim_accumulator.v`) and 2-gate sign-bit overflow detection.
+2. Conclude Pillar 6.0 walkthrough and launch **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+
+## Previous Execution Run: 2026-10-19 08:35 (Run 71: Educational Walkthrough on Galois SNG Banks, 2D Crossbar Sharing & Error Tolerance in Deep Learning)
 
 ## Previous Execution Run: 2026-10-18 15:30 (Run 70: Physical Bench Emulation Signed Off on AMD PYNQ-Z2 FPGA at 50 MHz)
 
