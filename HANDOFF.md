@@ -5,7 +5,7 @@
 - **Workstation Role:** Reviewing, planning, study, and learning. (Primary bring-up platform collocated with bench hardware is Desktop PC).
 - **Active Branch:** `main`
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
-- **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `750 *`). Shuttle closes end of November 2026; physical packaged silicon & carrier board delivery arrives ~June 2027. All work between October 2026 and June 2027 constitutes **Pillar 6 pre-silicon emulation, software driver polish, and application pipelines**. Pillar 7 (physical chip bring-up) begins strictly in June 2027 upon physical silicon arrival.
+- **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon & carrier board delivery arrives ~June 2027. All work between October 2026 and June 2027 constitutes **Pillar 6 pre-silicon emulation, software driver polish, and application pipelines**. Pillar 7 (physical chip bring-up) begins strictly in June 2027 upon physical silicon arrival.
 - **Hardware Logistics:** Both Terasic DE10-Lite tactile mode AND AMD PYNQ-Z2 50 MHz AXI4-Lite Macro **100% verified on physical silicon hardware**.
 - **Status:** **Pillar 6.0 Baseline Emulation Infrastructure & Handshake SIGNED OFF ON SILICON; Ready for Pillar 6.1 (Micro-ResNet) in a Fresh Chat Session.**
 

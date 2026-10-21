@@ -46,8 +46,8 @@
   - Diagnosed that clearing `auto_strobe_reg` on `core_uio_out[1]` (`done`) blocked Run 2 from starting because `done` remains asserted at the end of Run 1. Clearing strictly on `core_busy` resolved the lockup, allowing continuous back-to-back runs.
 - **ASIC Core Immutability:**
   - Confirmed that all fixes were strictly confined to the FPGA testbench wrapper. `src/` remains 100% frozen, untouched, and green.
-- **Tiny Tapeout Shuttle Multiplexer Update:**
-  - Investigated the provisional shuttle re-packing (`Mux address: 750 *`). Confirmed that 2D bin-packing of the shuttle floorplan is automated and has zero impact on our merged PR #86 GDSII layout.
+- **Tiny Tapeout Shuttle Multiplexer Update (Mux address: 227 *):**
+  - Analyzed the latest automated shuttle re-packing (`Mux address: 227 *` bordering analog switch row). Confirmed that mixed-signal/analog row placement has zero negative impact: digital IO spine (`ui`, `uo`, `uio`, `clk`, `rst_n`) remains 100% standard digital CMOS buffers, unused analog switches (`tt_asw_3v3`) remain permanently isolated, and our merged PR #86 GDSII hard macro is completely untouched and frozen.
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
