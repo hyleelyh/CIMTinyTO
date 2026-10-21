@@ -1,8 +1,9 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-20 07:38 (Run 72: Educational Walkthrough on Single-Gate PEs, Path B Reduction & 4:2 Wallace Trees)
+## Last Execution Run: 2026-10-21 08:52 (Run 73: Analysis of Shuttle Floorplan Repacking to Mux 227* and Analog Row Isolation)
 
 ### [Built]
+- Evaluated Tiny Tapeout `ttsky26d` shuttle floorplan re-packing to `Mux address: 227 *` adjacent to mixed-signal/analog row. Confirmed complete electrical and physical isolation: digital IO spine (`ui`, `uo`, `uio`, `clk`, `rst_n`) uses standard CMOS buffers, unused analog switches (`tt_asw_3v3`) remain permanently open/isolated, and merged PR #86 GDSII layout remains 100% frozen.
 - Architectural walkthrough and mathematical derivation of the 1-bit Processing Element (`src/scim_pe.v`): Path B unified column reduction identity ($W \cdot a = (2w - 1)a = 2(w \land a) - a$), reducing PE logic to pure 2-input AND gates and eliminating 528 standard cells and global mode routing congestion.
 - Detailed silicon circuit dissection of the 4:2 compressor (`src/scim_compressor_42.v`): arithmetic identity ($x_1 + x_2 + x_3 + x_4 + c_{\text{in}} = \text{sum} + 2(\text{carry} + c_{\text{out}})$) and zero-ripple horizontal carry-out ($c_{\text{out}} = (x_1 \oplus x_2) \ ? \ x_3 : x_1$, strictly independent of $c_{\text{in}}$).
 - Structural walkthrough of the 16-to-5 Wallace Tree (`src/scim_wallace_tree.v`): carry-save reduction tree cutting spatial addition delay from $6.0\text{ ns} \to 1.30\text{ ns}$ in Sky130 and suppressing $\sim 40\%$ dynamic glitch power.

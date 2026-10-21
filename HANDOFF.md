@@ -1,6 +1,6 @@
 # Session Handoff: Pillar 6.0 Physical Silicon Emulation Complete & Ready for Pillar 6.1 (Micro-ResNet)
 
-- **Date:** 2026-10-20 07:38
+- **Date:** 2026-10-21 08:52
 - **Machine:** Laptop (`juliusli-MSI` / user `juliusli`)
 - **Workstation Role:** Reviewing, planning, study, and learning. (Primary bring-up platform collocated with bench hardware is Desktop PC).
 - **Active Branch:** `main`
@@ -11,9 +11,8 @@
 
 > [!IMPORTANT]
 > **Action Note for Next Session:**
-> Complete the final submodule of the hardware datapath walkthrough:
-> 1. 13-bit Saturating Accumulator (`src/scim_accumulator.v`) and 2-gate sign-bit overflow clamping.
-> 2. Conclude Pillar 6.0 and open a dedicated fresh chat for Pillar 6.1 (Micro-ResNet).
+> 1. Complete remaining educational review items as requested by user.
+> 2. Open a dedicated **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development** per the Single-Pillar Directive.
 
 ---
 
