@@ -1,18 +1,19 @@
 # Session Handoff: Pillar 6.0 Physical Silicon Emulation Complete & Ready for Pillar 6.1 (Micro-ResNet)
 
-- **Date:** 2026-10-21 08:52
-- **Machine:** Laptop (`juliusli-MSI` / user `juliusli`)
-- **Workstation Role:** Reviewing, planning, study, and learning. (Primary bring-up platform collocated with bench hardware is Desktop PC).
-- **Active Branch:** `main`
+- **Date:** 2026-10-22 08:20
+- **Machine Handoff:** Switching from Laptop (`juliusli-MSI`) $\longrightarrow$ Desktop PC (`juliusli`).
+- **Workstation Role on PC:** Primary hardware bring-up and emulation workstation (collocated with Korad KA3005P, AMD PYNQ-Z2, Intel MAX 10 DE10-Lite, Logic Analyzer).
+- **Active Branch:** `main` (clean, fully synchronized).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon & carrier board delivery arrives ~June 2027. All work between October 2026 and June 2027 constitutes **Pillar 6 pre-silicon emulation, software driver polish, and application pipelines**. Pillar 7 (physical chip bring-up) begins strictly in June 2027 upon physical silicon arrival.
 - **Hardware Logistics:** Both Terasic DE10-Lite tactile mode AND AMD PYNQ-Z2 50 MHz AXI4-Lite Macro **100% verified on physical silicon hardware**.
-- **Status:** **Pillar 6.0 Baseline Emulation Infrastructure & Handshake SIGNED OFF ON SILICON; Ready for Pillar 6.1 (Micro-ResNet) in a Fresh Chat Session.**
+- **Status:** **Pillar 6.0 Baseline Emulation Infrastructure & Handshake SIGNED OFF ON SILICON. Datapath walkthrough complete. Ready for Pillar 6.1 (Micro-ResNet) on Desktop PC.**
 
 > [!IMPORTANT]
-> **Action Note for Next Session:**
-> 1. Complete remaining educational review items as requested by user.
-> 2. Open a dedicated **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development** per the Single-Pillar Directive.
+> **Action Note for Next Session (Tomorrow at Desktop PC):**
+> 1. On Desktop PC (`juliusli`), run `git pull` to ensure local repository is up to date with `main`.
+> 2. Per the **Strict Single-Pillar Session Scope Directive** in `AGENTS.md`, launch a **FRESH CHAT SESSION** for:  
+>    **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development** (Application #6 / Tier 1-3 inference pipeline on PYNQ-Z2 hardware).
 
 ---
 

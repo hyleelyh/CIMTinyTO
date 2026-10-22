@@ -1,12 +1,12 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-21 08:52 (Run 73: Analysis of Shuttle Floorplan Repacking to Mux 227* and Analog Row Isolation)
+## Last Execution Run: 2026-10-22 08:20 (Run 74: Educational Walkthrough on 13-Bit Accumulator, 2-Gate Overflow Clamping & Verilog Signed Synthesis Semantics)
 
 ### [Built]
-- Evaluated Tiny Tapeout `ttsky26d` shuttle floorplan re-packing to `Mux address: 227 *` adjacent to mixed-signal/analog row. Confirmed complete electrical and physical isolation: digital IO spine (`ui`, `uo`, `uio`, `clk`, `rst_n`) uses standard CMOS buffers, unused analog switches (`tt_asw_3v3`) remain permanently open/isolated, and merged PR #86 GDSII layout remains 100% frozen.
-- Architectural walkthrough and mathematical derivation of the 1-bit Processing Element (`src/scim_pe.v`): Path B unified column reduction identity ($W \cdot a = (2w - 1)a = 2(w \land a) - a$), reducing PE logic to pure 2-input AND gates and eliminating 528 standard cells and global mode routing congestion.
-- Detailed silicon circuit dissection of the 4:2 compressor (`src/scim_compressor_42.v`): arithmetic identity ($x_1 + x_2 + x_3 + x_4 + c_{\text{in}} = \text{sum} + 2(\text{carry} + c_{\text{out}})$) and zero-ripple horizontal carry-out ($c_{\text{out}} = (x_1 \oplus x_2) \ ? \ x_3 : x_1$, strictly independent of $c_{\text{in}}$).
-- Structural walkthrough of the 16-to-5 Wallace Tree (`src/scim_wallace_tree.v`): carry-save reduction tree cutting spatial addition delay from $6.0\text{ ns} \to 1.30\text{ ns}$ in Sky130 and suppressing $\sim 40\%$ dynamic glitch power.
+- Architectural and silicon walkthrough of the 13-bit Saturating Accumulator (`src/scim_accumulator.v`): dynamic range bit-growth sizing ($[-4096, +4095]$), 2-gate sign-bit overflow clamping (`pos_ovf = ~sum_ext[13] & sum_ext[12]`) replacing ~1,920 ripple comparator cells with two single-gate `and2b` cells and slashing combinational feedback delay from $6.5\text{ ns} \to 0.15\text{ ns}$.
+- Silicon forensics on IEEE 1364 `$signed(...)` wrapper semantics: confirmed zero-cell/zero-transistor compiler type-cast directive and pure metal wiring fanout vs. catastrophic unsigned coercion prevention.
+- Silicon analysis of Hole #8 output pad power gating (`uo_out = (!busy) ? acc_byte_mux : 8'h00`): suppressing ~65 mW dynamic I/O switching power and preventing inductive package ground bounce ($L \cdot di/dt$).
+- Analysis of Tiny Tapeout on-chip Mask ROM directory architecture and carrier board runtime project switching across the multi-project shuttle.
 
 ### [Architecture Decisions & Silicon Forensics]
 - **Path B Architectural Revolution:**
@@ -15,18 +15,20 @@
 - **Zero Horizontal Carry Propagation:**
   - Ripple-carry addition chains scale as $O(N)$ with cascading carry dependencies.
   - 4:2 compressors decouple $c_{\text{out}}$ from $c_{\text{in}}$, allowing all horizontal carries to evaluate in parallel in a single gate delay, leaving $>18\text{ ns}$ of positive timing margin at 50 MHz.
+- **Two-Gate Sign-Bit Saturation Clamping:**
+  - Standard behavioral clamping constructs synthesize into full 14-bit ripple comparators (~120 cells/col $\times$ 16 cols = ~1,920 cells) that dominate the accumulation feedback path.
+  - Sizing single-cycle delta to $[-16, +16]$ guarantees that 14-bit extended sum cannot exceed $[-4112, +4111]$, allowing overflow beyond $[-4096, +4095]$ to be detected strictly via bit 13 and bit 12 sign disparity in a single gate (`and2b`).
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
-- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; shuttle closes end of November 2026).
-- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% SIGNED OFF ON PHYSICAL SILICON (Both DE10-Lite and PYNQ-Z2 targets verified on real hardware).**
-- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Pipeline):** ⏳ **UPCOMING (To be launched in a dedicated, fresh chat session).**
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; provisional Mux 227*; shuttle closes end of November 2026).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% SIGNED OFF ON PHYSICAL SILICON (Both DE10-Lite and PYNQ-Z2 targets verified on real hardware). Datapath educational review 100% completed.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Pipeline):** ⏳ **UPCOMING (To be launched in a dedicated, fresh chat session on Desktop PC).**
 - **ASIC Core RTL (`src/`):** **100% Frozen & Untouched.**
 
 ### [Next Steps]
-1. Continue educational walkthrough on hardware datapath:
-   - 13-bit Saturating Accumulator (`src/scim_accumulator.v`) and 2-gate sign-bit overflow detection.
-2. Conclude Pillar 6.0 walkthrough and launch **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+1. Switch to Desktop PC (`juliusli`) collocated with bench hardware (PYNQ-Z2, Korad supply, analyzer).
+2. Launch a **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
 
 ## Previous Execution Run: 2026-10-19 08:35 (Run 71: Educational Walkthrough on Galois SNG Banks, 2D Crossbar Sharing & Error Tolerance in Deep Learning)
 
