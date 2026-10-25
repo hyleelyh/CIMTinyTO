@@ -144,12 +144,13 @@ class EdgeVisionPipeline:
         res["input_image_32x32"] = img_arr
         return res
 
-    def render_hud_overlay(self, inference_result, scale=8):
+    def render_hud_overlay(self, inference_result, scale=8, system_fps=None):
         """Render an informative HUD overlay on top of the upscaled image.
         
         Args:
             inference_result (dict): Output from run_inference().
             scale (int): Upscale factor for display (default 8 -> 256x256 image).
+            system_fps (float, optional): End-to-end glass-to-glass framerate including camera & display.
             
         Returns:
             PIL.Image: Annotated HUD image.
@@ -181,11 +182,15 @@ class EdgeVisionPipeline:
         draw.text((10, 32 * scale + 8), f"CLASS: {pred_class} ({top_prob:.1f}%)", fill=(0, 255, 120))
         # Line 2: Tier and Latency
         draw.text((10, 32 * scale + 28), f"TIER:  {tier_name}", fill=(200, 220, 255))
-        draw.text((10, 32 * scale + 48), f"SPEED: {fps:5.1f} FPS | Tile: {tile_us:5.1f} us | Lat: {time_ms:.1f} ms", fill=(255, 215, 0))
+        if system_fps is not None:
+            draw.text((10, 32 * scale + 48), f"FPGA Core: {fps:4.1f} FPS | System: {system_fps:4.1f} FPS | Tile: {tile_us:4.1f} us", fill=(255, 215, 0))
+        else:
+            draw.text((10, 32 * scale + 48), f"FPGA Core: {fps:4.1f} FPS | Tile: {tile_us:4.1f} us | Lat: {time_ms:.1f} ms", fill=(255, 215, 0))
         # Line 3: Hardware info
         draw.text((10, 32 * scale + 68), f"HW:    16x16 SCIM @ 50 MHz (256 Stationary DFFs)", fill=(160, 180, 200))
 
         return canvas
+
 
     def stream_live_camera(self, num_frames=20, tier=2, device_id=0, force_synthetic=False, on_frame=None):
         """Stream live camera frames, execute real-time inference, and render HUD telemetry.
@@ -261,17 +266,22 @@ class LiveCameraCapture:
     def __del__(self):
         self.release()
 
-    def read_frame(self):
+    def read_frame(self, drain=False):
         """Capture or generate a single 32x32 RGB frame.
         
+        Args:
+            drain (bool): Flush V4L2 queue (use True on initial single snapshot, False during continuous streaming).
+            
         Returns:
             tuple: (success: bool, frame: np.ndarray of shape (32, 32, 3) uint8)
         """
         if self.backend == "opencv" and self.cap is not None:
-            # Drain stale V4L2 circular buffer to guarantee an instantaneous live frame
-            for _ in range(4):
-                self.cap.grab()
+            if drain:
+                # Drain stale V4L2 circular buffer to guarantee an instantaneous live frame
+                for _ in range(4):
+                    self.cap.grab()
             ret, frame = self.cap.read()
+
             if ret and frame is not None:
                 # BGR to RGB
                 rgb = frame[:, :, ::-1]
