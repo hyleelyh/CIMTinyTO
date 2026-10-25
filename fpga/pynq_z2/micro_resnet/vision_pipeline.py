@@ -21,6 +21,14 @@ import os
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+# Universal Pillow Resampling Compatibility (Pillow 8.x/9.0 vs 9.1+)
+if hasattr(Image, "Resampling"):
+    _RESAMPLE_BILINEAR = Image.Resampling.BILINEAR
+    _RESAMPLE_NEAREST = Image.Resampling.NEAREST
+else:
+    _RESAMPLE_BILINEAR = Image.BILINEAR
+    _RESAMPLE_NEAREST = Image.NEAREST
+
 from .micro_resnet_model import MicroResNet16
 from .scim_tier1_mmio import SCIMTier1Engine
 from .scim_tier2_wrapper import SCIMTier2Engine
@@ -58,7 +66,7 @@ class EdgeVisionPipeline:
         else:
             raise ValueError(f"Unsupported image input type: {type(image_input)}")
 
-        img_32x32 = img.resize((32, 32), Image.Resampling.BILINEAR)
+        img_32x32 = img.resize((32, 32), _RESAMPLE_BILINEAR)
         return np.array(img_32x32, dtype=np.uint8)
 
     @staticmethod
@@ -147,7 +155,7 @@ class EdgeVisionPipeline:
             PIL.Image: Annotated HUD image.
         """
         img_arr = inference_result["input_image_32x32"]
-        orig_img = Image.fromarray(img_arr).resize((32 * scale, 32 * scale), Image.Resampling.NEAREST)
+        orig_img = Image.fromarray(img_arr).resize((32 * scale, 32 * scale), _RESAMPLE_NEAREST)
 
         # Create image with HUD panel
         hud_height = 90
@@ -253,7 +261,7 @@ class LiveCameraCapture:
                 top = (h - min_dim) // 2
                 left = (w - min_dim) // 2
                 cropped = rgb[top:top + min_dim, left:left + min_dim]
-                resized = Image.fromarray(cropped).resize((32, 32), Image.Resampling.BILINEAR)
+                resized = Image.fromarray(cropped).resize((32, 32), _RESAMPLE_BILINEAR)
                 return True, np.array(resized, dtype=np.uint8)
 
         # Synthetic animated video stream (moving target across visual field)
