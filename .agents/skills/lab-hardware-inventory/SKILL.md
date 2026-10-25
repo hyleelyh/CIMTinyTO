@@ -56,7 +56,7 @@ To manage physical connectivity, compute performance, and bench safety during **
   * **Power Switch:** The horizontal slide switch located on the left board edge **directly between the Micro-USB port (`J8`) and the DC barrel jack (`DC1`)**. Silk-screen labels: **`OFF`** (left) / **`ON`** (right). Slide right to power ON. (Note: `SW0` and `SW1` are user GPIO DIP switches, NOT the power switch!).
   * **Micro-USB Port (`J8`):** Labeled `PROG UART` (FTDI FT2232HL bridge for JTAG programming, USB-UART console, and 5V USB power).
   * **External DC Jack (`DC1`):** 2.1mm center-positive barrel jack, 7V–15V DC (12V recommended).
-* **Interfaces & I/O:** 2x PMOD (PMOD A, PMOD B), Arduino Uno shield headers, Raspberry Pi 40-pin header, Gigabit Ethernet (Realtek RTL8211E-VL PHY), USB 2.0 Host (`J12`), HDMI In/Out (`J10`/`J11`), ADAU1761 Audio Codec.
+* **Interfaces & I/O:** 2x PMOD (PMOD A, PMOD B), Arduino Uno shield headers, Raspberry Pi 40-pin header, Gigabit Ethernet (Realtek RTL8211E-VL PHY), USB 2.0 Host (`USB_1`, labeled `USB HOST` on PCB silkscreen), HDMI In/Out (`HDMI_IN` / `HDMI_OUT`), ADAU1761 Audio Codec.
 * **User I/O:** 4x Push buttons (`BTN0`–`BTN3`), 2x User DIP slide switches (`SW0`–`SW1` on pins M20 and M19, located right next to J9), 4x User LEDs (`LED0`–`LED3`), 2x RGB LEDs (`LD4`–`LD5`), System Reset button (`SRST`), PL Reconfigure button (`PROG`).
 * **Logic Levels:** Safe **$+3.3\text{V}$ LVCMOS**.
 * **Primary Role:** Pillar 6 Pre-Silicon Emulation, automated regression testing at 10–50 MHz, and interactive Jupyter Notebook bit-exact verification against Python NumPy.

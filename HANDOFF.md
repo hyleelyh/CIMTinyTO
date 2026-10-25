@@ -1,12 +1,12 @@
 # Session Handoff: Pillar 6.1 (Micro-ResNet) Complete & Ready for Pillar 6.2 (Voice KWS)
 
-- **Date:** 2026-10-24 17:30
+- **Date:** 2026-10-24 20:22
 - **Machine Session:** Desktop PC (`juliusli`).
 - **Workstation Role on PC:** Primary hardware bring-up and emulation workstation (collocated with Korad KA3005P, AMD PYNQ-Z2, Intel MAX 10 DE10-Lite, Logic Analyzer).
 - **Active Branch:** `main` (clean, fully synchronized).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
-- **Status:** **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Software Pipeline) 100% COMPLETE & VERIFIED. Ready for Pillar 6.2 (Voice Keyword Spotting).**
+- **Status:** **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Software Pipeline + Hardware Schematics Verified) 100% COMPLETE & VERIFIED. Ready for Pillar 6.2 (Voice Keyword Spotting).**
 
 > [!IMPORTANT]
 > **Action Note for Next Session:**

@@ -1,8 +1,10 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-24 17:30 (Run 75: Pillar 6.1 Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development 100% Signed Off)
+## Last Execution Run: 2026-10-24 20:22 (Run 76: Pillar 6.1 Hardware Schematics Ground Truth Sign-Off & Connector Mapping Verified)
 
-### [Built]
+### [Built & Documented]
+- **`FeasibilityStudy/TUL_PYNQ_Schematic_R12.pdf`:** Integrated official TUL PYNQ-Z2 15-page schematic drawing into repository records.
+- **`.agents/skills/lab-hardware-inventory/SKILL.md`:** Synchronized hardware inventory with official schematic designators: USB Host is **`USB_1`** (`USB_4H` footprint on Page 7, silkscreened as `USB HOST` on PCB top layer); HDMI ports are **`HDMI_IN`** / **`HDMI_OUT`** (Page 6).
 - **`fpga/pynq_z2/micro_resnet/micro_resnet_model.py`:** Quantized `MicroResNet16` model (6 layers, 16 channels, 1,536 weight bits = 192 Bytes total footprint) with binary weights $\{-1, +1\}$, fixed-point requantization parameters, and bit-exact software baseline reference.
 - **`fpga/pynq_z2/micro_resnet/micro_resnet_tiler.py`:** GEMM lowering engine with stationary standard-cell DFF weight caching, eliminating redundant serial shifts (99.90% shift traffic suppression) and implementing ReLU zero-suppression tracking.
 - **`fpga/pynq_z2/micro_resnet/scim_tier1_mmio.py`:** Tier 1 Pure Python MMIO inference driver over AXI4-Lite bridge.
