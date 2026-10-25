@@ -1,36 +1,61 @@
-# Session Handoff: Pillar 6.0 Physical Silicon Emulation Complete & Ready for Pillar 6.1 (Micro-ResNet)
+# Session Handoff: Pillar 6.1 (Micro-ResNet) Complete & Ready for Pillar 6.2 (Voice KWS)
 
-- **Date:** 2026-10-22 08:20
-- **Machine Handoff:** Switching from Laptop (`juliusli-MSI`) $\longrightarrow$ Desktop PC (`juliusli`).
+- **Date:** 2026-10-24 17:30
+- **Machine Session:** Desktop PC (`juliusli`).
 - **Workstation Role on PC:** Primary hardware bring-up and emulation workstation (collocated with Korad KA3005P, AMD PYNQ-Z2, Intel MAX 10 DE10-Lite, Logic Analyzer).
 - **Active Branch:** `main` (clean, fully synchronized).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
-- **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon & carrier board delivery arrives ~June 2027. All work between October 2026 and June 2027 constitutes **Pillar 6 pre-silicon emulation, software driver polish, and application pipelines**. Pillar 7 (physical chip bring-up) begins strictly in June 2027 upon physical silicon arrival.
-- **Hardware Logistics:** Both Terasic DE10-Lite tactile mode AND AMD PYNQ-Z2 50 MHz AXI4-Lite Macro **100% verified on physical silicon hardware**.
-- **Status:** **Pillar 6.0 Baseline Emulation Infrastructure & Handshake SIGNED OFF ON SILICON. Datapath walkthrough complete. Ready for Pillar 6.1 (Micro-ResNet) on Desktop PC.**
+- **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
+- **Status:** **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Software Pipeline) 100% COMPLETE & VERIFIED. Ready for Pillar 6.2 (Voice Keyword Spotting).**
 
 > [!IMPORTANT]
-> **Action Note for Next Session (Tomorrow at Desktop PC):**
-> 1. On Desktop PC (`juliusli`), run `git pull` to ensure local repository is up to date with `main`.
-> 2. Per the **Strict Single-Pillar Session Scope Directive** in `AGENTS.md`, launch a **FRESH CHAT SESSION** for:  
->    **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development** (Application #6 / Tier 1-3 inference pipeline on PYNQ-Z2 hardware).
+> **Action Note for Next Session:**
+> Per the **Strict Single-Pillar Session Scope Directive** in `AGENTS.md`, launch a **FRESH CHAT SESSION** for:  
+> **Pillar 6.2: Voice Keyword Spotting Pipeline** (Dual MEMS Mics `MP23DB01HP`, 16-channel MFCC acoustic model on STM32 B-U585I & PYNQ-Z2).
 
 ---
 
-## Pillar 6.0 Physical Verification Scorecard
+## Pillar 6.1 Verification Scorecard
 
-| Test Suite / Target | Description | Timing Closure | Real Time | Status |
+| Test Suite / Target | Description | Coverage / Results | Real Time | Status |
 | :--- | :--- | :---: | :---: | :---: |
-| `test_fpga_axi` (5 tests) | PYNQ-Z2 AXI4-Lite slave bridge & MVM MMIO | — | $0.27\text{ s}$ | ✅ **5/5 PASS** |
-| `test_de10_lite` (4 tests)| DE10-Lite tactile console (reset, 7-seg, debouncer, MVM)| — | $0.05\text{ s}$ | ✅ **4/4 PASS** |
-| `scim_pynq_driver.py` (3 tests)| Physical Python MMIO driver & Application #10 on Zynq | — | Real Hardware | ✅ **3/3 PASS (0 LSB Diff)** |
-| `pynq_scim_validation.ipynb` (10 tests)| Live 10-vector Gate-0 regression on physical FPGA | — | Real Hardware | ✅ **10/10 PASS (100% Bit-Exact)** |
-| `build_max10.tcl` (Quartus)| Intel MAX 10 FPGA synthesis & SOF generation | **+4.331 ns** slack | $17\text{ s}$ | ✅ **SOF Generated** |
-| **DE10-Lite Physical Silicon**| Tactile 256-cycle MVM, 5 Hz auto/manual clock on Max 10 | — | Real Hardware | ✅ **100% VERIFIED** |
-| `build_overlay.tcl` (Vivado)| Xilinx Zynq-7020 synthesis & bitstream generation | **+5.791 ns** slack | $1\text{m } 40\text{s}$ | ✅ **BIT + HWH Generated** |
-| **PYNQ-Z2 Physical Silicon**| Live 50 MHz AXI4-Lite Stochastic MVM on XC7Z020 | **+5.791 ns** slack | Real Hardware | ✅ **100% VERIFIED** |
-| `verilator` linting | All FPGA wrappers (`de10_lite_top.v`, `tt_scim_axi_wrapper.v`) | — | $1.2\text{ s}$ | ✅ **0 Errors, 0 Warnings** |
-| **Total** | **All Pre-Silicon FPGA Emulation Sign-Off Targets** | — | — | ✅ **100% PASS ON SILICON** |
+| `test_micro_resnet.py` (8 tests) | Neural topology, stationary caching, Gate-0 parity, Tiers 1-3 | 100% Pass (0 Errors) | $0.16\text{ s}$ | ✅ **8/8 PASS** |
+| `run_micro_resnet_benchmark.py` | Multi-tier throughput benchmark (Python vs C vs DMA) | Bit-Exact Class Match | Complete | ✅ **100% PASS** |
+| `test_fpga_axi` (5 tests) | AXI4-Lite slave bridge & MVM MMIO regression | 100% Pass | $0.27\text{ s}$ | ✅ **5/5 PASS** |
+| `scim_tier2_c/Makefile` | Compiled C MMIO driver (`libscim_tier2.so`) | Clean compilation | $0.8\text{ s}$ | ✅ **0 Warnings** |
+| `ASIC Core RTL (`src/`)` | Core immutability check | 0 Lines Changed | — | ✅ **100% Frozen** |
+| **Total** | **All Pillar 6.1 Verification Targets** | — | — | ✅ **100% PASS** |
+
+---
+
+## Deliverables Generated in Pillar 6.1
+
+```
+fpga/pynq_z2/
+├── micro_resnet/
+│   ├── __init__.py
+│   ├── micro_resnet_model.py          # Quantized MicroResNet16 model (192 bytes weights, 16 cols)
+│   ├── micro_resnet_tiler.py          # GEMM lowering & stationary weight scheduler (99.9% power saving)
+│   ├── scim_tier1_mmio.py             # Tier 1: Pure Python MMIO driver
+│   ├── scim_tier2_c/                  # Tier 2: Compiled C driver with /dev/mem pointers & packed strobing
+│   │   ├── scim_tier2_driver.h
+│   │   ├── scim_tier2_driver.c
+│   │   └── Makefile
+│   ├── scim_tier2_wrapper.py          # Python ctypes bridge for libscim_tier2.so
+│   ├── scim_tier3_dma.py              # Tier 3: Line-rate autonomous feeder model (45.8 FPS @ 50 MHz)
+│   ├── vision_pipeline.py             # Edge camera/image ingestion & real-time HUD telemetry overlay
+│   ├── run_micro_resnet_benchmark.py  # Standalone CLI benchmark suite
+│   └── sample_hud_output.png          # Sample annotated HUD display image
+└── jupyter/
+    ├── pynq_micro_resnet_demo.ipynb   # Publication-grade interactive demo notebook
+    └── scim_pynq_driver.py            # Vectorized stochastic backend (28x speedup, 0 LSB diff)
+
+test/
+└── test_micro_resnet.py               # Production pytest regression harness (8/8 tests pass)
+
+docs/
+└── pillar6_1_micro_resnet_emulation_guide.md # Comprehensive pedagogical guide
+```
 
 ---
 

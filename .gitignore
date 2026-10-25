@@ -7,6 +7,8 @@ venv/
 ENV/
 parsetab.py
 parser.out
+*.o
+*.so
 
 # Cocotb / Simulation
 sim_build/

@@ -85,7 +85,13 @@ $(CURDIR)/gate_level_netlist.v:
 # ==============================================================================
 # Custom Targets for Submodule Unit Testing & Gate-Level Simulation
 # ==============================================================================
-.PHONY: test_lfsr test_compressor test_wallace test_core test_fpga_axi test_all test_gls gls_waves gls_waves_golden gls_waves_dft gls_waves_saturation gls_waves_overclock clean_all
+.PHONY: test_lfsr test_compressor test_wallace test_core test_fpga_axi test_micro_resnet test_all test_gls gls_waves gls_waves_golden gls_waves_dft gls_waves_saturation gls_waves_overclock clean_all
+
+test_micro_resnet:
+	@echo "========================================================"
+	@echo " RUNNING MICRO-RESNET REGRESSION SUITE (PILLAR 6.1)"
+	@echo "========================================================"
+	pytest $(CURDIR)/test_micro_resnet.py -v
 
 test_fpga_axi:
 	$(MAKE) -B SIM=$(SIM) TOPLEVEL=tb_fpga_axi MODULE=test_fpga_axi COCOTB_TEST_MODULES=test_fpga_axi \

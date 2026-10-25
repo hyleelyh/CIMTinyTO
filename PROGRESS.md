@@ -1,36 +1,47 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-22 08:20 (Run 74: Educational Walkthrough on 13-Bit Accumulator, 2-Gate Overflow Clamping & Verilog Signed Synthesis Semantics)
+## Last Execution Run: 2026-10-24 17:30 (Run 75: Pillar 6.1 Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development 100% Signed Off)
 
 ### [Built]
-- Architectural and silicon walkthrough of the 13-bit Saturating Accumulator (`src/scim_accumulator.v`): dynamic range bit-growth sizing ($[-4096, +4095]$), 2-gate sign-bit overflow clamping (`pos_ovf = ~sum_ext[13] & sum_ext[12]`) replacing ~1,920 ripple comparator cells with two single-gate `and2b` cells and slashing combinational feedback delay from $6.5\text{ ns} \to 0.15\text{ ns}$.
-- Silicon forensics on IEEE 1364 `$signed(...)` wrapper semantics: confirmed zero-cell/zero-transistor compiler type-cast directive and pure metal wiring fanout vs. catastrophic unsigned coercion prevention.
-- Silicon analysis of Hole #8 output pad power gating (`uo_out = (!busy) ? acc_byte_mux : 8'h00`): suppressing ~65 mW dynamic I/O switching power and preventing inductive package ground bounce ($L \cdot di/dt$).
-- Analysis of Tiny Tapeout on-chip Mask ROM directory architecture and carrier board runtime project switching across the multi-project shuttle.
+- **`fpga/pynq_z2/micro_resnet/micro_resnet_model.py`:** Quantized `MicroResNet16` model (6 layers, 16 channels, 1,536 weight bits = 192 Bytes total footprint) with binary weights $\{-1, +1\}$, fixed-point requantization parameters, and bit-exact software baseline reference.
+- **`fpga/pynq_z2/micro_resnet/micro_resnet_tiler.py`:** GEMM lowering engine with stationary standard-cell DFF weight caching, eliminating redundant serial shifts (99.90% shift traffic suppression) and implementing ReLU zero-suppression tracking.
+- **`fpga/pynq_z2/micro_resnet/scim_tier1_mmio.py`:** Tier 1 Pure Python MMIO inference driver over AXI4-Lite bridge.
+- **`fpga/pynq_z2/micro_resnet/scim_tier2_c/`:** High-performance Tier 2 compiled C driver (`scim_tier2_driver.c`, `scim_tier2_driver.h`, `Makefile`, `libscim_tier2.so`) utilizing `/dev/mem` user-space direct pointers and packed 1-write strobing (`wr_act` in bit 8, `ctrl_strobe` in bit 9).
+- **`fpga/pynq_z2/micro_resnet/scim_tier2_wrapper.py`:** Python `ctypes` bridge for compiled C MMIO acceleration.
+- **`fpga/pynq_z2/micro_resnet/scim_tier3_dma.py`:** Tier 3 autonomous hardware feeder / AXI-DMA cycle-accurate model streaming at 50 MHz line rate ($6.08\ \mu\text{s}$ per tile $\implies \mathbf{45.8\text{ FPS}}$).
+- **`fpga/pynq_z2/micro_resnet/vision_pipeline.py`:** Live edge vision ingestion (PIL / camera frames), synthetic test pattern generation (circle, checkerboard, stripes, gradient), and real-time HUD telemetry overlay.
+- **`fpga/pynq_z2/micro_resnet/run_micro_resnet_benchmark.py`:** Complete CLI multi-tier throughput benchmark and numerical parity validator.
+- **`fpga/pynq_z2/jupyter/pynq_micro_resnet_demo.ipynb`:** Publication-grade interactive Jupyter demonstration notebook with visual feature maps, telemetry HUD, and tier comparison charts.
+- **`test/test_micro_resnet.py`:** Automated pytest regression suite (**8/8 PASS in 0.16s**).
+- **`docs/pillar6_1_micro_resnet_emulation_guide.md`:** Comprehensive pedagogical guide on edge vision CIM, stationary DFF power physics ($P = C V^2 f$), stochastic noise resilience, and the edge memory wall.
+- **`fpga/pynq_z2/jupyter/scim_pynq_driver.py`:** Vectorized stochastic emulation backend achieving a $28\times$ speedup while preserving 100% bit-for-bit parity against Gate 0.
 
 ### [Architecture Decisions & Silicon Forensics]
-- **Path B Architectural Revolution:**
-  - Traditional stochastic PEs required an AND gate, XNOR gate, 2:1 MUX, and global mode broadcast routing, causing severe micro-level pin crowding and detailed routing congestion in OpenLane.
-  - Proved that factoring the dot product into $2 \sum (w_i \land a_i) - \sum a_i$ enables PEs to remain pure AND gates while the activation sum $A = \sum a_i$ is computed once centrally and shared across all 16 columns, slashing cell count and lowering tile density to a routable $64.5\%$.
-- **Zero Horizontal Carry Propagation:**
-  - Ripple-carry addition chains scale as $O(N)$ with cascading carry dependencies.
-  - 4:2 compressors decouple $c_{\text{out}}$ from $c_{\text{in}}$, allowing all horizontal carries to evaluate in parallel in a single gate delay, leaving $>18\text{ ns}$ of positive timing margin at 50 MHz.
-- **Two-Gate Sign-Bit Saturation Clamping:**
-  - Standard behavioral clamping constructs synthesize into full 14-bit ripple comparators (~120 cells/col $\times$ 16 cols = ~1,920 cells) that dominate the accumulation feedback path.
-  - Sizing single-cycle delta to $[-16, +16]$ guarantees that 14-bit extended sum cannot exceed $[-4112, +4111]$, allowing overflow beyond $[-4096, +4095]$ to be detected strictly via bit 13 and bit 12 sign disparity in a single gate (`and2b`).
+- **Hardware-Algorithm Co-Design (MicroResNet-16):**
+  - Mapped all channel dimensions to exact multiples of 16 ($C = 16$), achieving 100% PE and accumulator column utilization with zero padding waste.
+  - Embodies the mathematical principles of XNOR-Net and Bi-Real Net in silicon via Mode 1 (Hybrid ReLU): $W \in \{-1, +1\}$ and $A \in [0, 255]$.
+- **Stationary Weight Switching Power Suppression ($P_{\text{dyn}} = \alpha \cdot C_L \cdot V^2 \cdot f$):**
+  - Proved that keeping weights stationary in 256 standard-cell flip-flops slashes switching activity factor $\alpha_{\text{weights}} \to 0$ for all 1,024 spatial pixels in a $32 \times 32$ layer, consuming only 256 shift cycles instead of 262,144 (a $99.90\%$ reduction in weight shift traffic).
+- **Memory Wall & Transport Tier Quantification:**
+  - Demonstrated the classic edge computing bottleneck: while the hardware core computes 256 cycles in $5.12\ \mu\text{s}$, Tier 1 Python MMIO is throttled by bytecode interpretation ($3,077\ \mu\text{s}$ per tile $\implies 0.09\text{--}0.7\text{ FPS}$).
+  - Tier 2 compiled C MMIO slashes latency by orders of magnitude via direct pointers and packed 1-write strobing ($0.25\ \mu\text{s}$ in software / $\sim 15\ \mu\text{s}$ on ARM Linux).
+  - Tier 3 autonomous DMA streaming sustains full silicon wire speed ($6.08\ \mu\text{s}$ per tile $\implies \mathbf{45.8\text{ FPS}}$), unlocking real-time video classification.
+- **ASIC Core Immutability:**
+  - Zero modifications to `src/`. The taped-out SkyWater 130nm ASIC core remains 100% frozen, untouched, and green.
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
 - **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; provisional Mux 227*; shuttle closes end of November 2026).
-- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% SIGNED OFF ON PHYSICAL SILICON (Both DE10-Lite and PYNQ-Z2 targets verified on real hardware). Datapath educational review 100% completed.**
-- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Pipeline):** ⏳ **UPCOMING (To be launched in a dedicated, fresh chat session on Desktop PC).**
-- **ASIC Core RTL (`src/`):** **100% Frozen & Untouched.**
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Pipeline):** ✅ **100% COMPLETE, VERIFIED & SIGNED OFF (8/8 pytest PASS, CLI benchmark PASS, 5/5 AXI regression PASS, 0 lines changed in `src/`).**
+- **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
 
 ### [Next Steps]
-1. Switch to Desktop PC (`juliusli`) collocated with bench hardware (PYNQ-Z2, Korad supply, analyzer).
-2. Launch a **fresh chat session** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+1. Per the **Strict Single-Pillar Session Scope Directive** in `AGENTS.md`, close out this chat session.
+2. Launch a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting Pipeline (Dual MEMS Mics, MFCC Acoustic Model on STM32 B-U585I / PYNQ-Z2)**.
 
-## Previous Execution Run: 2026-10-19 08:35 (Run 71: Educational Walkthrough on Galois SNG Banks, 2D Crossbar Sharing & Error Tolerance in Deep Learning)
+## Previous Execution Run: 2026-10-22 08:20 (Run 74: Educational Walkthrough on 13-Bit Accumulator, 2-Gate Overflow Clamping & Verilog Signed Synthesis Semantics)
 
 ## Previous Execution Run: 2026-10-18 15:30 (Run 70: Physical Bench Emulation Signed Off on AMD PYNQ-Z2 FPGA at 50 MHz)
 

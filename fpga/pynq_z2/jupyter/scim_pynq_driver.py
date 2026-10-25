@@ -43,7 +43,7 @@ for candidate in [os.path.join(CURRENT_DIR, "model"), os.path.join(PROJ_ROOT, "m
         sys.path.insert(0, candidate)
 
 try:
-    from sim_scim import SCIMTile, ProcessingElement
+    from sim_scim import SCIMTile, ProcessingElement, SNGArray
     HAS_GOLDEN_MODEL = True
 except ImportError:
     HAS_GOLDEN_MODEL = False
@@ -78,6 +78,7 @@ class EmulatedMMIOBackend:
         self.byte_sel = 0
         self.accumulators = [0] * 16
         self.any_overflow = 0
+        self._sng = SNGArray(num_channels=16, stride=15) if HAS_GOLDEN_MODEL else None
 
     def write(self, offset, value):
         offset = offset & 0xFF
@@ -150,23 +151,28 @@ class EmulatedMMIOBackend:
             return 0xDEADBEEF
 
     def _execute_compute(self):
-        """Simulate hardware compute using Python golden reference model."""
+        """Simulate hardware compute using bit-exact vectorized stochastic golden model."""
         if HAS_GOLDEN_MODEL:
             # Reconstruct 16x16 weight matrix
-            W_mat = np.zeros((16, 16), dtype=int)
-            idx = 0
-            for r in range(16):
-                for c in range(16):
-                    W_mat[r, c] = self.shift_reg[idx]
-                    idx += 1
-
+            W_mat = np.array(self.shift_reg, dtype=int).reshape((16, 16))
             act_arr = np.array(self.act_regs, dtype=int)
-            tile = SCIMTile()
-            tile.load_weights(W_mat)
-            sim_mode = ProcessingElement.MODE_UNIPOLAR if self.mode == 0 else ProcessingElement.MODE_HYBRID_RELU
-            sim_res = tile.run_mvm(act_arr, mode=sim_mode, N=256)
-            self.accumulators = list(sim_res["results"])
-            self.any_overflow = 1 if any(acc.value >= acc.max_val or acc.value <= acc.min_val for acc in tile.accumulators) else 0
+
+            if self._sng is None:
+                self._sng = SNGArray(num_channels=16, stride=15)
+            self._sng.reset()
+            bits = self._sng.generate_bitstreams(act_arr, length=256)
+
+            if self.mode == 0:
+                # Mode 0: Unipolar AND
+                and_bits = (W_mat[:, :, None] & bits[:, None, :])
+                res_vec = np.clip(np.sum(np.sum(and_bits, axis=0), axis=1), 0, 4095)
+            else:
+                # Mode 1: Hybrid ReLU (bipolar weights, unipolar activations)
+                pe_out = np.where(bits[:, None, :] == 0, 0, np.where(W_mat[:, :, None] > 0, 1, -1))
+                res_vec = np.clip(np.sum(np.sum(pe_out, axis=0), axis=1), -4096, 4095)
+
+            self.accumulators = list(res_vec.astype(int))
+            self.any_overflow = 1 if any(v >= 4095 or v <= -4096 for v in self.accumulators) else 0
         else:
             # Fallback simple integer MAC
             W_mat = np.array(self.shift_reg).reshape((16, 16))
