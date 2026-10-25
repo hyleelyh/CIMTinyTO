@@ -230,7 +230,10 @@ class LiveCameraCapture:
             # Check for OpenCV
             try:
                 import cv2
-                cap = cv2.VideoCapture(device_id)
+                backend = getattr(cv2, "CAP_V4L2", cv2.CAP_ANY)
+                cap = cv2.VideoCapture(device_id, backend)
+                if not cap.isOpened():
+                    cap = cv2.VideoCapture(device_id)
                 if cap.isOpened():
                     ret, test_frame = cap.read()
                     if ret and test_frame is not None:
