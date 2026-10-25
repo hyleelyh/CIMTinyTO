@@ -255,6 +255,9 @@ class LiveCameraCapture:
             tuple: (success: bool, frame: np.ndarray of shape (32, 32, 3) uint8)
         """
         if self.backend == "opencv" and self.cap is not None:
+            # Drain stale V4L2 circular buffer to guarantee an instantaneous live frame
+            for _ in range(4):
+                self.cap.grab()
             ret, frame = self.cap.read()
             if ret and frame is not None:
                 # BGR to RGB
