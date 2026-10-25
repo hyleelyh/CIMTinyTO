@@ -178,3 +178,107 @@ class EdgeVisionPipeline:
         draw.text((10, 32 * scale + 68), f"HW:    16x16 SCIM @ 50 MHz (256 Stationary DFFs)", fill=(160, 180, 200))
 
         return canvas
+
+    def stream_live_camera(self, num_frames=20, tier=2, device_id=0, force_synthetic=False, on_frame=None):
+        """Stream live camera frames, execute real-time inference, and render HUD telemetry.
+        
+        Args:
+            num_frames (int): Number of video frames to process.
+            tier (int): Acceleration tier (1, 2, or 3).
+            device_id (int): V4L2 video device index (default 0 for /dev/video0).
+            force_synthetic (bool): Force animated synthetic video stream even if camera exists.
+            on_frame (callable, optional): Callback func(frame_idx, inference_result, hud_image).
+            
+        Returns:
+            list: List of (inference_result, hud_image) tuples.
+        """
+        cam = LiveCameraCapture(device_id=device_id, force_synthetic=force_synthetic)
+        results = []
+        try:
+            for f in range(num_frames):
+                ret, frame = cam.read_frame()
+                if not ret:
+                    break
+                res = self.run_inference(frame, tier=tier)
+                hud_img = self.render_hud_overlay(res, scale=8)
+                if on_frame:
+                    on_frame(f, res, hud_img)
+                results.append((res, hud_img))
+        finally:
+            cam.release()
+        return results
+
+
+class LiveCameraCapture:
+    """Universal Camera Interface: Supports physical USB Webcams, CSI Cameras, and Synthetic Video."""
+
+    def __init__(self, device_id=0, force_synthetic=False):
+        self.device_id = device_id
+        self.cap = None
+        self.backend = "synthetic"
+        self.frame_idx = 0
+
+        if not force_synthetic:
+            # Check for OpenCV
+            try:
+                import cv2
+                cap = cv2.VideoCapture(device_id)
+                if cap.isOpened():
+                    ret, test_frame = cap.read()
+                    if ret and test_frame is not None:
+                        self.cap = cap
+                        self.backend = "opencv"
+                        print(f"[LiveCamera] Connected to physical video device /dev/video{device_id} via OpenCV.")
+                    else:
+                        cap.release()
+            except Exception:
+                pass
+
+        if self.backend == "synthetic":
+            print("[LiveCamera] No physical camera attached (or OpenCV absent). Using Animated Synthetic Video Stream.")
+
+    def read_frame(self):
+        """Capture or generate a single 32x32 RGB frame.
+        
+        Returns:
+            tuple: (success: bool, frame: np.ndarray of shape (32, 32, 3) uint8)
+        """
+        if self.backend == "opencv" and self.cap is not None:
+            ret, frame = self.cap.read()
+            if ret and frame is not None:
+                # BGR to RGB
+                rgb = frame[:, :, ::-1]
+                h, w, _ = rgb.shape
+                min_dim = min(h, w)
+                top = (h - min_dim) // 2
+                left = (w - min_dim) // 2
+                cropped = rgb[top:top + min_dim, left:left + min_dim]
+                resized = Image.fromarray(cropped).resize((32, 32), Image.Resampling.BILINEAR)
+                return True, np.array(resized, dtype=np.uint8)
+
+        # Synthetic animated video stream (moving target across visual field)
+        self.frame_idx += 1
+        t = self.frame_idx * 0.15
+        img = np.zeros((32, 32, 3), dtype=np.uint8)
+
+        cx = 15.5 + 8.0 * np.sin(t)
+        cy = 15.5 + 8.0 * np.cos(t * 0.7)
+
+        for y in range(32):
+            for x in range(32):
+                dist = np.sqrt((x - cx)**2 + (y - cy)**2)
+                if dist < 6.0:
+                    img[y, x] = [50, 230, 60]  # Foreground target
+                elif dist < 12.0:
+                    img[y, x] = [230, 160, 40]  # Outer boundary
+                else:
+                    bg = int(25 + 15 * np.sin(x * 0.2 + t))
+                    img[y, x] = [bg, bg, bg + 25]  # Dynamic background
+
+        return True, img
+
+    def release(self):
+        """Release underlying camera hardware handles."""
+        if self.cap is not None:
+            self.cap.release()
+            self.cap = None
