@@ -1,19 +1,24 @@
-# Session Handoff: Pillar 6.1 (Micro-ResNet) Physical Bench Bring-Up Active
+# Session Handoff: Pillar 6.1 (Micro-ResNet Edge AI Vision) Complete & Signed Off
 
-- **Date:** 2026-10-25 11:15
+- **Date:** 2026-10-25 11:30
 - **Machine Session:** Desktop PC (`juliusli`).
 - **Workstation Role on PC:** Primary hardware bring-up and emulation workstation (collocated with Korad KA3005P, AMD PYNQ-Z2 @ `10.0.0.74`, Intel MAX 10 DE10-Lite, Logic Analyzer).
 - **Active Branch:** `main` (clean, fully synchronized).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
-- **Status:** **PYNQ-Z2 FPGA Connected & Live at IP `10.0.0.74`. USB Camera Active on `USB_1`. Section 4b Live Video Stream Added to Jupyter Demo. Bitstream Flow Documented.**
+- **Status:** **Pillar 6.1 FULLY SIGNED OFF ON PHYSICAL BENCH HARDWARE. Ready for Pillar 6.2 (Voice Keyword Spotting Pipeline) in a Fresh Chat Session.**
 
 > [!NOTE]
-> **Current Live Bench State:**
-> 1. PYNQ-Z2 board online at `10.0.0.74:9090` (password `xilinx`).
-> 2. FPGA fabric flashed with `scim_pynq.bit`; SCIM macro mapped at `0x40000000`.
-> 3. USB webcam enumerated on `/dev/video0`.
-> 4. `fpga/pynq_z2/jupyter/pynq_micro_resnet_demo.ipynb` updated with Section 4b for continuous real-time video streaming with live HUD.
+> **Pillar 6.1 Physical Hardware Sign-Off Summary:**
+> 1. PYNQ-Z2 FPGA flashed with `scim_pynq.bit` operating at 50 MHz.
+> 2. Real-time physical camera video streaming via `/dev/video0` verified live.
+> 3. Tier 2 Compiled C MMIO direct pointer driver verified at **22.9 FPS** end-to-end full-frame inference.
+> 4. Dynamic real-time HUD telemetry verified in Section 4b of `pynq_micro_resnet_demo.ipynb`.
+> 5. Vivado batch Tcl build flow and bitstream architecture walkthrough documented.
+>
+> **Action Plan for Next Session:**
+> Launch a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting (KWS) Pipeline** (Dual MEMS Mics `MP23DB01HP`, MFCC Feature Extraction, Acoustic Model).
+
 
 
 ---

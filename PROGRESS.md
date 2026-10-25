@@ -30,13 +30,13 @@
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
 - **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; provisional Mux 227*; shuttle closes end of November 2026).
 - **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
-- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Pipeline):** ✅ **100% COMPLETE & BENCH-VERIFIED ON PHYSICAL PYNQ-Z2 HARDWARE.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% SIGNED OFF & VERIFIED ON PHYSICAL PYNQ-Z2 HARDWARE (Live USB camera ingestion, Tier 2 C MMIO inference @ 22.9 FPS, real-time HUD telemetry).**
 - **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
 - **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
 
 ### [Next Steps]
-1. Complete user live camera interactive streaming test in Section 4b.
-2. Sign off Pillar 6.1 and open a fresh chat session for **Pillar 6.2: Voice Keyword Spotting (KWS) Pipeline**.
+1. Conclude Pillar 6.1 and open a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting (KWS) Pipeline** (Dual MEMS Mics `MP23DB01HP`, MFCC Feature Extraction, Acoustic Quantized SCIM Neural Network).
+
 
 
 ## Previous Execution Run: 2026-10-22 08:20 (Run 74: Educational Walkthrough on 13-Bit Accumulator, 2-Gate Overflow Clamping & Verilog Signed Synthesis Semantics)
