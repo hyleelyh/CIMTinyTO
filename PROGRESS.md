@@ -1,8 +1,9 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-24 20:22 (Run 76: Pillar 6.1 Hardware Schematics Ground Truth Sign-Off & Connector Mapping Verified)
+## Last Execution Run: 2026-10-24 21:10 (Run 77: Pillar 6.1 Interactive Demonstration Configured & Host Emulation vs Silicon Physics Clarified)
 
 ### [Built & Documented]
+- **`ipykernel` & Jupyter Pipeline Integration:** Installed `ipykernel` and `nbconvert` in `.venv`; registered native kernel `Python (CIMTinyTO .venv)` (`cimtinyto-venv`); verified end-to-end execution of [`fpga/pynq_z2/jupyter/pynq_micro_resnet_demo.ipynb`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/fpga/pynq_z2/jupyter/pynq_micro_resnet_demo.ipynb) passing all cells with 0 errors in software emulation mode.
 - **`FeasibilityStudy/TUL_PYNQ_Schematic_R12.pdf`:** Integrated official TUL PYNQ-Z2 15-page schematic drawing into repository records.
 - **`.agents/skills/lab-hardware-inventory/SKILL.md`:** Synchronized hardware inventory with official schematic designators: USB Host is **`USB_1`** (`USB_4H` footprint on Page 7, silkscreened as `USB HOST` on PCB top layer); HDMI ports are **`HDMI_IN`** / **`HDMI_OUT`** (Page 6).
 - **`fpga/pynq_z2/micro_resnet/micro_resnet_model.py`:** Quantized `MicroResNet16` model (6 layers, 16 channels, 1,536 weight bits = 192 Bytes total footprint) with binary weights $\{-1, +1\}$, fixed-point requantization parameters, and bit-exact software baseline reference.
@@ -24,10 +25,9 @@
   - Embodies the mathematical principles of XNOR-Net and Bi-Real Net in silicon via Mode 1 (Hybrid ReLU): $W \in \{-1, +1\}$ and $A \in [0, 255]$.
 - **Stationary Weight Switching Power Suppression ($P_{\text{dyn}} = \alpha \cdot C_L \cdot V^2 \cdot f$):**
   - Proved that keeping weights stationary in 256 standard-cell flip-flops slashes switching activity factor $\alpha_{\text{weights}} \to 0$ for all 1,024 spatial pixels in a $32 \times 32$ layer, consuming only 256 shift cycles instead of 262,144 (a $99.90\%$ reduction in weight shift traffic).
-- **Memory Wall & Transport Tier Quantification:**
-  - Demonstrated the classic edge computing bottleneck: while the hardware core computes 256 cycles in $5.12\ \mu\text{s}$, Tier 1 Python MMIO is throttled by bytecode interpretation ($3,077\ \mu\text{s}$ per tile $\implies 0.09\text{--}0.7\text{ FPS}$).
-  - Tier 2 compiled C MMIO slashes latency by orders of magnitude via direct pointers and packed 1-write strobing ($0.25\ \mu\text{s}$ in software / $\sim 15\ \mu\text{s}$ on ARM Linux).
-  - Tier 3 autonomous DMA streaming sustains full silicon wire speed ($6.08\ \mu\text{s}$ per tile $\implies \mathbf{45.8\text{ FPS}}$), unlocking real-time video classification.
+- **Host CPU Emulation vs. Physical Silicon Wire Speed:**
+  - Diagnosed why Tier 2 Compiled C ran at ~650–900 FPS on host PC (executing in 4+ GHz x86 L1 cache via `sim_execute_mvm()`) compared to Tier 3 DMA at 45.8 FPS (which models exact 50 MHz physical silicon clock cycles: 304 cycles * 20 ns = 6.08 us/tile).
+  - Clarified that on real PYNQ-Z2 hardware, Tier 2 C MMIO will be throttled to ~18 FPS by discrete AXI-Lite bus round-trip latency, making Tier 3 DMA (45.8 FPS) over $2.5\times$ faster on physical silicon.
 - **ASIC Core Immutability:**
   - Zero modifications to `src/`. The taped-out SkyWater 130nm ASIC core remains 100% frozen, untouched, and green.
 
@@ -35,13 +35,13 @@
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
 - **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; provisional Mux 227*; shuttle closes end of November 2026).
 - **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
-- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Pipeline):** ✅ **100% COMPLETE, VERIFIED & SIGNED OFF (8/8 pytest PASS, CLI benchmark PASS, 5/5 AXI regression PASS, 0 lines changed in `src/`).**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Pipeline):** ✅ **100% COMPLETE & VERIFIED. Software stack, Jupyter environment, and documentation fully prepared for physical bench testing.**
 - **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
 - **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
 
 ### [Next Steps]
-1. Per the **Strict Single-Pillar Session Scope Directive** in `AGENTS.md`, close out this chat session.
-2. Launch a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting Pipeline (Dual MEMS Mics, MFCC Acoustic Model on STM32 B-U585I / PYNQ-Z2)**.
+1. Tomorrow bench session: Connect PYNQ-Z2 FPGA via Micro-USB `J8`, power on `J9` (`USB`), attach camera to `USB_1` (`USB HOST`), and execute Tier 2 C MMIO and live vision demo directly on physical FPGA logic.
+2. After physical bench run: Conclude Pillar 6.1 and open a fresh chat session for **Pillar 6.2: Voice Keyword Spotting Pipeline**.
 
 ## Previous Execution Run: 2026-10-22 08:20 (Run 74: Educational Walkthrough on 13-Bit Accumulator, 2-Gate Overflow Clamping & Verilog Signed Synthesis Semantics)
 
