@@ -1,18 +1,20 @@
-# Session Handoff: Pillar 6.1 (Micro-ResNet) Complete & Ready for Pillar 6.2 (Voice KWS)
+# Session Handoff: Pillar 6.1 (Micro-ResNet) Physical Bench Bring-Up Active
 
-- **Date:** 2026-10-24 21:10
+- **Date:** 2026-10-25 11:15
 - **Machine Session:** Desktop PC (`juliusli`).
-- **Workstation Role on PC:** Primary hardware bring-up and emulation workstation (collocated with Korad KA3005P, AMD PYNQ-Z2, Intel MAX 10 DE10-Lite, Logic Analyzer).
+- **Workstation Role on PC:** Primary hardware bring-up and emulation workstation (collocated with Korad KA3005P, AMD PYNQ-Z2 @ `10.0.0.74`, Intel MAX 10 DE10-Lite, Logic Analyzer).
 - **Active Branch:** `main` (clean, fully synchronized).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
-- **Status:** **Pillar 6.1 Interactive Demonstration Configured & Verified in Software. Ready for Tomorrow's PYNQ-Z2 Bench Execution.**
+- **Status:** **PYNQ-Z2 FPGA Connected & Live at IP `10.0.0.74`. USB Camera Active on `USB_1`. Section 4b Live Video Stream Added to Jupyter Demo. Bitstream Flow Documented.**
 
 > [!NOTE]
-> **Action Plan for Next Session (Tomorrow):**
-> 1. Power up AMD PYNQ-Z2 on the bench (Micro-USB `J8`, Power Jumper `J9` to `USB`, Power Switch `ON`, USB Camera in `USB_1`).
-> 2. Execute Tier 2 C MMIO (`run_live_camera_demo.py` / `pynq_micro_resnet_demo.ipynb`) directly on physical FPGA logic and real camera feed.
-> 3. After physical sign-off, close out Pillar 6.1 and launch a fresh chat session for **Pillar 6.2: Voice Keyword Spotting Pipeline** (Dual MEMS Mics `MP23DB01HP`, MFCC Acoustic Model).
+> **Current Live Bench State:**
+> 1. PYNQ-Z2 board online at `10.0.0.74:9090` (password `xilinx`).
+> 2. FPGA fabric flashed with `scim_pynq.bit`; SCIM macro mapped at `0x40000000`.
+> 3. USB webcam enumerated on `/dev/video0`.
+> 4. `fpga/pynq_z2/jupyter/pynq_micro_resnet_demo.ipynb` updated with Section 4b for continuous real-time video streaming with live HUD.
+
 
 ---
 
