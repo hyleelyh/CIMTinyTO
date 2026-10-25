@@ -220,11 +220,21 @@ class EdgeVisionPipeline:
 class LiveCameraCapture:
     """Universal Camera Interface: Supports physical USB Webcams, CSI Cameras, and Synthetic Video."""
 
+    _active_instance = None
+
     def __init__(self, device_id=0, force_synthetic=False):
+        # Auto-release any previous camera handle to prevent V4L2 device lock
+        if LiveCameraCapture._active_instance is not None and LiveCameraCapture._active_instance is not self:
+            try:
+                LiveCameraCapture._active_instance.release()
+            except Exception:
+                pass
+
         self.device_id = device_id
         self.cap = None
         self.backend = "synthetic"
         self.frame_idx = 0
+        LiveCameraCapture._active_instance = self
 
         if not force_synthetic:
             # Check for OpenCV
@@ -239,14 +249,17 @@ class LiveCameraCapture:
                     if ret and test_frame is not None:
                         self.cap = cap
                         self.backend = "opencv"
-                        print(f"[LiveCamera] Connected to physical video device /dev/video{device_id} via OpenCV.")
+                        print(f"[LiveCamera SUCCESS] Connected to physical video device /dev/video{device_id} via OpenCV.")
                     else:
                         cap.release()
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[LiveCamera EXCEPTION] Error initializing camera: {e}")
 
         if self.backend == "synthetic":
-            print("[LiveCamera] No physical camera attached (or OpenCV absent). Using Animated Synthetic Video Stream.")
+            print(f"[LiveCamera WARNING] Physical /dev/video{device_id} unavailable or busy! Using Animated Synthetic Video Stream.")
+
+    def __del__(self):
+        self.release()
 
     def read_frame(self):
         """Capture or generate a single 32x32 RGB frame.
@@ -296,3 +309,6 @@ class LiveCameraCapture:
         if self.cap is not None:
             self.cap.release()
             self.cap = None
+        if LiveCameraCapture._active_instance is self:
+            LiveCameraCapture._active_instance = None
+
