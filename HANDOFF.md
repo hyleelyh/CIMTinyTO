@@ -1,8 +1,8 @@
 # Session Handoff: Pillar 6.1 (Micro-ResNet Edge AI Vision) Complete & Signed Off
 
-- **Date:** 2026-10-25 11:30
-- **Machine Session:** Desktop PC (`juliusli`).
-- **Workstation Role on PC:** Primary hardware bring-up and emulation workstation (collocated with Korad KA3005P, AMD PYNQ-Z2 @ `10.0.0.74`, Intel MAX 10 DE10-Lite, Logic Analyzer).
+- **Date:** 2026-10-26 08:30
+- **Machine Session:** Laptop (`juliusli-MSI`).
+- **Workstation Role on Laptop:** Reviewing, Planning, Architecture Study & Pedagogical Learning (Hardware bring-up executed on Desktop PC).
 - **Active Branch:** `main` (clean, fully synchronized).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.

@@ -1,6 +1,37 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-25 11:15 (Run 78: PYNQ-Z2 Physical Bench Bring-Up, Live Video Stream & Bitstream Architecture Walkthrough)
+## Last Execution Run: 2026-10-26 08:30 (Run 79: Laptop Architectural Review of Layer 4 OS Stack, Kernel Drivers, eFuse Security & Embedded Linux Mechanics)
+
+### [Built & Documented]
+- **Environment & Build Verification on Laptop (`juliusli-MSI`):**
+  - Fast-forwarded git pull to origin/main (`7c298c9`).
+  - Installed `pillow` in `.venv`.
+  - Recompiled native C MMIO driver `libscim_tier2.so` with `gcc -O3 -fPIC`.
+  - Verified 100% pass across all 8 pytest verification targets in `test/test_micro_resnet.py` (0.15s) and `run_micro_resnet_benchmark.py` (0 LSB divergence).
+- **Architectural & Security Deep Dives:**
+  - Documented Layer 4 Linux Kernel and driver architecture: Virtual memory MMU mapping (`/dev/mem`), cache invalidation semantics (`O_SYNC`), and strongly-ordered device memory vs. normal RAM.
+  - Formulated the zero-copy user-space pointer optimization saving >118k syscall context switches per frame.
+  - Analyzed the V4L2 kernel subsystem: UVC DMA circular ring buffer mechanics, stale image latency, and buffer draining (`cap.grab()`).
+  - Explored Zynq-7000 DevC/PCAP hardware reconfiguration: eFuse vs. BBRAM physical silicon security, AES-256/HMAC authentication, one-time programmable (OTP) electromigration physics, and the architectural differences between PYNQ's 32-bit ARMv7 `linux-xlnx` and modern PC Ubuntu.
+
+### [Architecture Decisions & Silicon Forensics]
+- **eFuse vs BBRAM Silicon Security Strategy:**
+  - Evaluated the physical destructiveness of eFuses (thermal vaporization of polysilicon links); confirmed that development and prototyping boards must never blow eFuses to avoid bricking and preserve unencrypted open bitstream loading.
+- **Embedded Linux Kernel Hardware Abstraction:**
+  - Contrasted ACPI dynamic PCI enumeration on x86_64 PCs against static Device Tree Blob (`.dtb`) definitions on ARMv7 SoCs; identified the role of Contiguous Memory Allocator (CMA) pools in enabling zero-copy hardware DMA.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; provisional Mux 227*; shuttle closes end of November 2026).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% SIGNED OFF & VERIFIED ON PHYSICAL PYNQ-Z2 HARDWARE (Live USB camera ingestion, Tier 2 C MMIO inference @ 22.9 FPS, real-time HUD telemetry).**
+- **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
+
+### [Next Steps]
+1. Conclude Pillar 6.1 and open a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting (KWS) Pipeline** (Dual MEMS Mics `MP23DB01HP`, MFCC Feature Extraction, Acoustic Quantized SCIM Neural Network).
+
+## Previous Execution Run: 2026-10-25 11:15 (Run 78: PYNQ-Z2 Physical Bench Bring-Up, Live Video Stream & Bitstream Architecture Walkthrough)
 
 ### [Built & Documented]
 - **`fpga/pynq_z2/micro_resnet/vision_pipeline.py`:**
