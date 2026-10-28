@@ -1,6 +1,34 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-26 08:30 (Run 79: Laptop Architectural Review of Layer 4 OS Stack, Kernel Drivers, eFuse Security & Embedded Linux Mechanics)
+## Last Execution Run: 2026-10-28 08:40 (Run 80: Architectural Analysis of CRAM Latching, Software Reprogramming Lifecycle & NPU Dynamic Reconfigurability)
+
+### [Built & Documented]
+- **Bitstream Reprogramming Lifecycle & Silicon Storage Physics:**
+  - Formulated CRAM (Configuration Static RAM) storage based on 6T cross-coupled inverter bistable latches: confirmed that bitstreams are pushed as a one-shot $10\text{ ms}$ DMA transfer and require zero refresh during mission-mode execution.
+  - Mapped the full software stack touched during dynamic reconfiguration: user-space `munmap()` teardown, Linux kernel SLCR level-shifter clamping, AXI bus isolation resets, PCAP DMA transfer, Device Tree Overlay (`.dtbo`) dynamic splicing, and Python IP dictionary reconstruction.
+- **Pedagogical Taxonomy of Dynamic Reconfiguration:**
+  - Dissected the industry confusion around "dynamic reconfiguration": contrasted structural FPGA CRAM rewriting ($10\text{ ms}$, $25\times$ area penalty) against CGRA context register switching ($1\text{--}5\text{ cycles}$) and NPU datapath steering ($1\text{ cycle}$, sub-nanosecond).
+  - Analyzed NPU dynamic precision splitting (breaking carry chains to turn FP16/INT16 into parallel $2\times\text{INT8}$ or $4\times\text{INT4}$) and dataflow steering (weight-stationary vs output-stationary).
+  - Documented how CIMTinyTO's taped-out core (`tt_um_scim_core.v`) achieves true NPU-style single-cycle ($20\text{ ns}$) dynamic reconfiguration between Unipolar Mode 0 and Hybrid ReLU Mode 1.
+
+### [Architecture Decisions & Silicon Forensics]
+- **Bus Isolation & Deadlock Prevention During Reprogramming:**
+  - Diagnosed why active CPU memory access during CRAM programming causes permanent AXI bus hang (floating `s_axi_bvalid` lines); verified that kernel SLCR clamping and user-space `munmap()` prevent kernel lockups.
+- **ASIC vs FPGA Reconfiguration Efficiency:**
+  - Affirmed that modern edge NPUs and our custom CIM macro prioritize hardwired multiplexer-based datapath steering over FPGA-style CRAM to avoid the $20\times\text{--}35\times$ silicon area and $10\times$ dynamic switching power penalties.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; provisional Mux 227*; shuttle closes end of November 2026).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% SIGNED OFF & VERIFIED ON PHYSICAL PYNQ-Z2 HARDWARE (Live USB camera ingestion, Tier 2 C MMIO inference @ 22.9 FPS, real-time HUD telemetry).**
+- **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
+
+### [Next Steps]
+1. Continue review of Layer 5 (Compiled C MMIO Driver & packed strobing) or conclude Pillar 6.1 and open a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting (KWS) Pipeline** (Dual MEMS Mics `MP23DB01HP`, MFCC Feature Extraction, Acoustic Quantized SCIM Neural Network).
+
+## Previous Execution Run: 2026-10-26 08:30 (Run 79: Laptop Architectural Review of Layer 4 OS Stack, Kernel Drivers, eFuse Security & Embedded Linux Mechanics)
 
 ### [Built & Documented]
 - **Environment & Build Verification on Laptop (`juliusli-MSI`):**
