@@ -1,6 +1,35 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-28 08:40 (Run 80: Architectural Analysis of CRAM Latching, Software Reprogramming Lifecycle & NPU Dynamic Reconfigurability)
+## Last Execution Run: 2026-10-29 08:32 (Run 81: PYNQ Ecosystem Analysis, Layer 5 Hardware/Software Co-Design & Packed Strobe Mechanics)
+
+### [Built & Documented]
+- **PYNQ Framework & Semiconductor Landscape Analysis:**
+  - Clarified that PYNQ is an open-source software/OS framework running on standard commercial Zynq-7020 silicon, portable across Zynq-7000, UltraScale+, Versal, and Alveo PCIe cards.
+  - Contrasted SoC FPGAs (hard ARM CPU, Linux OS, MMU) against standalone FPGAs (Intel MAX 10 / Artix-7), analyzing tethered vs soft-core RISC-V execution models and comparing AMD's runtime dominance against Intel/Lattice ecosystems.
+- **Layer 5 Hardware/Software Co-Design & Packed Strobing:**
+  - Deconstructed `scim_c_run_mvm()` step-by-step: mapped how unused AXI bits `[9:8]` provide out-of-band sideband control lines (`wr_act` and `ctrl_strobe`) without extra bus cycles.
+  - Documented `tt_um_scim_core.v` internal auto-incrementing address counter logic (`act_regs[addr] <= ui_in; addr <= addr + 1`), enabling sequential activation streaming with zero software address-management overhead.
+  - Analyzed the $650\text{ MHz} \leftrightarrow 50\text{ MHz}$ clock domain synchronization: how the wrapper's single-cycle auto-clearing pulse generator guarantees glitch-free $20\text{ ns}$ strobes immune to OS preemption jitter.
+  - Detailed 13-bit signed accumulator reconstruction and integer two's complement sign-extension math (`val - 0x2000`).
+
+### [Architecture Decisions & Silicon Forensics]
+- **Sideband Control Packing vs Multi-Write Protocols:**
+  - By encoding control strobes into bits `[9:8]` of the 32-bit AXI data word, bus transactions per activation vector dropped from 48 down to 16 ($66.7\%$ bus traffic reduction).
+- **Synchronous Strobe Clamping Guardrail:**
+  - Diagnosed why software-toggled strobes fail on silicon (OS latency holds pulses for hundreds of cycles, causing multi-count address corruption); verified that wrapper hardware auto-clearing guarantees deterministic 1-cycle pulses.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; provisional Mux 227*; shuttle closes end of November 2026).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% SIGNED OFF & VERIFIED ON PHYSICAL PYNQ-Z2 HARDWARE (Live USB camera ingestion, Tier 2 C MMIO inference @ 22.9 FPS, real-time HUD telemetry).**
+- **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
+
+### [Next Steps]
+1. Continue review of Layer 6 (GEMM Lowering, Tiling & Fixed-Point Requantization) or conclude Pillar 6.1 and open a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting (KWS) Pipeline** (Dual MEMS Mics `MP23DB01HP`, MFCC Feature Extraction, Acoustic Quantized SCIM Neural Network).
+
+## Previous Execution Run: 2026-10-28 08:40 (Run 80: Architectural Analysis of CRAM Latching, Software Reprogramming Lifecycle & NPU Dynamic Reconfigurability)
 
 ### [Built & Documented]
 - **Bitstream Reprogramming Lifecycle & Silicon Storage Physics:**
