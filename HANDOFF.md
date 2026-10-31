@@ -1,23 +1,22 @@
-# Session Handoff: Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation) - Hardware Overlay Fix
+# Session Handoff: Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation) - QAT Activation Gain Fix
 
-- **Date:** 2026-10-31 15:15
+- **Date:** 2026-10-31 16:00
 - **Machine Session:** Desktop PC (`juliusli`).
 - **Workstation Role on Desktop:** Primary bring-up platform (collocated with Korad supply, PYNQ-Z2, DE10-Lite, analyzer; Ryzen 5 9600X, 48 GB RAM).
-- **Active Branch:** `main` (commit `a7cf36d`, synchronized with remote).
+- **Active Branch:** `main` (commit will follow, [skip ci]).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
-- **Status:** **Cell 1 Syntax Error Fixed & Committed (a7cf36d). Ready for clean git pull on PYNQ board.**
+- **Status:** **Activation Zero-Collapse Diagnosed & Resolved. QAT Retrained & Calibrated Weights Exported. Ready for git pull on PYNQ board.**
 
 > [!NOTE]
 > **Pillar 6.1 Final Sign-Off Summary:**
 > 1. PYNQ-Z2 FPGA flashed with `scim_pynq.bit` operating at 50 MHz.
 > 2. Real-time physical camera video streaming via `/dev/video0` verified live with dynamic HUD telemetry.
 > 3. Tier 2 Compiled C MMIO direct pointer driver verified at **22.9 FPS** physical execution (and >700 FPS on CPU).
-> 4. Quantization-Aware Training (QAT) trained across 3 profiles on host AMD Ryzen 5 9600X:
->    - `cifar10_4class`: **52.25% accuracy** (Vehicles vs Animals: airplane, automobile, cat, dog).
->    - `fashion_mnist`: **32.27% accuracy** (10 fashion items).
->    - `cifar10_10class`: **26.01% accuracy** (Full 10 classes).
-> 5. Algebraic BatchNorm folding confirmed: floating-point $\gamma, \beta, \mu, \sigma^2$ folded into integer biases $B$ and fixed-point scales $(M, S)$.
+> 4. Quantization-Aware Training (QAT) activation dynamic range scaled by $S_{\text{act}} = 64.0$ to utilize the full 8-bit dynamic range $[0, 255]$:
+>    - `cifar10_4class`: **51.00% accuracy** (Vehicles vs Animals: airplane, automobile, cat, dog).
+>    - Intermediate feature maps no longer collapse to zero; dynamic classification demonstrated across test patterns (Circle $\to$ Cat, Checkerboard $\to$ Automobile, Stripes $\to$ Airplane).
+> 5. Algebraic BatchNorm & activation folding confirmed: floating-point $\gamma, \beta, \mu, \sigma^2$ folded into integer biases $B$ and fixed-point scales $(M, S)$.
 > 6. Full-network bit-exact parity confirmed: **0 LSB discrepancy** across all profiles against native C driver.
 
 

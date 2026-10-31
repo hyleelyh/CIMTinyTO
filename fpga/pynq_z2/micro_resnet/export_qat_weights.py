@@ -19,8 +19,8 @@ if _REPO_ROOT not in sys.path:
 from fpga.pynq_z2.micro_resnet.micro_resnet_qat import MicroResNetQAT, BinaryQuantizeSTE
 
 
-def fold_batchnorm(bn_module, shift=11):
-    """Algebraically fold BatchNorm parameters into integer bias and fixed-point scale.
+def fold_batchnorm(bn_module, act_scale=64.0, shift=11):
+    """Algebraically fold BatchNorm parameters and activation gain scale into integer bias and fixed-point scale.
     
     Formula:
       y = gamma * (x - mu) / sqrt(var + eps) + beta
@@ -30,7 +30,7 @@ def fold_batchnorm(bn_module, shift=11):
         alpha = gamma / sqrt(var + eps)
         delta = beta - alpha * mu
         B = round(delta / alpha)
-        M = round(mean(|alpha|) * 2^shift)
+        M = round(act_scale * mean(|alpha|) * 2^shift)
     """
     gamma = bn_module.weight.detach().cpu().numpy()
     beta = bn_module.bias.detach().cpu().numpy()
@@ -48,7 +48,7 @@ def fold_batchnorm(bn_module, shift=11):
 
     # Scale: select power-of-two shift (e.g. 11 -> 2^11 = 2048)
     mean_alpha = float(np.mean(np.abs(alpha)))
-    mult = int(np.round(mean_alpha * (1 << shift)))
+    mult = int(np.round(act_scale * mean_alpha * (1 << shift)))
     if mult <= 0:
         mult = 1
 
@@ -67,7 +67,7 @@ def export_checkpoint(ckpt_path, output_json=None):
     class_names = data.get("class_names", [])
     best_acc = data.get("best_acc", 0.0)
 
-    model = MicroResNetQAT(num_classes=num_classes)
+    model = MicroResNetQAT(num_classes=num_classes, act_scale=64.0)
     model.load_state_dict(state_dict)
     model.eval()
 
@@ -77,42 +77,42 @@ def export_checkpoint(ckpt_path, output_json=None):
 
     # 1. Stem Conv
     w_stem = model.stem_conv.get_binary_weights()  # (16, 16)
-    b_stem, s_stem = fold_batchnorm(model.stem_bn, shift=11)
+    b_stem, s_stem = fold_batchnorm(model.stem_bn, act_scale=64.0, shift=11)
     weights["stem"] = w_stem.tolist()
     biases["stem"] = b_stem.tolist()
     scales["stem"] = s_stem
 
     # 2. ResBlock 1 - Conv 1a
     w_r1c1 = model.res1_conv1.get_binary_weights()
-    b_r1c1, s_r1c1 = fold_batchnorm(model.res1_bn1, shift=11)
+    b_r1c1, s_r1c1 = fold_batchnorm(model.res1_bn1, act_scale=64.0, shift=11)
     weights["res1_conv1"] = w_r1c1.tolist()
     biases["res1_conv1"] = b_r1c1.tolist()
     scales["res1_conv1"] = s_r1c1
 
     # 3. ResBlock 1 - Conv 1b
     w_r1c2 = model.res1_conv2.get_binary_weights()
-    b_r1c2, s_r1c2 = fold_batchnorm(model.res1_bn2, shift=11)
+    b_r1c2, s_r1c2 = fold_batchnorm(model.res1_bn2, act_scale=64.0, shift=11)
     weights["res1_conv2"] = w_r1c2.tolist()
     biases["res1_conv2"] = b_r1c2.tolist()
     scales["res1_conv2"] = s_r1c2
 
     # 4. ResBlock 2 - Conv 2a
     w_r2c1 = model.res2_conv1.get_binary_weights()
-    b_r2c1, s_r2c1 = fold_batchnorm(model.res2_bn1, shift=11)
+    b_r2c1, s_r2c1 = fold_batchnorm(model.res2_bn1, act_scale=64.0, shift=11)
     weights["res2_conv1"] = w_r2c1.tolist()
     biases["res2_conv1"] = b_r2c1.tolist()
     scales["res2_conv1"] = s_r2c1
 
     # 5. ResBlock 2 - Conv 2b
     w_r2c2 = model.res2_conv2.get_binary_weights()
-    b_r2c2, s_r2c2 = fold_batchnorm(model.res2_bn2, shift=11)
+    b_r2c2, s_r2c2 = fold_batchnorm(model.res2_bn2, act_scale=64.0, shift=11)
     weights["res2_conv2"] = w_r2c2.tolist()
     biases["res2_conv2"] = b_r2c2.tolist()
     scales["res2_conv2"] = s_r2c2
 
-    # 6. Classifier Head
+    # 6. Classifier Head (act_scale=1.0 for logits)
     w_clf = model.classifier.get_binary_weights()  # (16, 16)
-    b_clf, s_clf = fold_batchnorm(model.classifier_bn, shift=8)
+    b_clf, s_clf = fold_batchnorm(model.classifier_bn, act_scale=1.0, shift=8)
     # Pad bias to 16 if num_classes < 16
     if len(b_clf) < 16:
         b_clf_padded = np.zeros(16, dtype=int)

@@ -120,12 +120,14 @@ class SCIMTier1Engine:
         # Step 5: Global Average Pooling (GAP)
         gap_vec = np.mean(res2_pool, axis=(1, 2)).astype(np.uint8)
 
-        # Step 6: Classification Head (16 in -> 10 classes)
+        # Step 6: Classification Head (16 in -> num_classes)
+        num_cls = len(self.model.CLASSES)
         logits = self.tiler.execute_linear_layer(
             layer_id="classifier",
             input_vec_16=gap_vec,
             weight_matrix_16x16=self.model.weights["classifier"],
-            bias_16=self.model.biases["classifier"]
+            bias_16=self.model.biases["classifier"],
+            num_classes=num_cls
         )
 
         t_end = time.perf_counter()

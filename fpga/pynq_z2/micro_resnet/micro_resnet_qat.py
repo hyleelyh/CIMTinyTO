@@ -133,9 +133,10 @@ class DepthwiseSmooth3x3(nn.Module):
 class MicroResNetQAT(nn.Module):
     """PyTorch Quantization-Aware Training model for MicroResNet16."""
 
-    def __init__(self, num_classes=10):
+    def __init__(self, num_classes=10, act_scale=64.0):
         super().__init__()
         self.num_classes = num_classes
+        self.act_scale = act_scale
 
         # 1. Stem Conv: (16, 32, 32) -> (16, 32, 32)
         self.stem_conv = BinarizedConv1x1(16, 16)
@@ -175,13 +176,13 @@ class MicroResNetQAT(nn.Module):
         # Stem Conv + BN + Requantize ReLU
         x_stem = self.stem_conv(x)
         x_stem = self.stem_bn(x_stem)
-        x_stem = ActivationQuantizeSTE.apply(F.relu(x_stem))
+        x_stem = ActivationQuantizeSTE.apply(F.relu(x_stem) * self.act_scale)
 
         # ResBlock 1:
         # Conv 1a
         x1 = self.res1_conv1(x_stem)
         x1 = self.res1_bn1(x1)
-        x1 = ActivationQuantizeSTE.apply(F.relu(x1))
+        x1 = ActivationQuantizeSTE.apply(F.relu(x1) * self.act_scale)
 
         # Spatial Depthwise
         x1_smooth = self.res1_smooth(x1)
@@ -190,23 +191,25 @@ class MicroResNetQAT(nn.Module):
         # Conv 1b
         x1b = self.res1_conv2(x1_smooth)
         x1b = self.res1_bn2(x1b)
+        x1b_scaled = F.relu(x1b) * self.act_scale
 
-        # Residual shortcut: (X + F(X)) / 2 + ReLU + MaxPool 2x2
-        res1_out = ActivationQuantizeSTE.apply(F.relu((x_stem + x1b) * 0.5))
+        # Residual shortcut: (X + F(X)) / 2 + MaxPool 2x2
+        res1_out = ActivationQuantizeSTE.apply((x_stem + x1b_scaled) * 0.5)
         res1_pool = self.res1_pool(res1_out)
 
         # ResBlock 2:
         # Conv 2a
         x2 = self.res2_conv1(res1_pool)
         x2 = self.res2_bn1(x2)
-        x2 = ActivationQuantizeSTE.apply(F.relu(x2))
+        x2 = ActivationQuantizeSTE.apply(F.relu(x2) * self.act_scale)
 
         # Conv 2b
         x2b = self.res2_conv2(x2)
         x2b = self.res2_bn2(x2b)
+        x2b_scaled = F.relu(x2b) * self.act_scale
 
-        # Residual shortcut: (X + F(X)) / 2 + ReLU + MaxPool 2x2
-        res2_out = ActivationQuantizeSTE.apply(F.relu((res1_pool + x2b) * 0.5))
+        # Residual shortcut: (X + F(X)) / 2 + MaxPool 2x2
+        res2_out = ActivationQuantizeSTE.apply((res1_pool + x2b_scaled) * 0.5)
         res2_pool = self.res2_pool(res2_out)
 
         # Global Average Pooling: (B, 16, 8, 8) -> (B, 16)

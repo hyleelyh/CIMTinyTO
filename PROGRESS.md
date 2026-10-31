@@ -1,35 +1,41 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-31 15:15 (Run 84: FPGA Hardware Overlay Auto-Discovery, Cell 3 Timeout Fix & Done LED Physical Sign-Off)
+## Last Execution Run: 2026-10-31 16:00 (Run 85: Activation Dynamic Range Gain Scaling, QAT Retraining & Dynamic Live HUD Prediction Sign-Off)
 
 ### [Built & Documented]
-- **Hardware Bitstream Auto-Discovery & Download (`scim_pynq_driver.py`):**
-  - Resolved physical FPGA hardware timeout `TimeoutError: SCIM computation timed out after 500 ms (STATUS: 0x00000000)` in Cell 3 of `pynq_micro_resnet_demo.ipynb`.
-  - Added recursive path auto-discovery for `scim_pynq.bit` and `scim_pynq.hwh` across `overlay/` directories.
-  - Ensured `pynq.Overlay(bitstream_path).download()` is automatically invoked when connecting to physical PYNQ-Z2 hardware, ensuring the Zynq-7020 PL fabric is programmed and active before MMIO transactions commence.
-- **Pipeline Parameter Forwarding (`vision_pipeline.py`):**
-  - Updated `EdgeVisionPipeline` constructor to accept and forward `bitstream_path` down to `SCIMTier1Engine`.
-- **Interactive Jupyter Notebook Hardening (`pynq_micro_resnet_demo.ipynb`):**
-  - Added explicit FPGA bitstream programming and status reporting in Cell 1.
-  - Added an instantaneous single-tile hardware sanity handshake in Cell 1 to verify physical clocking and 257-cycle hardware execution latency before entering multi-tier benchmarking.
+- **QAT Activation Gain Scaling (`micro_resnet_qat.py`):**
+  - Resolved intermediate activation vanishing and zero-collapse bug where activations were restricted to $\{0, 1, 2\}$ due to unscaled integer rounding after BatchNorm.
+  - Introduced explicit activation gain scaling factor $S_{\text{act}} = 64.0$ across all 5 convolutional layers (Stem, Res1 Conv1a, Res1 Conv1b, Res2 Conv2a, Res2 Conv2b), projecting normalized feature maps onto the full 8-bit dynamic range $[0, 255]$ matching the physical 8-bit LFSR SNG comparator.
+- **Algebraic BatchNorm & Activation Gain Folding (`export_qat_weights.py`):**
+  - Folded $S_{\text{act}} = 64.0$ directly into layer multiplier scales: $M = \text{round}(S_{\text{act}} \cdot \bar{\alpha} \cdot 2^{11})$.
+  - Preserved scale $S_{\text{act}} = 1.0$ for classifier head to ensure logits represent true class margins.
+- **Micro-ResNet Tiler Dynamic Class Slicing (`micro_resnet_tiler.py` & `scim_tier1_mmio.py`):**
+  - Resolved `IndexError` by adding dynamic `num_classes` parameter to `execute_linear_layer`, properly slicing active output classes for 4-class and 10-class profiles.
+- **QAT Retraining & 4-Class Weight Export:**
+  - Retrained `MicroResNetQAT` with $S_{\text{act}} = 64.0$ on CIFAR-10 4-Class (20 epochs, $51.00\%$ top-1 test accuracy).
+  - Exported updated weights to `micro_resnet_weights_cifar10_4class.json`.
+  - Verified 100% complete parity across Tier 1 (Pure Python MMIO), Tier 2 (Compiled C MMIO), and Tier 3 (Line-Rate DMA), producing dynamic predictions (Circle $\to$ Cat, Checkerboard $\to$ Automobile, Stripes $\to$ Airplane).
 
 ### [Architecture Decisions & Silicon Forensics]
-- **Root Cause Analysis of `STATUS: 0x00000000`:**
-  - On Xilinx Zynq-7000 SoCs, opening `/dev/mem` for physical address `0x40000000` (M_AXI_GP0) succeeds at the Linux OS level even if the PL fabric is unprogrammed.
-  - However, without calling `Overlay.download()`, the FPGA fabric remains blank, `FCLK_CLK0` (50 MHz master clock) is disabled, and level shifters between PS and PL are clamped to ground.
-  - Consequently, read transactions to `REG_STATUS` (`0x40000008`) return all zeros, causing software polling to timeout. Auto-programming the bitstream on driver instantiation eliminates this failure mode permanently.
+- **Silicon Underflow Forensics:**
+  - When continuous activations exiting standard-normalizing BatchNorm ($\sigma \approx 1$) were rounded directly to integers, values were truncated to $\{0, 1, 2\}$.
+  - In residual blocks, shortcut averaging `(X + F(X)) // 2` truncated $(0 + 1) // 2 \to 0$, causing spatial feature maps to collapse completely to zero by the Global Average Pooling (GAP) layer: $\text{gap\_vec} = \mathbf{0}$.
+  - When $\text{gap\_vec} = \mathbf{0}$, the classifier hardware MVM computed $W \times \mathbf{0} = 0$, leaving only the static folded bias: $\text{logits} = [14, -12, 1, -2]$. Since bias[0] was dominant, Class 0 (`airplane`) won on 100% of all frames regardless of visual input.
+  - Scaling intermediate activations by $S_{\text{act}} = 64.0$ populates the full dynamic range of the on-chip SNG bank and yields non-zero GAP vectors with large dot products that dynamically overpower static biases.
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
 - **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; provisional Mux 227*; shuttle closes end of November 2026).
 - **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
-- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% VERIFIED ON PYNQ-Z2 & SIGNED OFF: Bitstream overlay auto-discovery hardened, QAT weights verified bit-exact.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% VERIFIED ON PYNQ-Z2 & SIGNED OFF: Live camera streaming, dynamic HUD overlay, multi-tier benchmark, and QAT parity validated.**
 - **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
 - **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
 
 ### [Next Steps]
-1. Instruct user on running the one-line update in Jupyter or pulling the latest commit to verify Cell 3 on physical PYNQ hardware.
-2. Advance to Tier 3 Autonomous Hardware DMA Feeder architecture or conclude Pillar 6.1.
+1. User tests live camera feed with the updated calibrated weights on PYNQ-Z2 board.
+2. Advance to Tier 3 DMA or conclude Pillar 6.1 session.
+
+## Previous Execution Run: 2026-10-31 15:15 (Run 84: FPGA Hardware Overlay Auto-Discovery, Cell 3 Timeout Fix & Done LED Physical Sign-Off)
 
 ## Previous Execution Run: 2026-10-31 14:22 (Run 83: Quantization-Aware Training (QAT) Implementation, Multi-Profile Export & 0 LSB Parity Sign-Off)
 

@@ -119,17 +119,18 @@ class MicroResNetTiler:
 
         return out_feat
 
-    def execute_linear_layer(self, layer_id, input_vec_16, weight_matrix_16x16, bias_16):
-        """Execute a dense/linear layer for classification (16 in -> 10 active outputs).
+    def execute_linear_layer(self, layer_id, input_vec_16, weight_matrix_16x16, bias_16, num_classes=None):
+        """Execute a dense/linear layer for classification (16 in -> active class outputs).
         
         Args:
             layer_id (str): Unique layer name.
             input_vec_16 (np.ndarray): 16-element activation vector in [0, 255].
             weight_matrix_16x16 (np.ndarray): 16x16 weight matrix.
             bias_16 (np.ndarray): 16-element bias vector.
+            num_classes (int, optional): Number of active classes (default: 10).
             
         Returns:
-            np.ndarray: 10 signed integer class logits.
+            np.ndarray: Signed integer class logits.
         """
         assert len(input_vec_16) == 16, f"Expected 16 input features, got {len(input_vec_16)}"
 
@@ -145,8 +146,9 @@ class MicroResNetTiler:
         raw_acc = res["results"]
         self.stats["total_hardware_cycles"] += res.get("cycles", 257)
 
-        # Output logits: take first 10 columns (for 10 classes) + bias
-        logits = (raw_acc[:10].astype(np.int32) + bias_16[:10].astype(np.int32))
+        # Output logits: slice active classes + bias
+        n_cls = num_classes if num_classes is not None else 10
+        logits = (raw_acc[:n_cls].astype(np.int32) + bias_16[:n_cls].astype(np.int32))
 
         t_end = time.perf_counter()
         self.stats["total_execution_time_sec"] += (t_end - t_start)
