@@ -209,10 +209,27 @@ class SCIMPynqDriver:
         self.overlay = None
 
         if HAS_PYNQ and not force_emulation:
+            # Auto-discover bitstream path if not explicitly provided
+            if bitstream_path is None:
+                candidates = [
+                    os.path.abspath(os.path.join(CURRENT_DIR, "..", "overlay", "scim_pynq.bit")),
+                    os.path.abspath(os.path.join(CURRENT_DIR, "overlay", "scim_pynq.bit")),
+                    os.path.abspath(os.path.join(PROJ_ROOT, "fpga", "pynq_z2", "overlay", "scim_pynq.bit")),
+                    "/home/xilinx/jupyter_notebooks/CIMTinyTO/fpga/pynq_z2/overlay/scim_pynq.bit",
+                    "/home/xilinx/CIMTinyTO/fpga/pynq_z2/overlay/scim_pynq.bit",
+                ]
+                for cand in candidates:
+                    if os.path.exists(cand):
+                        bitstream_path = cand
+                        break
+
             try:
                 if bitstream_path and os.path.exists(bitstream_path):
                     self.overlay = Overlay(bitstream_path)
-                    print(f"[SCIM Driver] Successfully loaded hardware overlay: {bitstream_path}")
+                    self.overlay.download()
+                    print(f"[SCIM Driver] Successfully loaded & programmed hardware overlay: {bitstream_path}")
+                else:
+                    print(f"[SCIM Driver] Warning: No bitstream overlay found. PL fabric may remain unprogrammed.")
                 self.mmio = MMIO(base_addr, size)
                 print(f"[SCIM Driver] Connected to physical FPGA AXI4-Lite MMIO at 0x{base_addr:08X}")
             except Exception as e:
