@@ -18,28 +18,45 @@ if PROJ_ROOT not in sys.path:
 from fpga.pynq_z2.micro_resnet.vision_pipeline import EdgeVisionPipeline
 
 
+import argparse
+
+
 def main():
+    parser = argparse.ArgumentParser(description="Run Live Edge Vision Camera Stream with Trained QAT Models")
+    parser.add_argument("--profile", type=str, default="cifar10_4class",
+                        choices=["cifar10_4class", "cifar10_10class", "fashion_mnist"],
+                        help="Trained QAT weight profile to load")
+    parser.add_argument("--hw", action="store_true",
+                        help="Run on physical PYNQ-Z2 hardware (force_emulation=False)")
+    parser.add_argument("--frames", type=int, default=20,
+                        help="Number of frames to stream")
+    parser.add_argument("--device", type=int, default=0,
+                        help="V4L2 video capture device index (/dev/video0)")
+    args = parser.parse_args()
+
     print("=" * 75)
     print(" CIMTinyTO Pillar 6.1: Real-Time Edge Vision Camera Stream")
-    print(" Target: 16x16 SCIM Macro @ 50 MHz (Application #6 / Tier 2)")
+    mode_str = "Physical PYNQ-Z2 FPGA (AXI-Lite @ 50 MHz)" if args.hw else "Bit-Exact Software Emulation"
+    print(f" Target Mode: {mode_str}")
+    print(f" Loaded Model Profile: {args.profile}")
     print("=" * 75)
 
-    pipeline = EdgeVisionPipeline(force_emulation=True, seed=42)
+    pipeline = EdgeVisionPipeline(force_emulation=(not args.hw), profile=args.profile)
 
-    total_frames = 15
-    print(f"\n>>> Starting Live Camera Stream ({total_frames} frames)...")
+    print(f"\n>>> Starting Live Camera Stream ({args.frames} frames)...")
+    print(f" Active Classes: {pipeline.tier2_engine.model.CLASSES}")
 
     def on_frame(f_idx, res, hud_img):
         pred = res['pred_class'].upper()
         prob = res['probabilities'][res['pred_idx']] * 100.0
         fps = res['fps']
         lat = res['total_time_sec'] * 1000.0
-        print(f" Frame [{f_idx+1:02d}/{total_frames:02d}] -> Class: {pred:<12} ({prob:5.1f}%) | Latency: {lat:6.2f} ms | Speed: {fps:6.1f} FPS")
+        print(f" Frame [{f_idx+1:02d}/{args.frames:02d}] -> Class: {pred:<14} ({prob:5.1f}%) | Latency: {lat:6.2f} ms | Speed: {fps:6.1f} FPS")
 
     results = pipeline.stream_live_camera(
-        num_frames=total_frames,
+        num_frames=args.frames,
         tier=2,
-        device_id=0,
+        device_id=args.device,
         on_frame=on_frame
     )
 
