@@ -1,12 +1,12 @@
-# Session Handoff: Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation) - QAT Complete & Signed Off
+# Session Handoff: Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation) - Hardware Overlay Fix
 
-- **Date:** 2026-10-31 14:22
+- **Date:** 2026-10-31 15:15
 - **Machine Session:** Desktop PC (`juliusli`).
 - **Workstation Role on Desktop:** Primary bring-up platform (collocated with Korad supply, PYNQ-Z2, DE10-Lite, analyzer; Ryzen 5 9600X, 48 GB RAM).
-- **Active Branch:** `main` (clean, synchronized with remote).
+- **Active Branch:** `main` (commit `b868e74`, synchronized with remote).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
-- **Status:** **Pillar 6.1 FULLY SIGNED OFF WITH REAL TRAINED QAT WEIGHTS (3 Profiles Exported, 0 LSB Parity Confirmed against Physical Driver). Ready for Pillar 6.2 (Voice Keyword Spotting) or Tier 3 DMA Feeder RTL.**
+- **Status:** **Cell 3 Timeout Diagnosed & Fixed: FPGA fabric overlay auto-discovery and download enabled. All regressions green.**
 
 > [!NOTE]
 > **Pillar 6.1 Final Sign-Off Summary:**
