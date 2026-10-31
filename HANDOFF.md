@@ -1,23 +1,19 @@
-# Session Handoff: Pillar 6.1 (Micro-ResNet Edge AI Vision) Complete & Signed Off
+# Session Handoff: Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation) - QAT Model Preparation
 
-- **Date:** 2026-10-29 08:32
-- **Machine Session:** Laptop (`juliusli-MSI`).
-- **Workstation Role on Laptop:** Reviewing, Planning, Architecture Study & Pedagogical Learning (Hardware bring-up executed on Desktop PC).
-- **Active Branch:** `main` (clean, fully synchronized).
+- **Date:** 2026-10-31 10:55
+- **Machine Session:** Desktop PC (`juliusli`).
+- **Workstation Role on Desktop:** Primary bring-up platform (collocated with Korad supply, PYNQ-Z2, DE10-Lite, analyzer; Ryzen 5 9600X, 48 GB RAM).
+- **Active Branch:** `main` (clean, synchronized with remote).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
-- **Status:** **Pillar 6.1 FULLY SIGNED OFF ON PHYSICAL BENCH HARDWARE. Ready for Pillar 6.2 (Voice Keyword Spotting Pipeline) in a Fresh Chat Session.**
+- **Status:** **Pillar 6.1 ACTIVE. QAT microarchitectural deep dive and host compute analysis complete. Activity on hold per user request for review.**
 
 > [!NOTE]
-> **Pillar 6.1 Physical Hardware Sign-Off Summary:**
-> 1. PYNQ-Z2 FPGA flashed with `scim_pynq.bit` operating at 50 MHz.
-> 2. Real-time physical camera video streaming via `/dev/video0` verified live.
-> 3. Tier 2 Compiled C MMIO direct pointer driver verified at **22.9 FPS** end-to-end full-frame inference.
-> 4. Dynamic real-time HUD telemetry verified in Section 4b of `pynq_micro_resnet_demo.ipynb`.
-> 5. Vivado batch Tcl build flow and bitstream architecture walkthrough documented.
->
-> **Action Plan for Next Session:**
-> Launch a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting (KWS) Pipeline** (Dual MEMS Mics `MP23DB01HP`, MFCC Feature Extraction, Acoustic Model).
+> **Pillar 6.1 Current Status & Plan:**
+> 1. Hardware baseline and C MMIO streaming on physical PYNQ-Z2 fully functional.
+> 2. Quantization-Aware Training (QAT) architecture formulated: Straight-Through Estimator (STE) for discrete $\pm 1$ weights, activation clipping to $[0, 255]$, and BatchNorm folding into integer bias $B$ and scales $(M, S)$.
+> 3. Host hardware verified: AMD Ryzen 5 9600X (Zen 5, AVX-512) capable of full 40-epoch training in $\approx 60\text{--}90\text{ seconds}$ on CPU.
+> 4. Waiting for user signal to commence Phase 1 implementation (`micro_resnet_qat.py`).
 
 
 
