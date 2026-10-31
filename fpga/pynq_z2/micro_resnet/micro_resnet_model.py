@@ -56,12 +56,41 @@ class MicroResNet16:
         "dog", "frog", "horse", "ship", "truck"
     ]
 
-    def __init__(self, seed=42):
+    def __init__(self, seed=42, profile=None, weights_file=None):
         self.seed = seed
+        self.profile = profile
         self.weights = {}
         self.biases = {}
         self.scales = {}
-        self._init_parameters(seed)
+        self.dataset_name = "synthetic"
+
+        if weights_file:
+            self.load_weights(weights_file)
+        elif profile:
+            curr_dir = os.path.dirname(os.path.abspath(__file__))
+            cand_path = os.path.join(curr_dir, f"micro_resnet_weights_{profile}.json")
+            if os.path.exists(cand_path):
+                self.load_weights(cand_path)
+            else:
+                self._init_parameters(seed)
+        else:
+            self._init_parameters(seed)
+
+    def load_weights(self, filepath):
+        """Load trained QAT binary weights, folded biases, and scales from JSON."""
+        with open(filepath, "r") as f:
+            data = json.load(f)
+
+        self.dataset_name = data.get("dataset_name", "custom")
+        if "class_names" in data and data["class_names"]:
+            self.CLASSES = list(data["class_names"])
+
+        for layer_name, w_list in data["weights"].items():
+            self.weights[layer_name] = np.array(w_list, dtype=np.int32)
+        for layer_name, b_list in data["biases"].items():
+            self.biases[layer_name] = np.array(b_list, dtype=np.int32)
+        for layer_name, s_dict in data["scales"].items():
+            self.scales[layer_name] = s_dict
 
     def _init_parameters(self, seed):
         """Initialize deterministic, balanced binary weights and fixed-point scales."""
@@ -241,9 +270,10 @@ class MicroResNet16:
         gap_features = np.mean(res2_pool, axis=(1, 2)).astype(np.uint8)
         activations["gap"] = gap_features
 
-        # 5. Classifier Head: (16,) @ (16, 16) -> (10 active logits)
+        # 5. Classifier Head: (16,) @ (16, 16) -> (num_classes active logits)
         raw_logits = np.matmul(gap_features.astype(np.int32), self.weights["classifier"])
-        logits = (raw_logits[:10] + self.biases["classifier"][:10]).astype(np.int32)
+        num_cls = len(self.CLASSES)
+        logits = (raw_logits[:num_cls] + self.biases["classifier"][:num_cls]).astype(np.int32)
         activations["logits"] = logits
 
         pred_idx = int(np.argmax(logits))

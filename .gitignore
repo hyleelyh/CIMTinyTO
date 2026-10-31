@@ -32,7 +32,10 @@ runs/
 
 # Downloads & Archives
 *.zip
+*.tar.gz
 artifacts/
+data/
+*.pt
 
 # FPGA EDA (Quartus & Vivado)
 db/

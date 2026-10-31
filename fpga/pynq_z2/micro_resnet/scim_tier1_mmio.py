@@ -39,9 +39,9 @@ from .micro_resnet_tiler import MicroResNetTiler
 class SCIMTier1Engine:
     """Tier 1: Pure Python MMIO Micro-ResNet Inference Engine."""
 
-    def __init__(self, bitstream_path=None, force_emulation=False, seed=42):
+    def __init__(self, bitstream_path=None, force_emulation=False, seed=42, profile=None):
         self.driver = SCIMPynqDriver(bitstream_path=bitstream_path, force_emulation=force_emulation)
-        self.model = MicroResNet16(seed=seed)
+        self.model = MicroResNet16(seed=seed, profile=profile)
         self.tiler = MicroResNetTiler(self.driver)
 
     def infer(self, img_array):

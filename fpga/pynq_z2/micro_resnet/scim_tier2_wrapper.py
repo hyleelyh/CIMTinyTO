@@ -26,10 +26,10 @@ from .micro_resnet_model import MicroResNet16
 class SCIMTier2Engine:
     """Tier 2: Compiled C MMIO Acceleration Engine via ctypes."""
 
-    def __init__(self, base_addr=0x40000000, force_sim=False, seed=42):
+    def __init__(self, base_addr=0x40000000, force_sim=False, seed=42, profile=None):
         self.base_addr = base_addr
         self.force_sim = force_sim
-        self.model = MicroResNet16(seed=seed)
+        self.model = MicroResNet16(seed=seed, profile=profile)
         self.current_layer_id = None
         self.stats = {
             "total_tiles": 0,
@@ -156,7 +156,8 @@ class SCIMTier2Engine:
         self.lib.scim_c_run_mvm(act_ptr, ctypes.c_int(1), res_ptr)
         self.stats["total_tiles"] += 1
 
-        logits = (res_arr[:10].astype(np.int32) + bias_16[:10].astype(np.int32))
+        num_cls = len(self.model.CLASSES)
+        logits = (res_arr[:num_cls].astype(np.int32) + bias_16[:num_cls].astype(np.int32))
         return logits
 
     def infer(self, img_array):

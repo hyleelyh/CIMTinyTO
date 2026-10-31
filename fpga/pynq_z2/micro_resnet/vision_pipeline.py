@@ -38,12 +38,13 @@ from .scim_tier3_dma import SCIMTier3Engine
 class EdgeVisionPipeline:
     """End-to-End Real-Time Edge Vision Pipeline with Multi-Tier Acceleration."""
 
-    def __init__(self, force_emulation=True, seed=42):
+    def __init__(self, force_emulation=True, seed=42, profile=None):
         self.seed = seed
+        self.profile = profile
         self.force_emulation = force_emulation
-        self.tier1_engine = SCIMTier1Engine(force_emulation=force_emulation, seed=seed)
-        self.tier2_engine = SCIMTier2Engine(force_sim=force_emulation, seed=seed)
-        self.tier3_engine = SCIMTier3Engine(seed=seed)
+        self.tier1_engine = SCIMTier1Engine(force_emulation=force_emulation, seed=seed, profile=profile)
+        self.tier2_engine = SCIMTier2Engine(force_sim=force_emulation, seed=seed, profile=profile)
+        self.tier3_engine = SCIMTier3Engine(seed=seed, profile=profile)
 
     @staticmethod
     def load_image(image_input):

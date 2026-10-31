@@ -39,8 +39,8 @@ class SCIMTier3Engine:
     CYCLES_PER_TILE = 304  # 304 cycles * 20 ns = 6.08 us
     WEIGHT_LOAD_CYCLES = 256  # 256 cycles * 20 ns = 5.12 us
 
-    def __init__(self, seed=42):
-        self.model = MicroResNet16(seed=seed)
+    def __init__(self, seed=42, profile=None):
+        self.model = MicroResNet16(seed=seed, profile=profile)
         self.stats = {
             "total_tiles": 0,
             "weight_loads": 0,

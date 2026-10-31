@@ -1,39 +1,45 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-31 10:55 (Run 82: Quantization-Aware Training (QAT) Architecture Deep Dive, Vanishing Gradients & Straight-Through Estimator, Hardware Feasibility Analysis)
+## Last Execution Run: 2026-10-31 14:22 (Run 83: Quantization-Aware Training (QAT) Implementation, Multi-Profile Export & 0 LSB Parity Sign-Off)
 
 ### [Built & Documented]
-- **Architectural Formulation of Quantization-Aware Training (QAT):**
-  - Analyzed the physical silicon invariants of CIMTinyTO (`tt_um_scim_core.v`): $W \in \{-1, +1\}$ binary stationary weights (192 bytes total memory), 8-bit activations $A \in [0, 255]$, and 13-bit accumulator range $[-4096, +4095]$.
-  - Formulated the vanishing gradient barrier ($d/dx\,\text{sign}(x) = 2\delta(x) = 0$ almost everywhere) and the Straight-Through Estimator (STE) surrogate gradient ($\text{Hardtanh}'(W) \approx \mathbf{1}_{|W| \le 1}$) enabling continuous latent backpropagation into discrete binary weights.
-  - Formulated the exact Batch Normalization folding into integer ASIC requantization parameters: mapping floating-point $(\gamma, \beta, \mu, \sigma)$ directly into integer bias $B = \text{round}(\beta/\alpha - \mu)$ and fixed-point scale $M = \text{round}(\alpha \cdot 2^S)$.
-- **Silicon Area & Memory Wall Analysis (ResNet-50 vs MicroResNet-16):**
-  - Evaluated the physical impossibility of loading ResNet-50 onto Tiny Tapeout: $25.5\text{ M}$ parameters require $3.18\text{ MB}$ even if binarized, which requires $>12\text{ mm}^2$ of SRAM—$180\times$ larger than our entire $0.067\text{ mm}^2$ chip area.
-  - Formulated the Memory Wall latency and energy penalties: off-chip DDR bus transfer consumes $10\text{--}50\text{ pJ/bit}$ vs $<0.05\text{ pJ/bit}$ on-chip ($1,000\times$ energy penalty), with $80\text{ s}$ per-image streaming latency.
-  - Clarified that `MicroResNet-16` is a purpose-built micro-variant matching the $16\times 16$ crossbar with residual skip connections, and analyzed Knowledge Distillation (KD) opportunities using large teacher models.
-- **Workstation Compute Feasibility Assessment (Ryzen 5 9600X):**
-  - Inspected host hardware: AMD Ryzen 5 9600X (6 cores / 12 threads, Zen 5, AVX-512), 48 GB DDR5 RAM (35 GiB available), 1.8 TB NVMe SSD (1.4 TB free).
-  - Calculated training workload: $1.83\text{ MFLOPs}$ per image ($2,240\times$ lighter than ResNet-50), requiring $\approx 91.5\text{ GFLOPs}$ per epoch.
-  - Confirmed expected CPU wall-clock training time of $\approx 60\text{--}90\text{ seconds}$ for 40 epochs on CIFAR-10.
+- **PyTorch QAT Architecture with Straight-Through Estimators (`micro_resnet_qat.py`):**
+  - Implemented `BinaryQuantizeSTE`: forward pass enforces hard $\pm 1$ weights, backward pass passes Hardtanh surrogate gradients ($\mathbf{1}_{|W| \le 1.0}$) to overcome vanishing gradients.
+  - Implemented `ActivationQuantizeSTE`: enforces $[0, 255]$ unsigned integer grid matching physical 8-bit LFSR SNG inputs.
+  - Replicated exact 6-layer `MicroResNet-16` topology (192 bytes total weight budget).
+- **Unified 3-Target Training Pipeline (`train_micro_resnet_qat.py`):**
+  - Built `HardwareInputTransform`: maps images into the exact 16-channel feature representation produced by the live camera and ASIC driver.
+  - Trained all three target profiles on host AMD Ryzen 5 9600X CPU:
+    * **`cifar10_4class` (Vehicles vs Animals):** $52.25\%$ top-1 test accuracy (vs $25\%$ random chance).
+    * **`fashion_mnist` (10 Fashion Items):** $32.27\%$ top-1 test accuracy (vs $10\%$ random chance).
+    * **`cifar10_10class` (Full CIFAR-10):** $26.01\%$ top-1 test accuracy (vs $10\%$ random chance).
+- **Algebraic BatchNorm Folding & JSON Exporter (`export_qat_weights.py`):**
+  - Folded floating-point BatchNorm statistics $(\gamma, \beta, \mu, \sigma^2)$ into integer ASIC biases $B = \text{round}(\delta / \alpha) \in \mathbb{Z}$ and fixed-point scale factors $M = \text{round}(\bar{\alpha} \cdot 2^S) \in \mathbb{Z}^+$.
+  - Exported multi-profile JSON weights: `micro_resnet_weights_cifar10_4class.json`, `micro_resnet_weights_fashion_mnist.json`, and `micro_resnet_weights_cifar10_10class.json`.
+- **Full-Network Bit-Exact Parity Suite (`verify_qat_parity.py`):**
+  - Validated all 3 profiles across the entire 6-layer pipeline ($3,585$ tiles/frame).
+  - Confirmed **0 LSB maximum error** and **$100.0\%$ class match rate** against the compiled C driver (`libscim_tier2.so`).
+- **Dynamic Profile Integration Across Engine Stack:**
+  - Updated `MicroResNet16`, `SCIMTier1Engine`, `SCIMTier2Engine`, `SCIMTier3Engine`, and `EdgeVisionPipeline` to support dynamic profile switching via `profile="cifar10_4class"` with dynamic class mappings.
 
 ### [Architecture Decisions & Silicon Forensics]
-- **Hardware-Exact Quantization Constraints:**
-  - Training will strictly constrain weights to $\{-1, +1\}$ and intermediate feature maps to $[0, 255]$ with zero floating-point reliance at inference time.
-- **Pedagogical Pause:**
-  - Placed execution on hold per user directive to digest the QAT microarchitectural formulation before implementing Phase 1 training scripts.
+- **Zero Silicon Changes Guardrail:**
+  - All QAT optimizations and BatchNorm folding strictly target host driver requantization; the taped-out ASIC core (`src/tt_um_scim_core.v`) remains 100% frozen.
+- **Latent Weight Clamping Discipline:**
+  - Verified that clamping latent weights to $[-1.0, +1.0]$ after each optimizer step prevents gradient saturation and maintains high flipping agility in discrete binary neural networks.
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
 - **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; provisional Mux 227*; shuttle closes end of November 2026).
 - **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
-- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **Hardware pipeline 100% verified on PYNQ-Z2; QAT model formulation and compute analysis documented; waiting for user signal to launch training.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% VERIFIED ON PYNQ-Z2 & SIGNED OFF: QAT weights trained & exported across 3 profiles with 0 LSB drift against C MMIO driver.**
 - **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
 - **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
 
 ### [Next Steps]
-1. Await user signal to proceed with Phase 1: PyTorch QAT model implementation (`micro_resnet_qat.py`), STE autograd functions, and training on target visual dataset.
+1. Conclude Pillar 6.1 and open a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting (KWS) Pipeline** (Dual MEMS Mics `MP23DB01HP`, MFCC Feature Extraction, Acoustic Quantized SCIM Neural Network), or explore Tier 3 Autonomous Hardware DMA Feeder RTL design.
 
-## Previous Execution Run: 2026-10-29 08:32 (Run 81: PYNQ Ecosystem Analysis, Layer 5 Hardware/Software Co-Design & Packed Strobe Mechanics)
+## Previous Execution Run: 2026-10-31 10:55 (Run 82: Quantization-Aware Training (QAT) Architecture Deep Dive, Vanishing Gradients & Straight-Through Estimator, Hardware Feasibility Analysis)
 
 ### [Built & Documented]
 - **Bitstream Reprogramming Lifecycle & Silicon Storage Physics:**
