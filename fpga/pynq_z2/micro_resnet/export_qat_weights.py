@@ -46,13 +46,12 @@ def fold_batchnorm(bn_module, act_scale=64.0, shift=11):
     safe_alpha = np.where(np.abs(alpha) < 1e-6, np.sign(alpha + 1e-9) * 1e-6, alpha)
     bias = np.round(delta / safe_alpha).astype(int)
 
-    # Scale: select power-of-two shift (e.g. 11 -> 2^11 = 2048)
-    mean_alpha = float(np.mean(np.abs(alpha)))
-    mult = int(np.round(act_scale * mean_alpha * (1 << shift)))
-    if mult <= 0:
-        mult = 1
+    # Per-channel multipliers: M[c] = round(act_scale * alpha[c] * 2^shift)
+    mult = np.round(act_scale * alpha * (1 << shift)).astype(int)
+    # Guard against non-positive multipliers
+    mult = np.where(mult <= 0, 1, mult)
 
-    return bias, {"mult": mult, "shift": shift}
+    return bias, {"mult": mult.tolist(), "shift": shift}
 
 
 def export_checkpoint(ckpt_path, output_json=None):
@@ -113,11 +112,15 @@ def export_checkpoint(ckpt_path, output_json=None):
     # 6. Classifier Head (act_scale=1.0 for logits)
     w_clf = model.classifier.get_binary_weights()  # (16, 16)
     b_clf, s_clf = fold_batchnorm(model.classifier_bn, act_scale=1.0, shift=8)
-    # Pad bias to 16 if num_classes < 16
+    # Pad bias and mult to 16 if num_classes < 16
     if len(b_clf) < 16:
         b_clf_padded = np.zeros(16, dtype=int)
         b_clf_padded[:len(b_clf)] = b_clf
         b_clf = b_clf_padded
+
+        m_clf_padded = [1] * 16
+        m_clf_padded[:len(s_clf["mult"])] = s_clf["mult"]
+        s_clf["mult"] = m_clf_padded
 
     weights["classifier"] = w_clf.tolist()
     biases["classifier"] = b_clf.tolist()

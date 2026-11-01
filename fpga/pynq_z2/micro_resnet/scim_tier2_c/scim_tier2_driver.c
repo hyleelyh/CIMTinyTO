@@ -214,7 +214,7 @@ int scim_c_run_mvm(const uint8_t *act_16, int mode, int16_t *results_out_16) {
 }
 
 int scim_c_execute_layer(const uint8_t *input_hw_c, int H, int W,
-                          const int16_t *bias_16, int mult, int shift,
+                          const int16_t *bias_16, const int32_t *mult_16, int shift,
                           uint8_t *output_hw_c) {
     int total_pixels = H * W;
     int16_t raw_acc[16];
@@ -225,9 +225,9 @@ int scim_c_execute_layer(const uint8_t *input_hw_c, int H, int W,
 
         scim_c_run_mvm(act_vec, 1 /* Mode 1 */, raw_acc);
 
-        /* Requantize: clamp(floor((acc + bias) * mult >> shift), 0, 255) */
+        /* Requantize: clamp(floor((acc + bias) * mult[c] >> shift), 0, 255) */
         for (int c = 0; c < 16; c++) {
-            int64_t val = ((int64_t)raw_acc[c] + (int64_t)bias_16[c]) * mult;
+            int64_t val = ((int64_t)raw_acc[c] + (int64_t)bias_16[c]) * (int64_t)mult_16[c];
             val = val >> shift;
             if (val < 0) val = 0;
             if (val > 255) val = 255;

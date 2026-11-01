@@ -53,7 +53,7 @@ int  scim_c_run_mvm(const uint8_t *act_16, int mode, int16_t *results_out_16);
 
 /* High-Performance Whole-Layer Acceleration */
 int  scim_c_execute_layer(const uint8_t *input_hw_c, int H, int W,
-                          const int16_t *bias_16, int mult, int shift,
+                          const int16_t *bias_16, const int32_t *mult_16, int shift,
                           uint8_t *output_hw_c);
 
 #ifdef __cplusplus

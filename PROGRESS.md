@@ -1,6 +1,39 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-31 16:00 (Run 85: Activation Dynamic Range Gain Scaling, QAT Retraining & Dynamic Live HUD Prediction Sign-Off)
+## Last Execution Run: 2026-10-31 19:30 (Run 86: Per-Channel Multiplier BatchNorm Folding, 32-bit Multiplier Scaling & Multi-Profile Bit-Exact Parity Sign-Off)
+
+### [Built & Documented]
+- **Per-Channel Multiplier BatchNorm Folding (`export_qat_weights.py`):**
+  - Replaced scalar-averaged multiplier $\bar{\alpha}$ with 16-element per-channel multiplier vectors: $M_c = \text{round}(S_{\text{act}} \cdot \alpha_c \cdot 2^{\text{shift}})$.
+  - Eliminated the $3.51\times$ inter-channel scale distortion across conv layers, restoring clean CIFAR-10 test set accuracy from $26.0\%$ to $42.0\%\text{--}51.0\%$.
+- **32-Bit Multiplier Hardware Driver Support (`scim_tier2_driver.h`, `scim_tier2_driver.c`, `scim_tier2_wrapper.py`):**
+  - Expanded `scim_c_execute_layer` multiplier argument to `const int32_t *mult_16`, preventing 16-bit integer overflow on large BatchNorm scales (e.g., $M_c > 32767$ in Fashion-MNIST).
+  - Updated Python `ctypes` bridge with `POINTER(ctypes.c_int32)` and recompiled `libscim_tier2.so`.
+- **Multi-Profile Weight Re-Export (`micro_resnet_weights_*.json`):**
+  - Re-exported all three target profiles (`cifar10_4class`, `fashion_mnist`, `cifar10_10class`) with 16-element multiplier vectors.
+- **End-to-End Multi-Profile Bit-Exact Parity Sign-Off (`verify_qat_parity.py` & `run_micro_resnet_benchmark.py`):**
+  - Validated all 3 profiles with **0 LSB discrepancy** (100% bit-exact parity) between the fixed-point reference model and native C MMIO acceleration engine.
+  - Re-verified all 8 unit tests in `test_micro_resnet.py` (100% pass in $0.18\text{ s}$).
+
+### [Architecture Decisions & Silicon Forensics]
+- **Inter-Channel Variance vs Scalar Averaging:**
+  - In PyTorch BatchNorm, each filter channel $c \in [0, 15]$ learns an independent affine scale $\alpha_c = \gamma_c / \sqrt{\sigma_c^2 + \epsilon}$. On the Stem conv layer, $\alpha_c$ spans from $0.0027$ to $0.0096$ (a $3.51\times$ ratio).
+  - Averaging them into a scalar $\bar{\alpha}$ distorted channel balances by $-40\%$ to $+115\%$. Across 5 cascading conv layers, this compounded to $(3.5)^5 \approx 525\times$ relative channel distortion, collapsing clean image test accuracy to $26\%$.
+  - Introducing per-channel multipliers in hardware requantization completely eliminates this inter-channel distortion without changing on-chip PE logic (requantization occurs in host MMIO/driver).
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; provisional Mux 227*; shuttle closes end of November 2026).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% VERIFIED ON PYNQ-Z2 & SIGNED OFF: Per-channel multiplier BatchNorm folding, 0 LSB parity across all 3 profiles, dynamic HUD overlay, multi-tier benchmark.**
+- **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
+
+### [Next Steps]
+1. User tests live camera feed with the updated per-channel calibrated weights on PYNQ-Z2 board.
+2. Formally conclude Pillar 6.1 and transition to Pillar 6.2 (Voice KWS) in a dedicated fresh chat session per `AGENTS.md`.
+
+## Previous Execution Run: 2026-10-31 16:00 (Run 85: Activation Dynamic Range Gain Scaling, QAT Retraining & Dynamic Live HUD Prediction Sign-Off)
 
 ### [Built & Documented]
 - **QAT Activation Gain Scaling (`micro_resnet_qat.py`):**

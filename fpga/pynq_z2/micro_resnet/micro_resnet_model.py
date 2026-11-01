@@ -100,34 +100,34 @@ class MicroResNet16:
         # Weights: binary {-1, +1}
         self.weights["stem"] = rng.choice([-1, 1], size=(16, 16)).astype(np.int32)
         self.biases["stem"] = rng.randint(-30, 30, size=16).astype(np.int32)
-        self.scales["stem"] = {"mult": 128, "shift": 11}  # scale approx 1/16 to fit [0, 255]
+        self.scales["stem"] = {"mult": [128] * 16, "shift": 11}  # scale approx 1/16 to fit [0, 255]
 
         # ResBlock 1: Conv1a (16 in -> 16 out)
         self.weights["res1_conv1"] = rng.choice([-1, 1], size=(16, 16)).astype(np.int32)
         self.biases["res1_conv1"] = rng.randint(-20, 20, size=16).astype(np.int32)
-        self.scales["res1_conv1"] = {"mult": 128, "shift": 11}
+        self.scales["res1_conv1"] = {"mult": [128] * 16, "shift": 11}
 
         # ResBlock 1: Conv1b (16 in -> 16 out)
         self.weights["res1_conv2"] = rng.choice([-1, 1], size=(16, 16)).astype(np.int32)
         self.biases["res1_conv2"] = rng.randint(-20, 20, size=16).astype(np.int32)
-        self.scales["res1_conv2"] = {"mult": 128, "shift": 11}
+        self.scales["res1_conv2"] = {"mult": [128] * 16, "shift": 11}
 
         # ResBlock 2: Conv2a (16 in -> 16 out)
         self.weights["res2_conv1"] = rng.choice([-1, 1], size=(16, 16)).astype(np.int32)
         self.biases["res2_conv1"] = rng.randint(-20, 20, size=16).astype(np.int32)
-        self.scales["res2_conv1"] = {"mult": 128, "shift": 11}
+        self.scales["res2_conv1"] = {"mult": [128] * 16, "shift": 11}
 
         # ResBlock 2: Conv2b (16 in -> 16 out)
         self.weights["res2_conv2"] = rng.choice([-1, 1], size=(16, 16)).astype(np.int32)
         self.biases["res2_conv2"] = rng.randint(-20, 20, size=16).astype(np.int32)
-        self.scales["res2_conv2"] = {"mult": 128, "shift": 11}
+        self.scales["res2_conv2"] = {"mult": [128] * 16, "shift": 11}
 
         # Classifier Head: Linear (16 in -> 10 out)
         # 16x16 matrix where columns 0..9 represent the 10 target classes
         fc_w = rng.choice([-1, 1], size=(16, 16)).astype(np.int32)
         self.weights["classifier"] = fc_w
         self.biases["classifier"] = rng.randint(-50, 50, size=16).astype(np.int32)
-        self.scales["classifier"] = {"mult": 256, "shift": 8}
+        self.scales["classifier"] = {"mult": [256] * 16, "shift": 8}
 
     @staticmethod
     def preprocess_image(img_array):
@@ -193,7 +193,7 @@ class MicroResNet16:
         Formula:
             A_next = clamp(floor((raw_acc + bias) * mult / 2^shift), 0, 255)
         """
-        mult = scale_dict["mult"]
+        mult = np.array(scale_dict["mult"], dtype=np.int64)
         shift = scale_dict["shift"]
         # raw_acc shape: (..., 16) or (16, ...)
         val = (raw_acc.astype(np.int64) + bias.astype(np.int64)) * mult

@@ -87,7 +87,7 @@ class MicroResNetTiler:
         feat_hw_c = np.transpose(input_feat_16xHxW, (1, 2, 0))  # (H, W, 16)
         out_hw_c = np.zeros((H, W, 16), dtype=np.uint8)
 
-        mult = scale_dict["mult"]
+        mult = np.array(scale_dict["mult"], dtype=np.int64)
         shift = scale_dict["shift"]
 
         # Step 3: Stream each spatial pixel through the 16 activation registers

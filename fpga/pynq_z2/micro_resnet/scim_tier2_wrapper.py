@@ -89,7 +89,7 @@ class SCIMTier2Engine:
             ctypes.c_int,
             ctypes.c_int,
             ctypes.POINTER(ctypes.c_int16),
-            ctypes.c_int,
+            ctypes.POINTER(ctypes.c_int32),
             ctypes.c_int,
             ctypes.POINTER(ctypes.c_uint8)
         ]
@@ -130,13 +130,19 @@ class SCIMTier2Engine:
         bias_arr = np.ascontiguousarray(bias_16, dtype=np.int16)
         bias_ptr = bias_arr.ctypes.data_as(ctypes.POINTER(ctypes.c_int16))
 
+        # Support both per-channel mult vector and legacy scalar
+        mult_arr = np.ascontiguousarray(scale_dict["mult"], dtype=np.int32)
+        if mult_arr.ndim == 0:
+            mult_arr = np.full(16, mult_arr, dtype=np.int32)
+        mult_ptr = mult_arr.ctypes.data_as(ctypes.POINTER(ctypes.c_int32))
+
         # Call C execute_layer
         self.lib.scim_c_execute_layer(
             in_ptr,
             ctypes.c_int(H),
             ctypes.c_int(W),
             bias_ptr,
-            ctypes.c_int(scale_dict["mult"]),
+            mult_ptr,
             ctypes.c_int(scale_dict["shift"]),
             out_ptr
         )
