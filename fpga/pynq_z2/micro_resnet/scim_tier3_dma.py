@@ -130,18 +130,17 @@ class SCIMTier3Engine:
         # Bipolar {-1, +1} -> binary bit {0, 1}
         binary_w = np.where(W > 0, 1, 0).astype(int)
 
-        # Flatten column-major matching SCIM core layout
-        flat_w = []
-        for r in range(16):
-            for c in range(16):
-                flat_w.append(binary_w[r, c])
+        # Flatten row-major: flat_w[row * 16 + col]
+        flat_w = binary_w.flatten()
+        # Shift in MSB first (index 255 down to 0) so bit 0 ends up at DFF[0]
+        rev_w = flat_w[::-1]
 
         # Pack 256 bits into 8 x 32-bit words (LSB first)
         w_words = []
         for i in range(8):
             word = 0
             for bit in range(32):
-                word |= (int(flat_w[i * 32 + bit]) << bit)
+                word |= (int(rev_w[i * 32 + bit]) << bit)
             w_words.append(word)
 
         if self.is_hardware:
@@ -198,16 +197,8 @@ class SCIMTier3Engine:
                 self.in_cma_buf[0] = np.uint32((self.CMD_MVM_BATCH << 24) | chunk_tiles)
 
                 # Words 1 .. chunk_tiles*4: 4 words per tile (16 bytes packed little-endian)
-                for i in range(chunk_tiles):
-                    tile_act = chunk_acts[i]
-                    w0 = int(tile_act[0]) | (int(tile_act[1]) << 8) | (int(tile_act[2]) << 16) | (int(tile_act[3]) << 24)
-                    w1 = int(tile_act[4]) | (int(tile_act[5]) << 8) | (int(tile_act[6]) << 16) | (int(tile_act[7]) << 24)
-                    w2 = int(tile_act[8]) | (int(tile_act[9]) << 8) | (int(tile_act[10]) << 16) | (int(tile_act[11]) << 24)
-                    w3 = int(tile_act[12]) | (int(tile_act[13]) << 8) | (int(tile_act[14]) << 16) | (int(tile_act[15]) << 24)
-                    self.in_cma_buf[1 + i * 4 + 0] = np.uint32(w0)
-                    self.in_cma_buf[1 + i * 4 + 1] = np.uint32(w1)
-                    self.in_cma_buf[1 + i * 4 + 2] = np.uint32(w2)
-                    self.in_cma_buf[1 + i * 4 + 3] = np.uint32(w3)
+                packed_acts = np.ascontiguousarray(chunk_acts).view(np.uint32).reshape(-1)
+                self.in_cma_buf[1:1 + chunk_tiles * 4] = packed_acts
 
                 total_in_words = 1 + chunk_tiles * 4
                 total_out_words = chunk_tiles * 8
