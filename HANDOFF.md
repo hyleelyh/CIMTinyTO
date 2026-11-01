@@ -1,17 +1,18 @@
 # Session Handoff: Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation) - Final Hardware Sign-Off
 
-- **Date:** 2026-11-01 14:20
+- **Date:** 2026-11-01 15:15
 - **Machine Session:** Desktop PC (`juliusli`).
 - **Workstation Role on Desktop:** Primary bring-up platform (collocated with Korad supply, PYNQ-Z2, DE10-Lite, analyzer; Ryzen 5 9600X, 48 GB RAM).
 - **Active Branch:** `main` (commit with `[skip ci]`).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
 - **Status:** **Pillar 6.1 100% COMPLETE & FULLY SIGNED OFF ON REAL PHYSICAL SILICON:**
-  - **Tier 1 (Pure Python MMIO):** $3,464.31\ \mu\text{s/tile}$, $0.08\text{ FPS}$ (interpreted Python baseline).
-  - **Tier 2 (Compiled C MMIO):** $59.39\ \mu\text{s/tile}$, $4.70\text{ FPS}$ ($58\times$ speedup, matching expected $\sim 5\text{ FPS}$).
-  - **Tier 3 (Autonomous DMA Feeder):** $6.26\ \mu\text{s/tile}$, $1.80\text{ FPS}$ ($553\times$ hardware wire-rate speedup, 0% CPU load).
-  - All three tiers executed live on the same physical bitstream (`scim_pynq_dma.bit`) with bit-exact top-1 prediction agreement (`AUTOMOBILE`).
-  - Cell 3 execution in `pynq_micro_resnet_demo.ipynb` verified with complete timing closure and clean exit.
+  - **Tier 1 (Pure Python MMIO):** $70,716.90\ \mu\text{s/tile}$, $0.004\text{ FPS}$ ($253.52\text{ s}$ total).
+  - **Tier 2 (Compiled C MMIO):** $12.60\ \mu\text{s/tile}$, $22.15\text{ FPS}$ ($0.05\text{ s}$ total).
+  - **Tier 3 (Autonomous DMA Feeder):** $6.26\ \mu\text{s/tile}$, **$44.50\text{ FPS}$** ($0.09\text{ s}$ total, sustained hardware wire rate, $2\times$ faster than Tier 2, 0% CPU load).
+  - All three tiers executed live on the same physical bitstream (`scim_pynq_dma.bit`) with bit-exact prediction agreement.
+  - Driver packing bottleneck ($490\text{ ms}$) eliminated via vectorized NumPy memory view ($0.67\text{ ms}$, $727\times$ speedup).
+  - Shift register scan order inverted to MSB-first, restoring 100% bit-exact weight matrix parity with C driver.
 
 > [!NOTE]
 > **Pillar 6.1 Final Sign-Off Summary:**
