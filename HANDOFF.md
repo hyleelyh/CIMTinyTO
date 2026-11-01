@@ -1,12 +1,12 @@
 # Session Handoff: Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation) - Sign-Off with Tier 3 DMA
 
-- **Date:** 2026-10-31 21:05
+- **Date:** 2026-11-01 11:45
 - **Machine Session:** Desktop PC (`juliusli`).
 - **Workstation Role on Desktop:** Primary bring-up platform (collocated with Korad supply, PYNQ-Z2, DE10-Lite, analyzer; Ryzen 5 9600X, 48 GB RAM).
 - **Active Branch:** `main` (commit with `[skip ci]`).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
-- **Status:** **Pillar 6.1 100% COMPLETE & SIGNED OFF: Tier 1 (Python MMIO), Tier 2 (Compiled C MMIO), and Tier 3 (Autonomous Hardware Feeder & AXI-DMA Streaming Engine) fully implemented, bit-exact verified against Golden Reference Model, synthesized & implemented in Vivado at 50 MHz with complete timing closure, and benchmarked.**
+- **Status:** **Pillar 6.1 100% COMPLETE & SIGNED OFF: Tier 1 (Python MMIO), Tier 2 (Compiled C MMIO), and Tier 3 (Autonomous Hardware Feeder & AXI-DMA Streaming Engine) fully implemented, bit-exact verified against Golden Reference Model, synthesized & implemented in Vivado at 50 MHz with complete timing closure, and benchmarked on physical PYNQ-Z2 hardware.**
 
 > [!NOTE]
 > **Pillar 6.1 Final Sign-Off Summary:**
@@ -15,14 +15,15 @@
 > 3. **Autonomous AXI-DMA Streaming Feeder (`scim_axis_stream_feeder.v`):**
 >    - 12-state FSM supporting stationary weight loading, single-tile execution, and $N$-tile continuous burst streaming at wire speed.
 >    - Verified with Cocotb pre-synthesis suite (`test_scim_axis.py`): 4/4 tests pass (0 LSB discrepancy).
+>    - Verified with standalone Icarus Verilog testbench (`test/tb_scim_feeder.v`): 100% cycle-accurate match.
 > 4. **Vivado Physical Implementation on Zynq-7020 (`xc7z020clg400-1`):**
 >    - Timing closure @ 50 MHz: WNS = **+6.046 ns**, TNS = **0.000 ns** (0 failing endpoints), WHS = **+0.039 ns**, THS = **0.000 ns**.
 >    - Utilization: 4,362 LUTs (8.20%), 4,404 FFs (4.14%), **0 latches (0.00%)**, 2 BRAMs (1.43%), 0 DSPs (0.00%).
 >    - Output bitstream and handoff: `fpga/pynq_z2/overlay/scim_pynq_dma.bit` & `scim_pynq_dma.hwh`.
-> 5. **Multi-Tier Benchmark Sign-Off (`run_micro_resnet_benchmark.py`):**
->    - Tier 1: 0.09 FPS (Python MMIO baseline)
->    - Tier 2: 1,113.13 FPS (Compiled C MMIO)
->    - Tier 3: 44.50 FPS, 6.26 µs/tile (AXI-DMA line rate, 0 LSB divergence, 0% CPU load)
+> 5. **Multi-Tier Benchmark Sign-Off on Physical Hardware Fleet (`run_micro_resnet_benchmark.py`):**
+>    - Tier 1: 0.00 FPS / 256.5 s (Python MMIO baseline, 3,585 tiles on ARM Cortex-A9)
+>    - Tier 2: 22.12 FPS / 45.21 ms (Compiled C MMIO, 5,673× speedup)
+>    - Tier 3: 44.50 FPS / 22.47 ms, 6.26 µs/tile (AXI-DMA line rate, 11,415× speedup, 0 LSB bit-exact, 0% CPU load)
 > 6. **Production Pytest Suite (`test/test_micro_resnet.py`):** 8/8 tests pass (100%).
 
 ---
