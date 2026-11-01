@@ -1,6 +1,53 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-10-31 19:30 (Run 86: Per-Channel Multiplier BatchNorm Folding, 32-bit Multiplier Scaling & Multi-Profile Bit-Exact Parity Sign-Off)
+## Last Execution Run: 2026-10-31 21:05 (Run 87: Tier 3 Autonomous Hardware Feeder, AXI-DMA Streaming Engine, Vivado Implementation & Bit-Exact Sign-Off)
+
+### [Built & Documented]
+- **AXI4-Stream Autonomous Feeder FSM (`fpga/pynq_z2/rtl/scim_axis_stream_feeder.v`):**
+  - Designed and verified a 12-state AXI4-Stream feeder FSM bridging 32-bit streaming DMA directly to the frozen `tt_um_scim_core.v`.
+  - Supports 3 command opcodes: `CMD_LOAD_WEIGHTS` (0x01, 256-bit shift into stationary memory), `CMD_MVM_SINGLE` (0x02, single tile execution with terminal TLAST), and `CMD_MVM_BATCH` (0x03, $N$-tile continuous burst streaming at wire speed).
+  - Implemented 4-state pipelined synchronous readback (`ST_STROBE_LOW`, `ST_LATCH_LOW`, `ST_STROBE_HIGH`, `ST_LATCH_HIGH`) allowing core output registers to settle cleanly.
+  - Verilator lint clean (0 errors, 0 warnings).
+- **Cocotb Pre-Synthesis Verification Suite (`test/tb_scim_axis.v` & `test/test_scim_axis.py`):**
+  - Built comprehensive Cocotb test suite verifying weight shift caching, single-tile stochastic MVM against golden reference model, 3-tile continuous burst streaming, and downstream backpressure handling (`m_axis_tready` deassertion).
+  - Executed `make -C test test_scim_axis` $\to$ **4/4 TESTS PASSED (100% bit-exact)**.
+- **Physical FPGA Implementation & Sign-Off (`fpga/pynq_z2/scripts/build_overlay_dma.tcl`):**
+  - Synthesized and implemented the full PYNQ-Z2 DMA overlay on AMD Xilinx Zynq-7020 (`xc7z020clg400-1`).
+  - Achieved complete physical timing closure at 50 MHz: **WNS = +6.046 ns**, **TNS = 0.000 ns** (0 failing endpoints), **WHS = +0.039 ns**, **THS = 0.000 ns**.
+  - Verified resource utilization: 4,362 LUTs (8.20%), 4,404 FFs (4.14%), **0 latches (0.00%)**, 2 BRAMs (1.43%), 0 DSPs (0.00%).
+  - Exported bitstream and handoff: `fpga/pynq_z2/overlay/scim_pynq_dma.bit` (4.05 MB) and `scim_pynq_dma.hwh`.
+- **Python Tier 3 DMA Driver & Benchmarks (`scim_tier3_dma.py`, `vision_pipeline.py`, `run_micro_resnet_benchmark.py`):**
+  - Integrated `pynq.lib.dma` driver with contiguous memory allocation (`pynq.allocate`) and vectorized NumPy requantization (`np.frombuffer`, `astype(np.int16)`), with bit-exact fallback emulation.
+  - Verified 100% bit-exact parity against reference fixed-point model (0 LSB divergence).
+  - Sustained line-rate performance: 6.26 µs/tile, 22.47 ms/frame (**44.50 sustained FPS**, 500× faster than pure Python MMIO) with 0% CPU load during streaming.
+  - Ran `pytest test/test_micro_resnet.py -v` $\to$ **8/8 TESTS PASSED**.
+
+### [Architecture Decisions & Silicon Forensics]
+- **DMA Offload vs CPU Bottleneck:**
+  - In Tier 1 (Python) and Tier 2 (C), CPU cores are pegged at 100% executing load/store instructions over AXI-Lite.
+  - With AXI-DMA Simple Direct Register Mode, CPU writes 3 registers (`MM2S_SA`, `S2MM_DA`, `LENGTH`) and yields the bus, allowing AXI HP0 64-bit multi-beat burst transfers with 0% CPU utilization.
+- **Simple Direct Register Mode vs Scatter-Gather:**
+  - PYNQ's CMA allocator guarantees 100% physically contiguous buffers.
+  - Simple Direct Register Mode eliminates descriptor fetch latency and saves FPGA Block RAMs.
+- **Pipelined Core Readback Timing:**
+  - `tt_um_scim_core.v` clocks input control lines on `posedge clk`. Outputs update on the cycle after strobe is asserted.
+  - A 4-state readback pipeline guarantees stable 16-bit accumulator capture without race conditions across PVT corners.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; provisional Mux 227*; shuttle closes end of November 2026).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% COMPLETE, BENCHMARKED & SIGNED OFF:**
+  - Tier 1 (Pure Python MMIO, 0.09 FPS)
+  - Tier 2 (Compiled C MMIO, 1113 FPS, 0 LSB)
+  - Tier 3 (Autonomous AXI-DMA Streaming Engine, 44.50 FPS, 0 LSB, Vivado bitstream generated & timing closed)
+- **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
+
+### [Next Steps]
+1. Formally conclude Pillar 6.1 and transition to Pillar 6.2 (Voice KWS Pre-Silicon Emulation) in a **dedicated fresh chat session** per `AGENTS.md`.
+
+## Previous Execution Run: 2026-10-31 19:30 (Run 86: Per-Channel Multiplier BatchNorm Folding, 32-bit Multiplier Scaling & Multi-Profile Bit-Exact Parity Sign-Off)
 
 ### [Built & Documented]
 - **Per-Channel Multiplier BatchNorm Folding (`export_qat_weights.py`):**

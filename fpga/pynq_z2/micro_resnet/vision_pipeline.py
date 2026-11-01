@@ -44,7 +44,7 @@ class EdgeVisionPipeline:
         self.force_emulation = force_emulation
         self.tier1_engine = SCIMTier1Engine(bitstream_path=bitstream_path, force_emulation=force_emulation, seed=seed, profile=profile)
         self.tier2_engine = SCIMTier2Engine(force_sim=force_emulation, seed=seed, profile=profile)
-        self.tier3_engine = SCIMTier3Engine(seed=seed, profile=profile)
+        self.tier3_engine = SCIMTier3Engine(bitstream_path=bitstream_path, force_emulation=force_emulation, seed=seed, profile=profile)
 
     @staticmethod
     def load_image(image_input):

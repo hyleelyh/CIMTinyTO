@@ -85,7 +85,24 @@ $(CURDIR)/gate_level_netlist.v:
 # ==============================================================================
 # Custom Targets for Submodule Unit Testing & Gate-Level Simulation
 # ==============================================================================
-.PHONY: test_lfsr test_compressor test_wallace test_core test_fpga_axi test_micro_resnet test_all test_gls gls_waves gls_waves_golden gls_waves_dft gls_waves_saturation gls_waves_overclock clean_all
+.PHONY: test_lfsr test_compressor test_wallace test_core test_fpga_axi test_scim_axis test_de10_lite test_micro_resnet test_all test_gls gls_waves gls_waves_golden gls_waves_dft gls_waves_saturation gls_waves_overclock clean_all
+
+test_scim_axis:
+	$(MAKE) -B SIM=$(SIM) TOPLEVEL=tb_scim_axis MODULE=test_scim_axis COCOTB_TEST_MODULES=test_scim_axis \
+		VERILOG_SOURCES="$(CURDIR)/../fpga/pynq_z2/rtl/scim_axis_stream_feeder.v \
+		                 $(SRC_DIR)/tt_um_scim_core.v \
+		                 $(SRC_DIR)/lfsr8_galois.v \
+		                 $(SRC_DIR)/scim_sng_bank.v \
+		                 $(SRC_DIR)/scim_pe.v \
+		                 $(SRC_DIR)/scim_compressor_42.v \
+		                 $(SRC_DIR)/scim_wallace_tree.v \
+		                 $(SRC_DIR)/scim_accumulator.v \
+		                 $(SRC_DIR)/scim_weight_mem.v \
+		                 $(CURDIR)/tb_scim_axis.v"
+	@if [ -f results.xml ]; then sed -i 's/failures="0"/fails="0"/g' results.xml; fi
+	@echo "========================================================"
+	@echo " ALL PYNQ-Z2 AXI4-STREAM FEEDER REGRESSIONS PASSED!      "
+	@echo "========================================================"
 
 test_micro_resnet:
 	@echo "========================================================"

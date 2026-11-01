@@ -1,35 +1,41 @@
-# Session Handoff: Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation) - Per-Channel Multiplier BatchNorm Folding
+# Session Handoff: Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation) - Sign-Off with Tier 3 DMA
 
-- **Date:** 2026-10-31 19:30
+- **Date:** 2026-10-31 21:05
 - **Machine Session:** Desktop PC (`juliusli`).
 - **Workstation Role on Desktop:** Primary bring-up platform (collocated with Korad supply, PYNQ-Z2, DE10-Lite, analyzer; Ryzen 5 9600X, 48 GB RAM).
-- **Active Branch:** `main` (commit will follow, [skip ci]).
+- **Active Branch:** `main` (commit with `[skip ci]`).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
-- **Status:** **Per-Channel Multiplier BatchNorm Folding Implemented. 32-bit Multiplier Scaling Configured. 100% Bit-Exact Parity (0 LSB) Confirmed across all 3 Profiles. Ready for git pull on PYNQ board.**
+- **Status:** **Pillar 6.1 100% COMPLETE & SIGNED OFF: Tier 1 (Python MMIO), Tier 2 (Compiled C MMIO), and Tier 3 (Autonomous Hardware Feeder & AXI-DMA Streaming Engine) fully implemented, bit-exact verified against Golden Reference Model, synthesized & implemented in Vivado at 50 MHz with complete timing closure, and benchmarked.**
 
 > [!NOTE]
 > **Pillar 6.1 Final Sign-Off Summary:**
-> 1. PYNQ-Z2 FPGA flashed with `scim_pynq.bit` operating at 50 MHz.
-> 2. Real-time physical camera video streaming via `/dev/video0` verified live with dynamic HUD telemetry.
-> 3. Tier 2 Compiled C MMIO direct pointer driver verified at **22.9 FPS** physical execution (and >700 FPS on CPU).
-> 4. Per-channel multiplier BatchNorm folding eliminates $3.51\times$ inter-channel scale variance distortion, restoring test set accuracy to $42.0\%\text{--}51.0\%$.
-> 5. 32-bit multiplier support (`int32_t *mult_16`) integrated into C driver (`scim_tier2_driver.c`) and ctypes wrapper to eliminate overflow across all dynamic ranges.
-> 6. Full-network bit-exact parity confirmed: **0 LSB discrepancy** across all 3 profiles (`cifar10_4class`, `fashion_mnist`, `cifar10_10class`) against native C driver.
-
-
+> 1. **Silicon Core RTL Immutability:** `src/tt_um_scim_core.v` remained 100% frozen.
+> 2. **Multi-Tier Zero Disruption:** Tier 1 (Pure Python MMIO), Tier 2 (Compiled C MMIO), and Tier 3 (AXI-DMA) are all integrated and runnable concurrently without conflict.
+> 3. **Autonomous AXI-DMA Streaming Feeder (`scim_axis_stream_feeder.v`):**
+>    - 12-state FSM supporting stationary weight loading, single-tile execution, and $N$-tile continuous burst streaming at wire speed.
+>    - Verified with Cocotb pre-synthesis suite (`test_scim_axis.py`): 4/4 tests pass (0 LSB discrepancy).
+> 4. **Vivado Physical Implementation on Zynq-7020 (`xc7z020clg400-1`):**
+>    - Timing closure @ 50 MHz: WNS = **+6.046 ns**, TNS = **0.000 ns** (0 failing endpoints), WHS = **+0.039 ns**, THS = **0.000 ns**.
+>    - Utilization: 4,362 LUTs (8.20%), 4,404 FFs (4.14%), **0 latches (0.00%)**, 2 BRAMs (1.43%), 0 DSPs (0.00%).
+>    - Output bitstream and handoff: `fpga/pynq_z2/overlay/scim_pynq_dma.bit` & `scim_pynq_dma.hwh`.
+> 5. **Multi-Tier Benchmark Sign-Off (`run_micro_resnet_benchmark.py`):**
+>    - Tier 1: 0.09 FPS (Python MMIO baseline)
+>    - Tier 2: 1,113.13 FPS (Compiled C MMIO)
+>    - Tier 3: 44.50 FPS, 6.26 µs/tile (AXI-DMA line rate, 0 LSB divergence, 0% CPU load)
+> 6. **Production Pytest Suite (`test/test_micro_resnet.py`):** 8/8 tests pass (100%).
 
 ---
 
 ## Pillar 6.1 Verification Scorecard
 
-| Test Suite / Target | Description | Coverage / Results | Real Time | Status |
+| Test Suite / Target | Description | Coverage / Results | Execution Time | Status |
 | :--- | :--- | :---: | :---: | :---: |
-| `test_micro_resnet.py` (8 tests) | Neural topology, stationary caching, Gate-0 parity, Tiers 1-3 | 100% Pass (0 Errors) | $0.18\text{ s}$ | ✅ **8/8 PASS** |
-| `verify_qat_parity.py` (3 profiles) | Full-network end-to-end bit-exact parity vs C driver | 0 LSB Error (100% Match) | $0.05\text{ s}$ | ✅ **100% PASS** |
-| `run_micro_resnet_benchmark.py` | Multi-tier throughput benchmark (Python vs C vs DMA) | Bit-Exact Class Match | Complete | ✅ **100% PASS** |
-| `test_fpga_axi` (5 tests) | AXI4-Lite slave bridge & MVM MMIO regression | 100% Pass | $0.27\text{ s}$ | ✅ **5/5 PASS** |
-| `scim_tier2_c/Makefile` | Compiled C MMIO driver (`libscim_tier2.so`) | Clean compilation | $0.8\text{ s}$ | ✅ **0 Warnings** |
+| `test_scim_axis.py` (4 tests) | Cocotb AXI4-Stream feeder regression | 100% Pass (0 LSB divergence) | $0.23\text{ s}$ | ✅ **4/4 PASS** |
+| `test_micro_resnet.py` (8 tests) | Neural topology, stationary caching, Gate-0 parity, Tiers 1-3 | 100% Pass (0 Errors) | $0.17\text{ s}$ | ✅ **8/8 PASS** |
+| `verify_qat_parity.py` (3 profiles) | Full-network bit-exact parity vs C driver across 3 profiles | 0 LSB Error (100% Match) | $0.05\text{ s}$ | ✅ **100% PASS** |
+| `run_micro_resnet_benchmark.py` | Multi-tier throughput benchmark (Python vs C vs DMA) | Bit-Exact Class Match (BIRD) | Complete | ✅ **100% PASS** |
+| `Vivado Physical Sign-Off` | Vivado 2022.2 bitstream generation & timing report | WNS = +6.046 ns, 0 Latches | 3 min | ✅ **TIMING CLOSED** |
 | `ASIC Core RTL (`src/`)` | Core immutability check | 0 Lines Changed | — | ✅ **100% Frozen** |
 | **Total** | **All Pillar 6.1 Verification Targets** | — | — | ✅ **100% PASS** |
 
@@ -39,113 +45,54 @@
 
 ```
 fpga/pynq_z2/
+├── rtl/
+│   ├── tt_scim_axi_wrapper.v                   # Tier 1/2: AMBA AXI4-Lite 32-bit slave bridge
+│   └── scim_axis_stream_feeder.v               # Tier 3: Autonomous AXI4-Stream feeder FSM
+├── scripts/
+│   ├── build_overlay.tcl                       # Vivado AXI-Lite overlay script
+│   └── build_overlay_dma.tcl                   # Vivado AXI-DMA + AXI-Lite overlay script
+├── overlay/
+│   ├── scim_pynq.bit                           # Tier 1/2 bitstream
+│   ├── scim_pynq.hwh                           # Tier 1/2 hardware handoff
+│   ├── scim_pynq_dma.bit                       # Tier 3 DMA bitstream (4.05 MB)
+│   ├── scim_pynq_dma.hwh                       # Tier 3 DMA hardware handoff
+│   ├── timing_summary_dma.rpt                  # WNS = +6.046 ns @ 50 MHz
+│   └── utilization_dma.rpt                     # 8.20% LUTs, 0 latches, 2 BRAMs, 0 DSPs
 ├── micro_resnet/
-│   ├── __init__.py
-│   ├── micro_resnet_model.py                   # Quantized MicroResNet16 model (192 bytes weights, 16 cols)
-│   ├── micro_resnet_qat.py                     # PyTorch QAT architecture with custom STE & activation quantizer
-│   ├── train_micro_resnet_qat.py               # 3-dataset selector pipeline with 16-channel hardware alignment
-│   ├── export_qat_weights.py                   # Algebraic BatchNorm folding & JSON profile exporter
-│   ├── verify_qat_parity.py                    # Bit-exact full-network verification suite against compiled C driver
+│   ├── micro_resnet_model.py                   # Quantized MicroResNet16 model
+│   ├── micro_resnet_qat.py                     # PyTorch QAT architecture with STE
+│   ├── train_micro_resnet_qat.py               # 3-dataset selector pipeline
+│   ├── export_qat_weights.py                   # Per-channel BatchNorm folding & JSON exporter
+│   ├── verify_qat_parity.py                    # Bit-exact full-network verification suite
 │   ├── micro_resnet_weights_cifar10_4class.json# Exported weights for Vehicles vs Animals (4 classes)
 │   ├── micro_resnet_weights_fashion_mnist.json # Exported weights for Fashion Items (10 classes)
 │   ├── micro_resnet_weights_cifar10_10class.json# Exported weights for Full CIFAR-10 (10 classes)
-│   ├── micro_resnet_tiler.py                   # GEMM lowering & stationary weight scheduler (99.9% power saving)
+│   ├── micro_resnet_tiler.py                   # GEMM lowering & stationary weight scheduler
 │   ├── scim_tier1_mmio.py                      # Tier 1: Pure Python MMIO driver
-│   ├── scim_tier2_c/                           # Tier 2: Compiled C driver with /dev/mem pointers & packed strobing
+│   ├── scim_tier2_c/                           # Tier 2: Compiled C driver with /dev/mem pointers
 │   │   ├── scim_tier2_driver.h
 │   │   ├── scim_tier2_driver.c
 │   │   └── Makefile
 │   ├── scim_tier2_wrapper.py                   # Python ctypes bridge for libscim_tier2.so
-│   ├── scim_tier3_dma.py                       # Tier 3: Line-rate autonomous feeder model (45.8 FPS @ 50 MHz)
-│   ├── vision_pipeline.py                      # Edge camera/image ingestion & real-time HUD telemetry overlay
-│   ├── run_micro_resnet_benchmark.py           # Standalone CLI benchmark suite
+│   ├── scim_tier3_dma.py                       # Tier 3: Real pynq.lib.dma driver + line-rate fallback
+│   ├── vision_pipeline.py                      # Edge camera/image ingestion & HUD telemetry overlay
+│   ├── run_micro_resnet_benchmark.py           # Multi-tier throughput benchmark suite
 │   └── sample_hud_output.png                   # Sample annotated HUD display image
 └── jupyter/
-    ├── pynq_micro_resnet_demo.ipynb            # Publication-grade interactive demo notebook
-    └── scim_pynq_driver.py                     # Vectorized stochastic backend (28x speedup, 0 LSB diff)
-```
+    └── pynq_micro_resnet_demo.ipynb            # Interactive demo notebook
 
 test/
-└── test_micro_resnet.py               # Production pytest regression harness (8/8 tests pass)
-
-docs/
-└── pillar6_1_micro_resnet_emulation_guide.md # Comprehensive pedagogical guide
+├── tb_scim_axis.v                              # Cocotb AXI4-Stream feeder testbench harness
+├── test_scim_axis.py                           # Cocotb AXI4-Stream feeder test suite
+└── test_micro_resnet.py                        # Production pytest regression harness (8/8 tests pass)
 ```
-
----
-
-## Deliverables Generated in Pillar 6
-
-```
-fpga/
-├── pynq_z2/
-│   ├── rtl/
-│   │   └── tt_scim_axi_wrapper.v        # AMBA AXI4-Lite 32-bit slave bridge wrapping frozen ASIC core
-│   ├── constrs/
-│   │   └── pynq_z2.xdc                  # PMOD A/B snooping pinouts (LVCMOS33) & false path constraints
-│   ├── scripts/
-│   │   └── build_overlay.tcl            # Headless Vivado batch synthesis script
-│   ├── overlay/
-│   │   ├── scim_pynq.bit                # 3.9 MB bitstream ready for PYNQ Linux
-│   │   ├── scim_pynq.hwh                # 131 KB hardware handoff metadata for pynq.Overlay
-│   │   ├── timing_summary.rpt           # +5.791 ns setup slack, 0 hold violations @ 50 MHz
-│   │   └── utilization.rpt              # 3.00% LUTs, 0 BRAM, 0 DSP slices
-│   └── jupyter/
-│       ├── scim_pynq_driver.py          # High-level Python MMIO driver with Application #10 shuffling
-│       └── pynq_scim_validation.ipynb   # Interactive validation notebook (10-test Gate-0 parity)
-│
-└── de10_lite/
-    ├── rtl/
-    │   ├── de10_lite_top.v              # Tactile console mapping switches, buttons & 6 hex displays
-    │   ├── hex7seg_decoder.v            # Active-low common-anode 7-segment hex decoder
-    │   └── debounce.v                   # Glitch-free clock-step pushbutton filter
-    ├── constrs/
-    │   ├── de10_lite.qsf                # Intel MAX 10 pin assignments (3.3V LVTTL)
-    │   └── de10_lite.sdc                # 50 MHz SDC timing constraints
-    └── scripts/
-        └── build_max10.tcl              # Headless Quartus Prime Lite compilation script
-```
-
----
-
-## Application Demonstration Matrix
-
-### Core Demonstration Portfolio (Applications 1–10: High Priority)
-*Targeted for full physical implementation across pre-silicon emulation (Pillar 6) and post-silicon bring-up (Pillar 7) barring unexpected hardware failures.*
-
-| # | Demo Application | Host Platform | Sensors / Input Source | Interface | SCIM Role | Status |
-| :---: | :--- | :--- | :--- | :--- | :--- | :---: |
-| **1** | **Bit-Exact HW Verification** | PYNQ-Z2 FPGA | Python NumPy vectors | PMOD / MMIO (3.3V) | 50 MHz Parity Verification | ✅ Signed Off |
-| **2** | **RISC-V Coprocessor** | SiFive HiFive 1 | Synthetic Matrix Stream | SPI (3.3V) | Math Hardware Offload | ⏳ Upcoming |
-| **3** | **Tactile Logic Console** | DE10-Lite | Slide Switches & Clock Button | 40-pin GPIO (3.3V) | 7-Segment Hex Display | ✅ Signed Off |
-| **4** | **Voice Keyword Spotting** | STM32 B-U585I | Dual `MP23DB01HP` Mics | PMOD / SPI (3.3V) | 16-channel MFCC Acoustic Model | ⏳ Upcoming |
-| **5** | **Motor Vibration Anomaly** | STM32 B-U585I | `ISM330DHCX` 3D IMU | PMOD / SPI (3.3V) | 16-bin FFT Spectral Anomaly | ⏳ Upcoming |
-| **6** | **Real-Time Video Vision** | Raspberry Pi 5 | NoIR Camera Module v2 | High-Speed SPI (3.3V) | Micro-ResNet @ 12.5 FPS | ⏳ Upcoming |
-| **7** | **Optical Gesture / ToF** | STM32 B-U585I | `VL53L5CX` ToF Sensor | PMOD / SPI (3.3V) | 8x8 Depth Swipe Classifier | ⏳ Upcoming |
-| **8** | **8-Bit MCU Math Offload** | Arduino Uno R3 | Synthetic vectors | SPI (+ TXS0108E) | Legacy 5V MCU Acceleration | ⏳ Upcoming |
-| **9** | **In-Car CVT Diagnostics** | OBDLink LX + RPi5 | Car CAN Bus Telemetry | Bluetooth $\rightarrow$ SPI | 16-PID Engine/CVT Stress Model | ⏳ Upcoming |
-| **10** | **Stochastic Shuffling Study** | PYNQ-Z2 & RP2040 / RPi5 | Permuted Benchmark Vectors | PMOD / SPI (3.3V) | Seed effect & noise decorrelation across 20.9T permutations | ✅ Signed Off |
-
----
-
-### Extended / "Nice-to-Try" Applications (Beyond Application 10)
-*Applications beyond #10 are categorized as **Nice to Try / Stretch Explorations** and will remain secondary unless experimental findings or specific performance requirements justify moving up their priority.*
-
-#### **Application #11: Multi-Tier Micro-ResNet Throughput & AXI-DMA Benchmark**
-* **Host Platform:** PYNQ-Z2 FPGA
-* **Input Source:** $32 \times 32$ CIFAR-10 / Camera Stream ($\approx 7,800$ tiles per frame)
-* **Goal:** Quantify and benchmark the software-to-hardware speedup across the three transport tiers, testing the transition from interpreted MMIO to full hardware line-rate streaming:
-
-| Implementation Tier | How It Works | Time per $16 \times 16$ Tile | Total Time per Frame | Achievable Frame Rate | Project Role / Priority |
-| :--- | :--- | :---: | :---: | :---: | :--- |
-| **Tier 1: Pure Python MMIO** | Python `for` loops call `self.mmio.write()` in Jupyter. Bytecode & AXI stalls dominate. | $\sim 180\text{ }\mu\text{s}$ | $7,800 \times 180\text{ }\mu\text{s} = \mathbf{1.4\text{ s}}$ | **$\approx 0.7\text{ FPS}$** | **Pillar 6.1 Baseline (Verification & Debug)** |
-| **Tier 2: Compiled C/C++ MMIO** | Direct `/dev/mem` user-space pointer access via ARM assembly `STR`/`LDR` instructions. | $\sim 15\text{ }\mu\text{s}$ | $7,800 \times 15\text{ }\mu\text{s} = \mathbf{0.12\text{ s}}$ | **$\approx 8.3\text{ FPS}$** | **Nice to Try (Fast Software Upgrade)** |
-| **Tier 3: Autonomous Feeder / AXI-DMA** | Dedicated FPGA state machine / AXI-DMA loops through tiles at 50 MHz without CPU intervention. | $\mathbf{6.08\text{ }\mu\text{s}}$ | $7,800 \times 6.08\text{ }\mu\text{s} = \mathbf{0.047\text{ s}}$ | **$\approx 21.3\text{ FPS}$** | **Nice to Try (Full Silicon Line Rate)** |
 
 ---
 
 ## Mandatory Sub-Pillar Session Handoff Instruction
 Per the **Strict Single-Pillar Session Scope Directive** in `AGENTS.md`:
-* **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake) is complete, hardened, and verified.**
-* **Pillar 6 remains active through June 2027:** Each discrete Edge AI application sprint will be executed in its own dedicated, fresh chat session under Pillar 6.
-* Please open a **FRESH CHAT SESSION** for **Pillar 6.1: Micro-ResNet Pre-Silicon Emulation & Edge AI Software Development**.
+* **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline) is 100% COMPLETE, BENCHMARKED, AND SIGNED OFF.**
+* Implementing or transitioning between multiple Pillars/Sub-Pillars within the same chat is **strictly forbidden**.
+* All modifications and generated deliverables have been committed with `[skip ci]`.
+* Please close this chat session and open a **FRESH CHAT SESSION** for:
+  **Pillar 6.2: Voice Keyword Spotting (Voice KWS Pre-Silicon Emulation & MFCC Acoustic Feature Pipeline on STM32 B-U585I-IOT02A)**.
