@@ -70,6 +70,7 @@ set ps7 [create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:* ps7]
 set_property -dict [list \
     CONFIG.PCW_USE_M_AXI_GP0 {1} \
     CONFIG.PCW_USE_S_AXI_HP0 {1} \
+    CONFIG.PCW_USE_S_AXI_HP1 {1} \
     CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {50.0} \
 ] $ps7
 
@@ -100,12 +101,13 @@ connect_bd_intf_net [get_bd_intf_pins scim_feeder_0/m_axis] [get_bd_intf_pins ax
 connect_bd_net [get_bd_pins ps7/FCLK_CLK0] [get_bd_pins scim_feeder_0/aclk]
 connect_bd_net [get_bd_pins ps7/FCLK_CLK0] [get_bd_pins scim_core_0/ext_pll_clk]
 connect_bd_net [get_bd_pins ps7/FCLK_CLK0] [get_bd_pins ps7/S_AXI_HP0_ACLK]
+connect_bd_net [get_bd_pins ps7/FCLK_CLK0] [get_bd_pins ps7/S_AXI_HP1_ACLK]
 
-# 4.7 Connect AXI Bus Automation (GP0 Master to MMIO + DMA Control; HP0 Slave from DMA Read + Write)
+# 4.7 Connect AXI Bus Automation (GP0 Master to MMIO + DMA Control; HP0 Slave from DMA Read; HP1 Slave from DMA Write)
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/ps7/M_AXI_GP0" Clk "Auto"} [get_bd_intf_pins scim_core_0/s_axi]
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/ps7/M_AXI_GP0" Clk "Auto"} [get_bd_intf_pins axi_dma_0/S_AXI_LITE]
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/axi_dma_0/M_AXI_MM2S" Clk "Auto"} [get_bd_intf_pins ps7/S_AXI_HP0]
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/axi_dma_0/M_AXI_S2MM" Clk "Auto"} [get_bd_intf_pins ps7/S_AXI_HP0]
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/axi_dma_0/M_AXI_S2MM" Clk "Auto"} [get_bd_intf_pins ps7/S_AXI_HP1]
 
 # Obtain the peripheral reset line created by automation and connect to feeder
 set rst_pins [get_bd_pins -hierarchical peripheral_aresetn]

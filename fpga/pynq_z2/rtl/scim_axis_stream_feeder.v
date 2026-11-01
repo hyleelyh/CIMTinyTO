@@ -73,12 +73,13 @@ module scim_axis_stream_feeder #(
     localparam [3:0] ST_ACT_WORD      = 4'd3;
     localparam [3:0] ST_ACT_BYTE      = 4'd4;
     localparam [3:0] ST_START_MVM     = 4'd5;
-    localparam [3:0] ST_WAIT_COMPUTE  = 4'd6;
-    localparam [3:0] ST_STROBE_LOW    = 4'd7;
-    localparam [3:0] ST_LATCH_LOW     = 4'd8;
-    localparam [3:0] ST_STROBE_HIGH   = 4'd9;
-    localparam [3:0] ST_LATCH_HIGH    = 4'd10;
-    localparam [3:0] ST_STREAM_OUT    = 4'd11;
+    localparam [3:0] ST_WAIT_BUSY     = 4'd6;
+    localparam [3:0] ST_WAIT_COMPUTE  = 4'd7;
+    localparam [3:0] ST_STROBE_LOW    = 4'd8;
+    localparam [3:0] ST_LATCH_LOW     = 4'd9;
+    localparam [3:0] ST_STROBE_HIGH   = 4'd10;
+    localparam [3:0] ST_LATCH_HIGH    = 4'd11;
+    localparam [3:0] ST_STREAM_OUT    = 4'd12;
 
     reg [3:0]  state;
     reg [7:0]  pkt_cmd;
@@ -285,11 +286,22 @@ module scim_axis_stream_feeder #(
                     // ui_in[7] = 1 (start_req), ui_in[4] = 1 (Mode 1), addr = 0
                     core_ui_in       <= 8'h90;
                     core_ctrl_strobe <= 1'b1;
-                    state            <= ST_WAIT_COMPUTE;
+                    state            <= ST_WAIT_BUSY;
                 end
 
                 // ------------------------------------------------------------
-                // State 6: Wait 256 Cycles for Stochastic MVM to Complete
+                // State 6: Wait for Core to Assert Busy (Clears Old Done)
+                // ------------------------------------------------------------
+                ST_WAIT_BUSY: begin
+                    core_ctrl_strobe <= 1'b0;
+                    core_ui_in       <= 8'h00;
+                    if (core_busy) begin
+                        state <= ST_WAIT_COMPUTE;
+                    end
+                end
+
+                // ------------------------------------------------------------
+                // State 7: Wait 256 Cycles for Stochastic MVM to Complete
                 // ------------------------------------------------------------
                 ST_WAIT_COMPUTE: begin
                     // Core asserts busy for 256 cycles then raises done
