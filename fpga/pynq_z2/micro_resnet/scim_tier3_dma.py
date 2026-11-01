@@ -38,7 +38,10 @@ PROJ_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "../../.."))
 if PROJ_ROOT not in sys.path:
     sys.path.insert(0, PROJ_ROOT)
 
-from .micro_resnet_model import MicroResNet16
+try:
+    from .micro_resnet_model import MicroResNet16
+except (ImportError, ValueError):
+    from micro_resnet_model import MicroResNet16
 
 # Detect PYNQ Environment
 try:
