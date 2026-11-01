@@ -20,7 +20,10 @@ import time
 import ctypes
 import numpy as np
 
-from .micro_resnet_model import MicroResNet16
+try:
+    from .micro_resnet_model import MicroResNet16
+except (ImportError, ValueError):
+    from micro_resnet_model import MicroResNet16
 
 
 class SCIMTier2Engine:

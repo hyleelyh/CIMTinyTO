@@ -32,8 +32,12 @@ for candidate in [os.path.join(CURRENT_DIR, "..", "jupyter"), os.path.join(PROJ_
         sys.path.insert(0, candidate)
 
 from scim_pynq_driver import SCIMPynqDriver
-from .micro_resnet_model import MicroResNet16
-from .micro_resnet_tiler import MicroResNetTiler
+try:
+    from .micro_resnet_model import MicroResNet16
+    from .micro_resnet_tiler import MicroResNetTiler
+except (ImportError, ValueError):
+    from micro_resnet_model import MicroResNet16
+    from micro_resnet_tiler import MicroResNetTiler
 
 
 class SCIMTier1Engine:
