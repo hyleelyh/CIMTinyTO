@@ -92,6 +92,11 @@ class SCIMTier3Engine:
         if HAS_PYNQ and not force_emulation:
             default_bit = os.path.join(PROJ_ROOT, "fpga/pynq_z2/overlay/scim_pynq_dma.bit")
             bit_file = bitstream_path or default_bit
+            # If bitstream_path was passed pointing to non-DMA overlay, upgrade to DMA bitstream if available
+            if bit_file and "scim_pynq.bit" in bit_file:
+                dma_alt = bit_file.replace("scim_pynq.bit", "scim_pynq_dma.bit")
+                if os.path.exists(dma_alt):
+                    bit_file = dma_alt
             if os.path.exists(bit_file):
                 try:
                     self.overlay = Overlay(bit_file)
@@ -103,6 +108,7 @@ class SCIMTier3Engine:
                         # Output: 1024 * 8 accumulator words = 8192 words (32.8 KB)
                         self.in_cma_buf = allocate(shape=(4097,), dtype=np.uint32)
                         self.out_cma_buf = allocate(shape=(8192,), dtype=np.uint32)
+                        print(f"[Tier 3 DMA] Successfully initialized PYNQ AXI-DMA overlay: {bit_file}")
                 except Exception as e:
                     print(f"[Tier 3 DMA] Warning: Could not initialize PYNQ DMA overlay ({e}). Falling back to emulation.")
                     self.is_hardware = False

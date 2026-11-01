@@ -212,6 +212,11 @@ class SCIMPynqDriver:
             # Auto-discover bitstream path if not explicitly provided
             if bitstream_path is None:
                 candidates = [
+                    os.path.abspath(os.path.join(CURRENT_DIR, "..", "overlay", "scim_pynq_dma.bit")),
+                    os.path.abspath(os.path.join(CURRENT_DIR, "overlay", "scim_pynq_dma.bit")),
+                    os.path.abspath(os.path.join(PROJ_ROOT, "fpga", "pynq_z2", "overlay", "scim_pynq_dma.bit")),
+                    "/home/xilinx/jupyter_notebooks/CIMTinyTO/fpga/pynq_z2/overlay/scim_pynq_dma.bit",
+                    "/home/xilinx/CIMTinyTO/fpga/pynq_z2/overlay/scim_pynq_dma.bit",
                     os.path.abspath(os.path.join(CURRENT_DIR, "..", "overlay", "scim_pynq.bit")),
                     os.path.abspath(os.path.join(CURRENT_DIR, "overlay", "scim_pynq.bit")),
                     os.path.abspath(os.path.join(PROJ_ROOT, "fpga", "pynq_z2", "overlay", "scim_pynq.bit")),
