@@ -29,10 +29,16 @@ else:
     _RESAMPLE_BILINEAR = Image.BILINEAR
     _RESAMPLE_NEAREST = Image.NEAREST
 
-from .micro_resnet_model import MicroResNet16
-from .scim_tier1_mmio import SCIMTier1Engine
-from .scim_tier2_wrapper import SCIMTier2Engine
-from .scim_tier3_dma import SCIMTier3Engine
+try:
+    from .micro_resnet_model import MicroResNet16
+    from .scim_tier1_mmio import SCIMTier1Engine
+    from .scim_tier2_wrapper import SCIMTier2Engine
+    from .scim_tier3_dma import SCIMTier3Engine
+except (ImportError, ValueError):
+    from micro_resnet_model import MicroResNet16
+    from scim_tier1_mmio import SCIMTier1Engine
+    from scim_tier2_wrapper import SCIMTier2Engine
+    from scim_tier3_dma import SCIMTier3Engine
 
 
 class EdgeVisionPipeline:
