@@ -181,35 +181,46 @@ class SCIMTier3Engine:
         mult = np.array(scale_dict["mult"], dtype=np.int64)
         shift = scale_dict["shift"]
 
+        MAX_CHUNK_TILES = 256  # 256 tiles * 32 B = 8,192 B <= 16,383 B max DMA transfer length
+
         if self.is_hardware:
-            # Format DMA Input Packet:
-            # Word 0: Header [31:24] = CMD_MVM_BATCH (0x03), [15:0] = num_tiles
-            self.in_cma_buf[0] = np.uint32((self.CMD_MVM_BATCH << 24) | num_tiles)
+            all_raw_chunks = []
+            for chunk_start in range(0, num_tiles, MAX_CHUNK_TILES):
+                chunk_end = min(chunk_start + MAX_CHUNK_TILES, num_tiles)
+                chunk_tiles = chunk_end - chunk_start
+                chunk_acts = flat_acts[chunk_start:chunk_end]
 
-            # Words 1 .. N*4: 4 words per tile (16 bytes packed little-endian)
-            for i in range(num_tiles):
-                tile_act = flat_acts[i]
-                w0 = int(tile_act[0]) | (int(tile_act[1]) << 8) | (int(tile_act[2]) << 16) | (int(tile_act[3]) << 24)
-                w1 = int(tile_act[4]) | (int(tile_act[5]) << 8) | (int(tile_act[6]) << 16) | (int(tile_act[7]) << 24)
-                w2 = int(tile_act[8]) | (int(tile_act[9]) << 8) | (int(tile_act[10]) << 16) | (int(tile_act[11]) << 24)
-                w3 = int(tile_act[12]) | (int(tile_act[13]) << 8) | (int(tile_act[14]) << 16) | (int(tile_act[15]) << 24)
-                self.in_cma_buf[1 + i * 4 + 0] = np.uint32(w0)
-                self.in_cma_buf[1 + i * 4 + 1] = np.uint32(w1)
-                self.in_cma_buf[1 + i * 4 + 2] = np.uint32(w2)
-                self.in_cma_buf[1 + i * 4 + 3] = np.uint32(w3)
+                # Format DMA Input Packet for this chunk:
+                # Word 0: Header [31:24] = CMD_MVM_BATCH (0x03), [15:0] = chunk_tiles
+                self.in_cma_buf[0] = np.uint32((self.CMD_MVM_BATCH << 24) | chunk_tiles)
 
-            total_in_words = 1 + num_tiles * 4
-            total_out_words = num_tiles * 8
+                # Words 1 .. chunk_tiles*4: 4 words per tile (16 bytes packed little-endian)
+                for i in range(chunk_tiles):
+                    tile_act = chunk_acts[i]
+                    w0 = int(tile_act[0]) | (int(tile_act[1]) << 8) | (int(tile_act[2]) << 16) | (int(tile_act[3]) << 24)
+                    w1 = int(tile_act[4]) | (int(tile_act[5]) << 8) | (int(tile_act[6]) << 16) | (int(tile_act[7]) << 24)
+                    w2 = int(tile_act[8]) | (int(tile_act[9]) << 8) | (int(tile_act[10]) << 16) | (int(tile_act[11]) << 24)
+                    w3 = int(tile_act[12]) | (int(tile_act[13]) << 8) | (int(tile_act[14]) << 16) | (int(tile_act[15]) << 24)
+                    self.in_cma_buf[1 + i * 4 + 0] = np.uint32(w0)
+                    self.in_cma_buf[1 + i * 4 + 1] = np.uint32(w1)
+                    self.in_cma_buf[1 + i * 4 + 2] = np.uint32(w2)
+                    self.in_cma_buf[1 + i * 4 + 3] = np.uint32(w3)
 
-            # Initiate bidirectional DMA burst transfers
-            self.dma.recvchannel.transfer(self.out_cma_buf[:total_out_words])
-            self.dma.sendchannel.transfer(self.in_cma_buf[:total_in_words])
-            self.dma.sendchannel.wait()
-            self.dma.recvchannel.wait()
-            self.stats["dma_transfers"] += 2
+                total_in_words = 1 + chunk_tiles * 4
+                total_out_words = chunk_tiles * 8
 
-            # Unpack signed 16-bit accumulators directly from CMA buffer
-            raw_acc = np.frombuffer(self.out_cma_buf[:total_out_words], dtype=np.int16).reshape(H, W, 16)
+                # Initiate bidirectional DMA burst transfers
+                self.dma.recvchannel.transfer(self.out_cma_buf[:total_out_words])
+                self.dma.sendchannel.transfer(self.in_cma_buf[:total_in_words])
+                self.dma.sendchannel.wait()
+                self.dma.recvchannel.wait()
+                self.stats["dma_transfers"] += 2
+
+                # Unpack signed 16-bit accumulators directly from CMA buffer
+                chunk_raw = np.frombuffer(self.out_cma_buf[:total_out_words], dtype=np.int16).copy()
+                all_raw_chunks.append(chunk_raw)
+
+            raw_acc = np.concatenate(all_raw_chunks).reshape(H, W, 16)
 
             # Vectorized Requantization & ReLU
             val = (raw_acc.astype(np.int64) + bias_16.astype(np.int64)) * mult
