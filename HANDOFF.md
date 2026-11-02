@@ -1,11 +1,12 @@
 # Session Handoff: Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation) - Final Hardware Sign-Off
 
-- **Date:** 2026-11-01 15:15
+- **Date:** 2026-11-01 17:55
 - **Machine Session:** Desktop PC (`juliusli`).
 - **Workstation Role on Desktop:** Primary bring-up platform (collocated with Korad supply, PYNQ-Z2, DE10-Lite, analyzer; Ryzen 5 9600X, 48 GB RAM).
 - **Active Branch:** `main` (commit with `[skip ci]`).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
+- **Hardware Bench Status:** PYNQ-Z2 FPGA powered down cleanly by user after completing full physical bring-up runs.
 - **Status:** **Pillar 6.1 100% COMPLETE & FULLY SIGNED OFF ON REAL PHYSICAL SILICON:**
   - **Tier 1 (Pure Python MMIO):** $70,716.90\ \mu\text{s/tile}$, $0.004\text{ FPS}$ ($253.52\text{ s}$ total).
   - **Tier 2 (Compiled C MMIO):** $12.60\ \mu\text{s/tile}$, $22.15\text{ FPS}$ ($0.05\text{ s}$ total).
@@ -13,6 +14,8 @@
   - All three tiers executed live on the same physical bitstream (`scim_pynq_dma.bit`) with bit-exact prediction agreement.
   - Driver packing bottleneck ($490\text{ ms}$) eliminated via vectorized NumPy memory view ($0.67\text{ ms}$, $727\times$ speedup).
   - Shift register scan order inverted to MSB-first, restoring 100% bit-exact weight matrix parity with C driver.
+  - Test sample suite extracted (`fpga/pynq_z2/jupyter/samples/`) with 8 CIFAR-10 airplanes and 10 Fashion-MNIST samples.
+  - Diagnosed unipolar activation DC offset in Fashion-MNIST ($-\bar{x} \sum W$ bias compensation ready for next session review).
 
 > [!NOTE]
 > **Pillar 6.1 Final Sign-Off Summary:**

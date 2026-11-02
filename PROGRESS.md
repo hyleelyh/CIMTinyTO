@@ -1,26 +1,23 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-11-01 15:10 (Run 90: Vectorized DMA Activation Buffer Packing, Stationary Weight Shift Order Parity, and 44.5 FPS Tier 3 Physical Breakthrough)
+## Last Execution Run: 2026-11-01 17:50 (Run 91: CIFAR-10 & Fashion-MNIST Benchmark Test Sample Suite, Glass-to-Glass Amdahl's Law Profiling, and Fashion-MNIST Unipolar Activation DC Offset Analysis)
 
 ### [Built & Documented]
-- **Vectorized DMA Activation Buffer Packing (`fpga/pynq_z2/micro_resnet/scim_tier3_dma.py`):**
-  - Replaced interpreted Python 3,585-iteration nested bit-packing loop with zero-copy vectorized NumPy buffer view: `np.ascontiguousarray(chunk_acts).view(np.uint32).reshape(-1)`.
-  - Slashed CPU marshalling overhead on the 650 MHz ARM Cortex-A9 from **490.58 ms** down to **0.67 ms** ($727.2\times$ driver speedup).
-- **Stationary Weight Shift Order Parity (`scim_tier3_dma.py`):**
-  - Identified that Verilog shift register shifts in from LSB to MSB (`shift_reg <= {shift_reg[254:0], w_din}`). Shifting index 0 first caused weights to land in reversed positions (`DFF[255]` instead of `DFF[0]`).
-  - Reversed weight bit order before packing (`rev_w = flat_w[::-1]`) to shift in MSB first (index 255 down to 0), guaranteeing bit-exact parity with Tier 1 and Tier 2 C driver (`scim_tier2_driver.c`).
-- **Physical Silicon Multi-Tier Scorecard Sign-Off (PYNQ-Z2 @ `10.0.0.94`):**
-  - Validated full 3,585-tile benchmark across all three tiers on physical FPGA:
-    * **Tier 1 (Pure Python MMIO):** $70,716.90\ \mu\text{s/tile}$, $0.004\text{ FPS}$ ($253.52\text{ s}$ total).
-    * **Tier 2 (Compiled C MMIO):** $12.60\ \mu\text{s/tile}$, $22.15\text{ FPS}$ ($0.05\text{ s}$ total).
-    * **Tier 3 (Autonomous DMA Feeder):** $6.26\ \mu\text{s/tile}$, **$44.50\text{ FPS}$** ($0.09\text{ s}$ total, $2\times$ faster than Tier 2, sustained wire speed).
-    * All 3 tiers achieve bit-exact parity and identical top-1 classification.
+- **Benchmark Test Sample Suite (`fpga/pynq_z2/jupyter/samples/`):**
+  - Generated and integrated 8 official CIFAR-10 test airplane images (`airplane_sample_*.png`) and 10 Fashion-MNIST class test images (`fashion_sample_*.png`).
+  - Created and saved visual gallery artifacts: [cifar10_airplane_gallery.png](file:///home/juliusli/.gemini/antigravity/brain/e91473ef-8d8a-4888-8fab-e8381c95a93d/cifar10_airplane_gallery.png) and [fashion_mnist_gallery.png](file:///home/juliusli/.gemini/antigravity/brain/e91473ef-8d8a-4888-8fab-e8381c95a93d/fashion_mnist_gallery.png).
+  - Documented background feature bias / shortcut learning in [cifar10_airplane_analysis.md](file:///home/juliusli/.gemini/antigravity/brain/e91473ef-8d8a-4888-8fab-e8381c95a93d/cifar10_airplane_analysis.md).
+- **Glass-to-Glass Amdahl's Law Profiling:**
+  - Quantified the system bottleneck in Cell 4b live streaming: USB camera V4L2 ingestion ($\sim 135\text{ ms}$) and browser HUD display ($\sim 45\text{ ms}$) consume $\sim 180\text{ ms}$ combined, setting an inescapable ceiling of $\le 5.5\text{ FPS}$ on end-to-end glass-to-glass latency regardless of hardware acceleration speed.
+- **Fashion-MNIST Unipolar Activation DC Offset Analysis:**
+  - Diagnosed why `fashion_mnist` profile collapses into predicting Class 2 (`Pullover`): Class 2 column has 13 positive weights ($\sum W = +10$), creating an uncompensated $+750$ point positive DC bias on strictly non-negative GAP activations ($\bar{x} \approx 75$), overpowering other classes whose biases were not calibrated.
+  - Demonstrated that compensating integer biases ($\text{bias}_c \approx -\bar{x} \sum_i W_{ic}$) restores class diversity across Sandals, Shirts, and Sneakers.
 
 ### [Architecture Decisions & Silicon Forensics]
-- **Driver Overhead vs. Hardware Wire Speed:**
-  - In hardware accelerators with sub-$10\ \mu\text{s}$ tile latencies, host software buffer preparation in high-level interpreted languages (Python) can easily dominate total execution time ($490\text{ ms}$ Python vs $22\text{ ms}$ FPGA). Memory reinterpretation (`view(np.uint32)`) or direct C marshalling is mandatory to unleash line-rate hardware capability.
-- **Serial Scan-Chain Topology Discipline:**
-  - Shift register scan chains behave as FIFO queues: the first bit shifted in traverses all $N$ stages and settles at stage $N-1$. Thus, to place element $k$ at stage $k$, the serial input stream must present elements in reverse order ($N-1$ down to $0$).
+- **The Non-Negative Activation DC Offset Rule in CIM:**
+  - In Compute-in-Memory arrays with unipolar activations ($A \ge 0$), non-symmetric weight columns ($\sum_i W_{ic} \neq 0$) generate massive DC offsets proportional to the average activation level $\bar{x}$. Host classifier head bias calibration must explicitly cancel this term ($-\bar{x} \sum_i W_{ic}$) to preserve dynamic range across all output classes.
+- **Grayscale Channel Starvation:**
+  - Grayscale inputs ($R=G=B$) cause differential color channels ($|R-G|$, $|G-B|$, $|R-B|$) to drop to zero, reducing input spatial entropy. Models targeted for grayscale data require edge/Sobel filter preprocessors rather than color-differential preprocessors.
 
 ### [Current Pipeline State]
 - **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
@@ -33,8 +30,10 @@
 - **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
 
 ### [Next Steps]
-1. Formally close out Pillar 6.1.
-2. Instruct the user to open a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting (KWS) on STM32 B-U585I-IOT02A & CIMTinyTO Co-Processor**, in accordance with the Strict Single-Pillar Session Scope Directive in `AGENTS.md`.
+1. Next session: Review and calibrate Fashion-MNIST classifier bias offsets or proceed directly to Pillar 6.2.
+2. Launch **Pillar 6.2: Voice Keyword Spotting (KWS) on STM32 B-U585I-IOT02A & CIMTinyTO Co-Processor** in a fresh chat session.
+
+## Previous Execution Run: 2026-11-01 15:10 (Run 90: Vectorized DMA Activation Buffer Packing, Stationary Weight Shift Order Parity, and 44.5 FPS Tier 3 Physical Breakthrough)
 
 ## Previous Execution Run: 2026-11-01 14:15 (Run 89: Dual HP Port DMA Architecture Fix, RTL Feeder FSM Race Condition Resolution, and Multi-Tier Physical Silicon Sign-Off)
 
