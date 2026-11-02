@@ -1,11 +1,11 @@
 # Session Handoff: Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation) - Final Hardware Sign-Off
 
-- **Date:** 2026-11-02 08:30
+- **Date:** 2026-11-02 08:42
 - **Machine Session:** Laptop (`juliusli-MSI`).
 - **Workstation Role on Laptop:** Reviewing, planning, study, and learning (Pillar 6.1 complete & verified; physical bring-up runs on Desktop PC `juliusli`).
 - **Active Branch:** `main` (commit with `[skip ci]`).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
-- **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
+- **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; updated provisional shuttle mux address `76 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
 - **Hardware Bench Status:** PYNQ-Z2 FPGA powered down cleanly by user after completing full physical bring-up runs.
 - **Status:** **Pillar 6.1 100% COMPLETE & FULLY SIGNED OFF ON REAL PHYSICAL SILICON:**
   - **Tier 1 (Pure Python MMIO):** $70,716.90\ \mu\text{s/tile}$, $0.004\text{ FPS}$ ($253.52\text{ s}$ total).

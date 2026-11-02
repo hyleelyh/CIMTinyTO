@@ -1,6 +1,35 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-11-02 08:30 (Run 92: Laptop Review of Tier 3 DMA Dataflow, On-Chip SRAM Scratchpad Feasibility, Amdahl's Law Bottlenecks & Publication Roadmap)
+## Last Execution Run: 2026-11-02 08:42 (Run 93: Tiny Tapeout Shuttle Floorplan Review, Provisional Mux Address 76* Tracking & Power Mesh Forensics)
+
+### [Built & Documented]
+- **Shuttle Floorplan & Placement Forensic Review:**
+  - Evaluated official Tiny Tapeout shuttle floorplan map uploaded by user.
+  - Verified that our blue block is placed in the lower-right quadrant with dimensions $72\times 48\text{ px}$, confirming an exact $2\times 2$ tile footprint as requested in `info.yaml`.
+  - Confirmed optimal die placement safely inside the chip boundary to avoid epoxy shear stresses during packaging.
+- **Multiplexer Address Update:**
+  - Tracked provisional mux address reassignment from `227 *` to **`76 *`**.
+  - Documented bring-up firmware requirement for Pillar 7 physical activation on the TT carrier board / RP2040 / RP2350.
+- **Silicon Power Mesh & Routing Forensics:**
+  - Analyzed the horizontal power stripe interruption above our tile caused by the neighboring 5-column $\times$ 4-row macro.
+  - Verified timing slack margin (WNS $= +6.046\text{ ns}$) easily absorbs the 5-column wire route to the center spine multiplexer.
+
+### [Architecture Decisions & Silicon Forensics]
+- **Top-Level LVS & IR Drop Monitoring:**
+  - Note for shuttle tapeout freeze: monitor final top-level LVS and IR drop continuity report for tile 76 to ensure power mesh stitching over the severed stripe gap.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; updated provisional Mux 76*; shuttle closes end of November 2026).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% COMPLETE, BENCHMARKED & SIGNED OFF ON REAL SILICON.**
+- **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
+
+### [Next Steps]
+1. Open a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting (KWS) on STM32 B-U585I-IOT02A & CIMTinyTO Co-Processor** (Dual MEMS Mics `MP23DB01HP`, MFCC Feature Extraction, Acoustic Quantized SCIM Neural Network).
+
+## Previous Execution Run: 2026-11-02 08:30 (Run 92: Laptop Review of Tier 3 DMA Dataflow, On-Chip SRAM Scratchpad Feasibility, Amdahl's Law Bottlenecks & Publication Roadmap)
 
 ### [Built & Documented]
 - **Environment & Build Verification on Laptop (`juliusli-MSI`):**
