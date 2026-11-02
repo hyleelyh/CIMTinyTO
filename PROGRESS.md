@@ -1,6 +1,45 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-11-01 17:50 (Run 91: CIFAR-10 & Fashion-MNIST Benchmark Test Sample Suite, Glass-to-Glass Amdahl's Law Profiling, and Fashion-MNIST Unipolar Activation DC Offset Analysis)
+## Last Execution Run: 2026-11-02 08:30 (Run 92: Laptop Review of Tier 3 DMA Dataflow, On-Chip SRAM Scratchpad Feasibility, Amdahl's Law Bottlenecks & Publication Roadmap)
+
+### [Built & Documented]
+- **Environment & Build Verification on Laptop (`juliusli-MSI`):**
+  - Fast-forwarded git pull across 57 files to origin/main (`20b6ebd`).
+  - Recompiled native C MMIO driver `libscim_tier2.so` with `gcc -O3 -fPIC`.
+  - Verified 100% pass across all 8 pytest verification targets in `test/test_micro_resnet.py` (0.23s) and `verify_qat_parity.py` (0 LSB drift across 20 frames).
+- **Tier 3 Autonomous Hardware Feeder & DMA Architecture Deep Dive:**
+  - Mapped complete dataflow graph spanning ARM CPU, physical 512 MB DDR3 DRAM (Linux CMA pool), AXI-DMA controller in PL, 13-state Feeder FSM (`scim_axis_stream_feeder.v`), and the frozen 24-pin ASIC core (`tt_um_scim_core.v`).
+  - Clarified that the DMA controller is a soft IP instantiated in the FPGA fabric (PL), while DMA memory resides in the physical off-chip DDR3 DRAM chip.
+- **On-Chip SRAM vs DRAM Feasibility Analysis:**
+  - Evaluated on-chip SRAM alternatives on Zynq-7020: 256 KB PS On-Chip Memory (OCM) and 630 KB PL Block RAM (BRAM).
+  - Analyzed physical advantages of SRAM: 1-cycle access latency ($20\text{ ns}$ vs $80\text{--}150\text{ ns}$), $>100\times$ lower energy per read ($\sim 5\text{ pJ}$ vs $\sim 640\text{ pJ}$), zero DRAM row/column refresh, and elimination of DDR3 memory controller bus contention.
+  - Outlined ping-pong double-buffering architecture for zero-latency frame overlapping.
+- **System-Level Amdahl's Law Deconstruction:**
+  - Deconstructed why Tier 3 DMA live camera streaming ran at $\approx 3.5\text{ FPS}$ despite 44.5 FPS raw silicon compute: USB camera V4L2 capture ($\sim 135\text{ ms}$) and browser HUD display ($\sim 45\text{ ms}$) set a $\le 5.5\text{ FPS}$ glass-to-glass ceiling, while Python CMA chunking and NumPy memory allocations added $\sim 83\text{ ms}$.
+  - Evaluated potential fixes: confirmed that hardware requantization in the feeder FSM and a C DMA driver can be implemented with ZERO impact on the taped-out ASIC core (`src/tt_um_scim_core.v`), while native MIPI CSI-2 is physically blocked by PYNQ-Z2 hardware pinout limits.
+- **Academic Publication Strategy & Roadmap:**
+  - Formulated a 4-paper publication blueprint spanning IEEE TCAS/TVLSI (silicon architecture), IEEE IoT-J / ACM TECS (192-byte MicroResNet-16 co-design), IEEE Micro / ESL (Amdahl's law & multi-tier transport), and an unprecedented Human-AI Collaborative Chip Design Experience paper (DAC/ICCAD/IEEE Micro).
+
+### [Architecture Decisions & Silicon Forensics]
+- **Core Silicon Immutability Reaffirmation:**
+  - Affirmed that all proposed feeder optimizations (RTL hardware requantization) and driver upgrades (C DMA driver) reside strictly in the FPGA test harness and host software; `src/tt_um_scim_core.v` (PR #86, Commit `85b17b98`) remains 100% frozen, locked, and untouched.
+- **End-to-End Human-AI Silicon Co-Creation Paradigm:**
+  - Documented that collaborative human-AI ASIC engineering from mathematical model to RTL, verification, physical synthesis, tapeout, FPGA emulation, multi-tier software drivers, and lab bring-up represents an unprecedented engineering precedent for academic dissemination.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; provisional Mux 227*; shuttle closes end of November 2026).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% COMPLETE, BENCHMARKED & SIGNED OFF ON REAL SILICON:**
+  - Multi-tier transport benchmark (Tier 1: 0.004 FPS, Tier 2: 22.15 FPS, Tier 3: 44.50 FPS) fully verified on physical FPGA hardware.
+  - Live video ingestion and HUD telemetry verified.
+- **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
+
+### [Next Steps]
+1. Conclude Pillar 6.1 review and open a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting (KWS) on STM32 B-U585I-IOT02A & CIMTinyTO Co-Processor** (Dual MEMS Mics `MP23DB01HP`, MFCC Feature Extraction, Acoustic Quantized SCIM Neural Network).
+
+## Previous Execution Run: 2026-11-01 17:50 (Run 91: CIFAR-10 & Fashion-MNIST Benchmark Test Sample Suite, Glass-to-Glass Amdahl's Law Profiling, and Fashion-MNIST Unipolar Activation DC Offset Analysis)
 
 ### [Built & Documented]
 - **Benchmark Test Sample Suite (`fpga/pynq_z2/jupyter/samples/`):**

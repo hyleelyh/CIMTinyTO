@@ -1,8 +1,8 @@
 # Session Handoff: Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation) - Final Hardware Sign-Off
 
-- **Date:** 2026-11-01 17:55
-- **Machine Session:** Desktop PC (`juliusli`).
-- **Workstation Role on Desktop:** Primary bring-up platform (collocated with Korad supply, PYNQ-Z2, DE10-Lite, analyzer; Ryzen 5 9600X, 48 GB RAM).
+- **Date:** 2026-11-02 08:30
+- **Machine Session:** Laptop (`juliusli-MSI`).
+- **Workstation Role on Laptop:** Reviewing, planning, study, and learning (Pillar 6.1 complete & verified; physical bring-up runs on Desktop PC `juliusli`).
 - **Active Branch:** `main` (commit with `[skip ci]`).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; provisional shuttle mux address `227 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
