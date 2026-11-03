@@ -1,6 +1,33 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-11-02 08:42 (Run 93: Tiny Tapeout Shuttle Floorplan Review, Provisional Mux Address 76* Tracking & Power Mesh Forensics)
+## Last Execution Run: 2026-11-03 08:35 (Run 94: Linux Subsystem Architectural Comparison across PYNQ-Z2, RPi 5, and Laptop; CMA DRAM Mechanisms & Glass-to-Glass Amdahl's Law Profiling)
+
+### [Built & Documented]
+- **Embedded Linux & SoC Architectural Comparative Study:**
+  - Deconstructed Linux kernel, memory access models, and hardware abstraction boundaries across PYNQ-Z2 (Zynq-7020 ARMv7-A), Raspberry Pi 5 (BCM2712 + RP1 Southbridge ARMv8.2-A), and Laptop (`juliusli-MSI` x86_64).
+  - Contrasted PYNQ-Z2 thin-boundary direct physical register mapping (`/dev/mem`, UIO) and Linux FPGA Manager (`/dev/fpga0`) against RPi 5 PCIe RP1 peripheral arbitration (`libgpiod`) and Laptop kernel lockdown virtual memory isolation.
+- **DRAM Contiguous Memory Allocation (CMA) Silicon Realities:**
+  - Documented why hardware DMA engines without MMUs require physically contiguous DRAM slices to prevent page boundary memory corruption.
+  - Formulated the trade-offs between Simple DMA (`c_include_sg = 0` + CMA) vs. Scatter-Gather (SG) descriptor fetch overhead and FPGA area consumption.
+- **Glass-to-Glass Latency & The Edge AI Accelerator Trap:**
+  - Formulated the end-to-end photon-to-photon latency model ($285\text{ ms}$, $\approx 3.5\text{ FPS}$) deconstructing why raw ASIC inference acceleration ($22\text{ ms}$, $44.5\text{ FPS}$) is dominated by upstream USB capture ($\sim 135\text{ ms}$) and downstream browser display ($\sim 45\text{ ms}$) per Amdahl's Law.
+
+### [Architecture Decisions & Silicon Forensics]
+- **Heterogeneous Edge Architecture Integration:**
+  - Affirmed the roles in the CIMTinyTO tapeout fleet: Laptop for EDA/synthesis/training, PYNQ-Z2 for pre-silicon gate-level emulation & wire-speed DMA, and RPi 5 for line-rate MIPI vision host demonstration.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; updated provisional Mux 76*; shuttle closes end of November 2026).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% COMPLETE, BENCHMARKED & SIGNED OFF ON REAL SILICON.**
+- **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
+
+### [Next Steps]
+1. Open a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting (KWS) on STM32 B-U585I-IOT02A & CIMTinyTO Co-Processor** (Dual MEMS Mics `MP23DB01HP`, MFCC Feature Extraction, Acoustic Quantized SCIM Neural Network).
+
+## Previous Execution Run: 2026-11-02 08:42 (Run 93: Tiny Tapeout Shuttle Floorplan Review, Provisional Mux Address 76* Tracking & Power Mesh Forensics)
 
 ### [Built & Documented]
 - **Shuttle Floorplan & Placement Forensic Review:**
