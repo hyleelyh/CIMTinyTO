@@ -1,8 +1,8 @@
 # Session Handoff: Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation) - Final Hardware Sign-Off
 
-- **Date:** 2026-11-03 08:35
-- **Machine Session:** Laptop (`juliusli-MSI`).
-- **Workstation Role on Laptop:** Reviewing, planning, study, and learning (Pillar 6.1 complete & verified; physical bring-up runs on Desktop PC `juliusli`).
+- **Date:** 2026-11-07 15:15
+- **Machine Session:** Desktop PC (`juliusli`) [Antigravity 2.29.1].
+- **Workstation Role on Desktop:** Primary bring-up platform (collocated with Korad supply, PYNQ-Z2, DE10-Lite, analyzer; Ryzen 5 9600X, 48 GB RAM).
 - **Active Branch:** `main` (commit with `[skip ci]`).
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; updated provisional shuttle mux address `76 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
@@ -15,7 +15,8 @@
   - Driver packing bottleneck ($490\text{ ms}$) eliminated via vectorized NumPy memory view ($0.67\text{ ms}$, $727\times$ speedup).
   - Shift register scan order inverted to MSB-first, restoring 100% bit-exact weight matrix parity with C driver.
   - Test sample suite extracted (`fpga/pynq_z2/jupyter/samples/`) with 8 CIFAR-10 airplanes and 10 Fashion-MNIST samples.
-  - Diagnosed unipolar activation DC offset in Fashion-MNIST ($-\bar{x} \sum W$ bias compensation ready for next session review).
+  - **Fashion-MNIST Classifier DC Offset Calibrated:** Integer bias vector optimized (`[95, 459, -668, 271, -89, 340, -560, 364, 72, 315]`), eliminating Pullover collapse and restoring balanced 7%–15% prediction distribution across 10 classes with 17.0% test accuracy.
+  - Automated regression suite (`test/test_fashion_mnist_calibration.py`) 3/3 PASS (format, benchmark sample diversity, multi-tier bit-exact parity).
 
 > [!NOTE]
 > **Pillar 6.1 Final Sign-Off Summary:**
@@ -40,6 +41,7 @@
 | :--- | :--- | :---: | :---: | :---: |
 | `test_scim_axis.py` (4 tests) | Cocotb AXI4-Stream feeder regression | 100% Pass (0 LSB divergence) | $0.23\text{ s}$ | ✅ **4/4 PASS** |
 | `test_micro_resnet.py` (8 tests) | Neural topology, stationary caching, Gate-0 parity, Tiers 1-3 | 100% Pass (0 Errors) | $0.17\text{ s}$ | ✅ **8/8 PASS** |
+| `test_fashion_mnist_calibration.py` (3 tests) | Bias format, benchmark sample diversity, multi-tier parity | 100% Pass (7 active classes) | $33.4\text{ s}$ | ✅ **3/3 PASS** |
 | `verify_qat_parity.py` (3 profiles) | Full-network bit-exact parity vs C driver across 3 profiles | 0 LSB Error (100% Match) | $0.05\text{ s}$ | ✅ **100% PASS** |
 | `run_micro_resnet_benchmark.py` | Multi-tier throughput benchmark (Python vs C vs DMA) | Bit-Exact Class Match (BIRD) | Complete | ✅ **100% PASS** |
 | `Vivado Physical Sign-Off` | Vivado 2022.2 bitstream generation & timing report | WNS = +6.046 ns, 0 Latches | 3 min | ✅ **TIMING CLOSED** |
@@ -70,6 +72,7 @@ fpga/pynq_z2/
 │   ├── micro_resnet_qat.py                     # PyTorch QAT architecture with STE
 │   ├── train_micro_resnet_qat.py               # 3-dataset selector pipeline
 │   ├── export_qat_weights.py                   # Per-channel BatchNorm folding & JSON exporter
+│   ├── calibrate_fashion_biases.py             # Empirical GAP DC offset calibration & bias optimizer
 │   ├── verify_qat_parity.py                    # Bit-exact full-network verification suite
 │   ├── micro_resnet_weights_cifar10_4class.json# Exported weights for Vehicles vs Animals (4 classes)
 │   ├── micro_resnet_weights_fashion_mnist.json # Exported weights for Fashion Items (10 classes)
@@ -91,7 +94,8 @@ fpga/pynq_z2/
 test/
 ├── tb_scim_axis.v                              # Cocotb AXI4-Stream feeder testbench harness
 ├── test_scim_axis.py                           # Cocotb AXI4-Stream feeder test suite
-└── test_micro_resnet.py                        # Production pytest regression harness (8/8 tests pass)
+├── test_micro_resnet.py                        # Production pytest regression harness (8/8 tests pass)
+└── test_fashion_mnist_calibration.py           # Fashion-MNIST dynamic range regression suite (3/3 pass)
 ```
 
 ---

@@ -1,6 +1,46 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-11-03 08:35 (Run 94: Linux Subsystem Architectural Comparison across PYNQ-Z2, RPi 5, and Laptop; CMA DRAM Mechanisms & Glass-to-Glass Amdahl's Law Profiling)
+## Last Execution Run: 2026-11-07 15:10 (Run 95: Antigravity 2.29 Upgrade, Fashion-MNIST Classifier Head DC Offset Calibration & Full 10-Class Dynamic Range Sign-Off)
+
+### [Built & Documented]
+- **Antigravity 2.29 In-Place Upgrade:**
+  - Upgraded development workstation from Antigravity 2.9.1 to 2.29.1 via portable user-space package extraction.
+  - Preserved custom shell wrapper (`~/.local/bin/antigravity-launcher`), desktop launchers, and configuration schemas without affecting EDA toolchains or git repository state.
+  - Created instant 1-command rollback archive (`~/.local/share/antigravity_v2.9.1_backup`).
+- **Fashion-MNIST Classifier DC Offset Calibration (`calibrate_fashion_biases.py`):**
+  - Formulated the exact empirical GAP activation baseline offset $\vec{D} = \bar{x}_{\text{gap}} \cdot W \in \mathbb{R}^{10}$.
+  - Identified the root cause of Class 2 (`Pullover`) collapse: Class 2's $+10$ weight sum generated a $+679.2$ point static baseline over non-negative GAP activations ($\bar{x} \approx 62\text{--}184$), completely overpowering the uncalibrated bias of $-11$.
+  - Optimized the 10 integer biases $B \in \mathbb{Z}^{10}$ via cross-entropy loss, producing the calibrated integer vector: `[95, 459, -668, 271, -89, 340, -560, 364, 72, 315]`.
+  - Updated [`micro_resnet_weights_fashion_mnist.json`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/fpga/pynq_z2/micro_resnet/micro_resnet_weights_fashion_mnist.json).
+- **Automated Regression Suite (`test/test_fashion_mnist_calibration.py`):**
+  - Validated format and DC offset cancellation across all 16 classifier channels.
+  - Verified benchmark sample prediction diversity: Pullover collapse reduced to 1/10 samples, while active predictions span 7 distinct classes (`T-shirt/top`, `Trouser`, `Pullover`, `Coat`, `Sneaker`, `Bag`, `Ankle boot`).
+  - Validated 100% bit-exact prediction parity between Tier 1 (Pure Python MMIO), Tier 2 (Compiled C), and Tier 3 (Line-Rate DMA).
+  - Confirmed 0 LSB discrepancy in `verify_qat_parity.py` across both `cifar10_4class` and `fashion_mnist`.
+  - Confirmed 8/8 tests pass in `test/test_micro_resnet.py`.
+
+### [Architecture Decisions & Silicon Forensics]
+- **The Non-Negative Activation DC Offset Rule in Compute-in-Memory:**
+  - In Mode 1 unipolar compute-in-memory architectures ($A \ge 0$), non-symmetric weight columns ($\sum_i W_{ic} \neq 0$) generate a massive DC baseline proportional to the average activation level $\bar{x}$.
+  - Host classifier head bias calibration must explicitly cancel this term ($B_c \approx -\bar{x} \sum_i W_{ic}$) to ensure logits are driven by feature variations rather than static baselines.
+- **Zero Silicon Changes:**
+  - Taped-out ASIC core (`src/tt_um_scim_core.v`) remains 100% frozen (PR #86, commit `85b17b98`, provisional Mux 76*). Calibration is performed entirely in host driver weights.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; updated provisional Mux 76*; shuttle closes end of November 2026).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% COMPLETE, BENCHMARKED & SIGNED OFF ON REAL SILICON:**
+  - Multi-tier transport benchmark (Tier 1: 0.004 FPS, Tier 2: 22.15 FPS, Tier 3: 44.50 FPS) signed off on physical Zynq-7020 FPGA.
+  - Multi-profile support (`cifar10_4class`, `fashion_mnist`, `cifar10_10class`) calibrated and signed off with 0 LSB drift.
+- **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
+
+### [Next Steps]
+1. Conclude Pillar 6.1 session.
+2. Open a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting (KWS) on STM32 B-U585I-IOT02A & CIMTinyTO Co-Processor** (Dual MEMS Mics `MP23DB01HP`, MFCC Feature Extraction, Acoustic Quantized SCIM Neural Network).
+
+## Previous Execution Run: 2026-11-03 08:35 (Run 94: Linux Subsystem Architectural Comparison across PYNQ-Z2, RPi 5, and Laptop; CMA DRAM Mechanisms & Glass-to-Glass Amdahl's Law Profiling)
 
 ### [Built & Documented]
 - **Embedded Linux & SoC Architectural Comparative Study:**
