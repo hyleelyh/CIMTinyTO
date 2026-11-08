@@ -55,6 +55,13 @@ To maintain laser focus, clean context windows, and modular verification boundar
   3. Close out the chat session by summarizing the achievements and instructing the user to open a **fresh chat session** for the next Sub-Pillar.
 * **Scope Guard:** If a user or prompt attempts to advance to the next Pillar/Sub-Pillar within an existing session, the agent must decline to proceed in that chat and direct the user to launch a new chat.
 
+### 4. Mandatory Pedagogical Implementation Planning Mandate (CRITICAL)
+To protect the user's primary goal of learning every perspective of ASIC, FPGA, and embedded software design:
+* **Zero Premature Implementation:** When beginning a new feature, pillar, subsystem, or non-trivial task, the agent **MUST NOT** jump straight into implementing code, testbenches, and drivers in a single turn.
+* **Implementation Plan Artifact First:** The agent MUST FIRST author a structured, educational **Implementation Plan** as an interactive Markdown Artifact (`RequestFeedback: true`) following `.agents/skills/pedagogical-implementation-planning/SKILL.md`.
+* **Explicit User Approval Gate:** The agent MUST STOP and yield execution back to the user after presenting the plan. The user must review, ask questions, adjust trade-offs, and explicitly approve the plan before ANY code or RTL implementation begins.
+* **Paced, Milestone-by-Milestone Execution:** Once approved, the agent executes one milestone at a time, providing deep educational commentary, verification commands, and inspection checkpoints at every step.
+
 ---
 
 ## Code Standards & Tech Stack

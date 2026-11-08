@@ -1,6 +1,39 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-11-07 16:55 (Run 97: Pillar 6.2 Voice Keyword Spotting (KWS) on STM32 B-U585I-IOT02A & CIMTinyTO Coprocessor — Acoustic Frontend, 96-Byte QAT Model, CMSIS-DSP C Driver & 100% Verification Sign-Off)
+## Last Execution Run: 2026-11-07 17:02 (Run 98: Global & Workspace Skill `pedagogical-implementation-planning` & Mandatory Implementation Planning Rule in `AGENTS.md`)
+
+### [Built & Documented]
+- **Global & Workspace Skill (`pedagogical-implementation-planning`):**
+  - Created global skill at `~/.gemini/config/skills/pedagogical-implementation-planning/SKILL.md` (active globally across all projects on the workstation).
+  - Created workspace project skill at `.agents/skills/pedagogical-implementation-planning/SKILL.md` (tracked in version control).
+  - Core Mandate: Prohibits premature implementation. When starting any new feature, ASIC pillar, subsystem, or non-trivial software task, the agent MUST first pause and author a structured, educational **Implementation Plan Artifact (`RequestFeedback: true`)**.
+  - Establishes a 4-part pedagogical structure:
+    1. *Foundational Concepts & IC Fundamentals ("The Why")*: In-depth circuit physics, trade-off analysis, and silicon failure traps.
+    2. *Microarchitecture & Visual Dataflow Diagrams*: Signal flow, bit widths, clock domains, and CDC precautions.
+    3. *Bite-Sized Milestone Roadmap*: Step-by-step milestones (model -> RTL/C driver -> testbench/parity -> HW bring-up) with explicit learning objectives.
+    4. *Interactive Learning Checkpoints & Questions for the User*: Stopping and yielding execution for user review, discussion, and explicit approval before any code is written.
+- **Operating Directive Update (`AGENTS.md`):**
+  - Enshrined "Mandatory Pedagogical Implementation Planning Mandate (CRITICAL)" into Section 4 of `AGENTS.md`.
+
+### [Architecture Decisions & Pedagogical Alignment]
+- **Learning-First Engineering Philosophy:**
+  - The project's core objective is not simply generating hardware and software deliverables, but serving as a rich, comprehensive pedagogical curriculum for the user to master all perspectives of ASIC and edge AI engineering.
+  - Pausing before implementation to present the architectural trade-offs empowers the user to actively participate, guide design decisions, and deeply understand the silicon realities.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, provisional Mux 76*).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% COMPLETE, BENCHMARKED & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.2 (Voice Keyword Spotting on STM32 B-U585I-IOT02A & CIMTinyTO Coprocessor):** ✅ **100% COMPLETE & FULLY SIGNED OFF.**
+- **Pillars 6.3–6.4 (Motor Vibration Anomaly, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
+
+### [Next Steps]
+1. Open a **fresh chat session** for **Pillar 6.3: Industrial Motor Vibration Anomaly Detection on STM32 B-U585I-IOT02A & CIMTinyTO Coprocessor**.
+2. **Apply `pedagogical-implementation-planning` immediately:** The first action in the Pillar 6.3 session will be to generate and present an in-depth Implementation Plan Artifact for user review and approval before implementing any code.
+
+## Previous Execution Run: 2026-11-07 16:55 (Run 97: Pillar 6.2 Voice Keyword Spotting (KWS) on STM32 B-U585I-IOT02A & CIMTinyTO Coprocessor — Acoustic Frontend, 96-Byte QAT Model, CMSIS-DSP C Driver & 100% Verification Sign-Off)
 
 ### [Built & Documented]
 - **Architectural Specification & Pedagogical Guide (`docs/pillar6_2_voice_kws_guide.md`):**

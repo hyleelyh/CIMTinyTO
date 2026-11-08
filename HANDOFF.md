@@ -7,7 +7,9 @@
 - **Active Phase:** **PILLAR 6: PRE-SILICON EMULATION & SOFTWARE DEVELOPMENT (OCT 2026 – JUNE 2027)**
 - **Timeline Context:** Tiny Tapeout `ttsky26d` **PR #86 MERGED** (Commit `85b17b98`, $2\times 2$ tiles, all green; updated provisional shuttle mux address `76 *`). Shuttle closes end of November 2026; physical packaged silicon arrives ~June 2027.
 - **Hardware Bench Status:** PYNQ-Z2 FPGA powered down cleanly; STM32 B-U585I-IOT02A Discovery Kit on bench.
-- **Status:** **Pillar 6.2 100% COMPLETE & FULLY SIGNED OFF:**
+- **Status:** **Pillar 6.2 100% COMPLETE & FULLY SIGNED OFF; Pedagogical Implementation Planning Protocol Enforced:**
+  - **Global & Workspace Skill Enacted:** Created `~/.gemini/config/skills/pedagogical-implementation-planning/SKILL.md` and `.agents/skills/pedagogical-implementation-planning/SKILL.md`.
+  - **Mandatory Planning Guardrail in `AGENTS.md`:** Section 4 mandates that all future pillars/features require an interactive Implementation Plan Artifact (`RequestFeedback: true`) approved by the user BEFORE any code or RTL implementation begins.
   - **Golden 16-Channel Alignment:** 16-channel Mel-filterbank ($50\text{ Hz}$ to $4000\text{ Hz}$) maps 1:1 onto the $16\times 16$ SCIM core with 100% macro row utilization.
   - **Stationary Weight Caching Advantage:** 256 shift cycles per layer vs. reloading per frame yields a **96.88% suppression of weight shift dynamic switching power**.
   - **Silence Gating:** Peak energy $\le -30\text{ dB}$ clamps activations to zero, suppressing core dynamic switching power to **0 Watts** during acoustic silence.
