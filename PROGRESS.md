@@ -1,6 +1,52 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-11-07 15:10 (Run 95: Antigravity 2.29 Upgrade, Fashion-MNIST Classifier Head DC Offset Calibration & Full 10-Class Dynamic Range Sign-Off)
+## Last Execution Run: 2026-11-07 16:10 (Run 96: Low-Hanging Fruit #1 Implementation — Compiled C & ARM NEON Acceleration Library `libscim_tier3_accel.so` & Zero-Copy NHWC Driver)
+
+### [Built & Documented]
+- **Compiled C & ARM NEON Acceleration Library (`scim_tier3_c/`):**
+  - Designed, authored, and verified 6 high-performance C99/NEON kernels in [`scim_tier3_accel.c`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/fpga/pynq_z2/micro_resnet/scim_tier3_c/scim_tier3_accel.c) and [`scim_tier3_accel.h`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/fpga/pynq_z2/micro_resnet/scim_tier3_c/scim_tier3_accel.h):
+    1. `c_preprocess_and_pack_input`: Single-pass RGB to 16-channel feature transform directly packed into AXI-DMA packet buffer.
+    2. `c_requantize_relu_16b_to_8b`: 128-bit vector arithmetic with saturating narrow casts (`vqmovun_s16`).
+    3. `c_depthwise_smooth_3x3`: L1-cache friendly sliding window 9-tap box average with edge padding.
+    4. `c_fused_residual_add_and_maxpool2x2`: Fused halving addition (`vhadd_u8` / `vrhadd_u8`) and $2\times 2$ max pooling (`vmax_u8`), eliminating DRAM intermediate tensor writes.
+    5. `c_pack_dma_input`: High-speed memory block transfer for AXI-DMA feeder batches.
+    6. `c_gap_and_classify`: Fast integer Global Average Pooling and dense linear classifier dot product.
+  - Implemented cross-platform [`scim_tier3_c/Makefile`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/fpga/pynq_z2/micro_resnet/scim_tier3_c/Makefile) auto-detecting ARMv7-A (`-march=armv7-a -mfpu=neon -mfloat-abi=hard`) vs x86-64 (`-mavx2 -mfma`).
+- **Zero-Copy Python ctypes Bridge (`scim_tier3_c_accel.py`):**
+  - Created [`scim_tier3_c_accel.py`](file:///home/juliusli/Documents/AntiG/CIMTinyTO/fpga/pynq_z2/micro_resnet/scim_tier3_c_accel.py) mapping virtual pointers directly to physical PYNQ contiguous memory allocator (CMA) buffers.
+  - Transparent fallback: If library is missing or fails to load, `is_available` drops to `False` and the engine falls back to standard NumPy execution without crashing.
+- **Upgraded Tier 3 DMA Driver (`scim_tier3_dma.py`):**
+  - Added `execute_conv1x1_dma_nhwc` and fast-path forward pass operating natively in NHWC layout.
+  - Completely eliminated repetitive multi-dimensional array transpositions (`np.transpose(feat, (1, 2, 0))`).
+- **Comprehensive Regression Suite (`test/test_tier3_compiled_c.py`):**
+  - Added 8 unit and integration tests verifying bit-exact 0 LSB discrepancy across each kernel and all 3 model profiles (`cifar10_4class`, `cifar10_10class`, `fashion_mnist`).
+  - Regression results: **19/19 pytest tests PASS in 33.84s**; parity suite confirms **0 LSB discrepancy**.
+
+### [Architecture Decisions & Silicon Forensics]
+- **Overcoming the Memory Wall on ARM Cortex-A9:**
+  - The Cortex-A9 has a 32 KB L1 data cache and 512 KB L2 cache. Generic Python/NumPy calls flood memory with 64-bit temporary allocations ($131\text{ KB}$ per step), forcing DDR3 DRAM thrashing.
+  - Zero-copy C processing keeps active working sets in L1 cache ($1.5\text{ KB}$ sliding line buffer for depthwise smoothing) and processes 16 channels in 128-bit vector registers.
+- **Glass-to-Glass Amdahl's Law Profiling:**
+  - Decoupled core compute latency ($121.1\text{ ms} \to \approx 40.4\text{ ms} \implies 25\text{ FPS}$) from external USB 2.0 camera grab time ($\sim 130\text{ ms}$).
+  - Documented threaded producer-consumer architecture to reach 20–25 FPS end-to-end video streaming.
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, provisional Mux 76*).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% COMPLETE, OPTIMIZED & SIGNED OFF:**
+  - Multi-tier transport benchmark (Tier 1: 0.09 FPS, Tier 2: 964 FPS emul / 22 FPS HW, Tier 3: 44.5 FPS line rate) signed off.
+  - Low-Hanging Fruit #1 (Compiled C & NEON fast-path) implemented, verified bit-exact, and signed off.
+  - Multi-profile support (`cifar10_4class`, `fashion_mnist`, `cifar10_10class`) calibrated and signed off with 0 LSB drift.
+  - Full regression suite: 19/19 tests PASS.
+- **Pillars 6.2–6.4 (Voice KWS, Motor Vibration, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
+
+### [Next Steps]
+1. Conclude Pillar 6.1 session.
+2. Open a **fresh chat session** for **Pillar 6.2: Voice Keyword Spotting (KWS) on STM32 B-U585I-IOT02A & CIMTinyTO Co-Processor** (Dual MEMS Mics `MP23DB01HP`, MFCC Feature Extraction, Acoustic Quantized SCIM Neural Network).
+
+## Previous Execution Run: 2026-11-07 15:10 (Run 95: Antigravity 2.29 Upgrade, Fashion-MNIST Classifier Head DC Offset Calibration & Full 10-Class Dynamic Range Sign-Off)
 
 ### [Built & Documented]
 - **Antigravity 2.29 In-Place Upgrade:**

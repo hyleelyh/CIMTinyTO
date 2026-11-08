@@ -40,8 +40,10 @@ if PROJ_ROOT not in sys.path:
 
 try:
     from .micro_resnet_model import MicroResNet16
+    from .scim_tier3_c_accel import SCIMTier3CAccelerator
 except (ImportError, ValueError):
     from micro_resnet_model import MicroResNet16
+    from scim_tier3_c_accel import SCIMTier3CAccelerator
 
 # Detect PYNQ Environment
 try:
@@ -63,7 +65,7 @@ class SCIMTier3Engine:
     CMD_MVM_SINGLE   = 0x02
     CMD_MVM_BATCH    = 0x03
 
-    def __init__(self, bitstream_path=None, force_emulation=False, seed=42, profile=None):
+    def __init__(self, bitstream_path=None, force_emulation=False, seed=42, profile=None, use_c_accel=True):
         """Initialize Tier 3 DMA Engine.
         
         Args:
@@ -71,6 +73,7 @@ class SCIMTier3Engine:
             force_emulation (bool): If True, forces host Python simulation.
             seed (int): Model weights random seed.
             profile (dict, optional): Quantization profile.
+            use_c_accel (bool): If True and available, uses compiled C/NEON fast-path.
         """
         self.seed = seed
         self.profile = profile
@@ -80,6 +83,14 @@ class SCIMTier3Engine:
         self.overlay = None
         self.dma = None
         self.current_layer_id = None
+
+        # Initialize Compiled C/NEON Acceleration Library with fallback
+        self.c_accel = SCIMTier3CAccelerator()
+        self.use_c_accel = bool(use_c_accel and self.c_accel.is_available)
+        if self.use_c_accel:
+            print("[Tier 3 DMA] Accelerated C99/NEON intermediate tensor fast-path ENABLED.")
+        else:
+            print("[Tier 3 DMA] Standard NumPy intermediate tensor path ACTIVE (C accel not enabled).")
 
         self.stats = {
             "total_tiles": 0,
@@ -237,6 +248,67 @@ class SCIMTier3Engine:
             self.stats["total_tiles"] += num_tiles
             return out_feat
 
+    def execute_conv1x1_dma_nhwc(self, layer_id, input_acts_hwc, weight_matrix_16x16,
+                                 bias_16, scale_dict):
+        """Execute whole-layer 1x1 convolution with NHWC activations over AXI-DMA.
+        
+        Zero-copy fast-path: Eliminates NCHW/NHWC transpose memory copies.
+        """
+        H, W, C = input_acts_hwc.shape
+        num_tiles = H * W
+        assert C == 16, f"Expected 16 input channels, got {C}"
+        assert num_tiles <= 1024, f"Tile count {num_tiles} exceeds max batch buffer (1024)"
+
+        self.load_weights_dma(layer_id, weight_matrix_16x16)
+        flat_acts = np.ascontiguousarray(input_acts_hwc.reshape(-1, 16), dtype=np.uint8)
+        MAX_CHUNK_TILES = 256
+
+        if self.is_hardware:
+            all_raw_chunks = []
+            for chunk_start in range(0, num_tiles, MAX_CHUNK_TILES):
+                chunk_end = min(chunk_start + MAX_CHUNK_TILES, num_tiles)
+                chunk_tiles = chunk_end - chunk_start
+                chunk_acts = flat_acts[chunk_start:chunk_end]
+
+                self.in_cma_buf[0] = np.uint32((self.CMD_MVM_BATCH << 24) | chunk_tiles)
+                packed_acts = chunk_acts.view(np.uint32).reshape(-1)
+                self.in_cma_buf[1:1 + chunk_tiles * 4] = packed_acts
+
+                total_in_words = 1 + chunk_tiles * 4
+                total_out_words = chunk_tiles * 8
+
+                self.dma.recvchannel.transfer(self.out_cma_buf[:total_out_words])
+                self.dma.sendchannel.transfer(self.in_cma_buf[:total_in_words])
+                self.dma.sendchannel.wait()
+                self.dma.recvchannel.wait()
+                self.stats["dma_transfers"] += 2
+
+                chunk_raw = np.frombuffer(self.out_cma_buf[:total_out_words], dtype=np.int16).copy()
+                all_raw_chunks.append(chunk_raw)
+
+            raw_acc = np.concatenate(all_raw_chunks).reshape(-1, 16)
+            out_hwc = self.c_accel.requantize_relu(raw_acc, bias_16, scale_dict)
+            self.stats["total_tiles"] += num_tiles
+            return out_hwc.reshape(H, W, 16)
+        else:
+            # Emulated DMA Execution
+            W_mat = np.array(weight_matrix_16x16, dtype=np.int64)
+            raw_mvm = np.dot(flat_acts.astype(np.int64), W_mat).reshape(-1, 16).astype(np.int16)
+            out_hwc = self.c_accel.requantize_relu(raw_mvm, bias_16, scale_dict)
+            self.stats["total_tiles"] += num_tiles
+            return out_hwc.reshape(H, W, 16)
+
+    def _preprocess_image_c(self, img_array):
+        """Prepare image array into NHWC (32, 32, 16) uint8 feature map using C fast-path."""
+        arr = np.array(img_array, dtype=np.float32)
+        if arr.ndim == 2:
+            arr = np.stack([arr, arr, arr], axis=-1)
+        arr = np.clip(arr, 0, 255).astype(np.uint8)
+
+        dma_buf = np.empty(1 + 1024 * 4, dtype=np.uint32)
+        self.c_accel.preprocess_and_pack_input(arr, dma_buf)
+        return dma_buf[1:].view(np.uint8).reshape(32, 32, 16).copy()
+
     def infer(self, img_array):
         """Execute full Micro-ResNet inference modeling/driving line-rate DMA streaming.
         
@@ -248,38 +320,77 @@ class SCIMTier3Engine:
         """
         t_start = time.perf_counter()
 
-        # Step 1: Preprocess image
-        x = self.model.preprocess_image(img_array)
+        if self.use_c_accel:
+            # =================================================================
+            # FAST-PATH: COMPILED C99 & ARM NEON ZERO-COPY INTERMEDIATE TENSORS
+            # =================================================================
+            # 1. Fast C Preprocessing (NHWC format)
+            x_nhwc = self._preprocess_image_c(img_array)
 
-        # Step 2: Forward pass through layers
-        # 1. Stem Conv Layer (32x32)
-        x_stem = self.execute_conv1x1_dma("stem", x, self.model.weights["stem"],
-                                          self.model.biases["stem"], self.model.scales["stem"])
+            # 2. Stem Conv Layer (32x32)
+            x_stem = self.execute_conv1x1_dma_nhwc("stem", x_nhwc, self.model.weights["stem"],
+                                                  self.model.biases["stem"], self.model.scales["stem"])
 
-        # 2. Residual Block 1: Conv1a -> Depthwise -> Conv1b -> Shortcut -> Pool (16x16)
-        x_1a = self.execute_conv1x1_dma("res1_conv1", x_stem, self.model.weights["res1_conv1"],
-                                        self.model.biases["res1_conv1"], self.model.scales["res1_conv1"])
-        x_1a_smooth = self.model.depthwise_smooth_3x3(x_1a)
-        x_1b = self.execute_conv1x1_dma("res1_conv2", x_1a_smooth, self.model.weights["res1_conv2"],
-                                        self.model.biases["res1_conv2"], self.model.scales["res1_conv2"])
-        res1_out = np.clip((x_stem.astype(int) + x_1b.astype(int)) // 2, 0, 255).astype(np.uint8)
-        res1_pool = self.model.max_pool_2x2(res1_out)
+            # 3. Residual Block 1: Conv1a -> Depthwise -> Conv1b -> Fused Shortcut + Pool (16x16)
+            x_1a = self.execute_conv1x1_dma_nhwc("res1_conv1", x_stem, self.model.weights["res1_conv1"],
+                                                self.model.biases["res1_conv1"], self.model.scales["res1_conv1"])
+            x_1a_smooth = self.c_accel.depthwise_smooth_3x3(x_1a)
+            x_1b = self.execute_conv1x1_dma_nhwc("res1_conv2", x_1a_smooth, self.model.weights["res1_conv2"],
+                                                self.model.biases["res1_conv2"], self.model.scales["res1_conv2"])
+            res1_pool = self.c_accel.fused_residual_add_and_maxpool2x2(x_stem, x_1b)
 
-        # 3. Residual Block 2: Conv2a -> Conv2b -> Shortcut -> Pool (8x8)
-        x_2a = self.execute_conv1x1_dma("res2_conv1", res1_pool, self.model.weights["res2_conv1"],
-                                        self.model.biases["res2_conv1"], self.model.scales["res2_conv1"])
-        x_2b = self.execute_conv1x1_dma("res2_conv2", x_2a, self.model.weights["res2_conv2"],
-                                        self.model.biases["res2_conv2"], self.model.scales["res2_conv2"])
-        res2_out = np.clip((res1_pool.astype(int) + x_2b.astype(int)) // 2, 0, 255).astype(np.uint8)
-        res2_pool = self.model.max_pool_2x2(res2_out)
+            # 4. Residual Block 2: Conv2a -> Conv2b -> Fused Shortcut + Pool (8x8)
+            x_2a = self.execute_conv1x1_dma_nhwc("res2_conv1", res1_pool, self.model.weights["res2_conv1"],
+                                                self.model.biases["res2_conv1"], self.model.scales["res2_conv1"])
+            x_2b = self.execute_conv1x1_dma_nhwc("res2_conv2", x_2a, self.model.weights["res2_conv2"],
+                                                self.model.biases["res2_conv2"], self.model.scales["res2_conv2"])
+            res2_pool = self.c_accel.fused_residual_add_and_maxpool2x2(res1_pool, x_2b)
 
-        # 4. Global Average Pooling (GAP) & Dense Classifier Head
-        gap_features = np.mean(res2_pool, axis=(1, 2)).astype(np.uint8)
-        raw_logits = np.matmul(gap_features.astype(np.int32), self.model.weights["classifier"])
-        num_cls = len(self.model.CLASSES)
-        logits = (raw_logits[:num_cls] + self.model.biases["classifier"][:num_cls]).astype(np.int32)
-        pred_idx = int(np.argmax(logits))
-        pred_class = self.model.CLASSES[pred_idx]
+            # 5. Fast C GAP & Dense Classifier Head
+            num_cls = len(self.model.CLASSES)
+            pred_idx, logits = self.c_accel.gap_and_classify(
+                res2_pool,
+                self.model.weights["classifier"],
+                self.model.biases["classifier"],
+                num_cls
+            )
+            pred_class = self.model.CLASSES[pred_idx]
+        else:
+            # =================================================================
+            # REFERENCE PATH: PURE PYTHON / NUMPY MULTI-DIMENSIONAL TENSORS
+            # =================================================================
+            # Step 1: Preprocess image
+            x = self.model.preprocess_image(img_array)
+
+            # Step 2: Forward pass through layers
+            # 1. Stem Conv Layer (32x32)
+            x_stem = self.execute_conv1x1_dma("stem", x, self.model.weights["stem"],
+                                              self.model.biases["stem"], self.model.scales["stem"])
+
+            # 2. Residual Block 1: Conv1a -> Depthwise -> Conv1b -> Shortcut -> Pool (16x16)
+            x_1a = self.execute_conv1x1_dma("res1_conv1", x_stem, self.model.weights["res1_conv1"],
+                                            self.model.biases["res1_conv1"], self.model.scales["res1_conv1"])
+            x_1a_smooth = self.model.depthwise_smooth_3x3(x_1a)
+            x_1b = self.execute_conv1x1_dma("res1_conv2", x_1a_smooth, self.model.weights["res1_conv2"],
+                                            self.model.biases["res1_conv2"], self.model.scales["res1_conv2"])
+            res1_out = np.clip((x_stem.astype(int) + x_1b.astype(int)) // 2, 0, 255).astype(np.uint8)
+            res1_pool = self.model.max_pool_2x2(res1_out)
+
+            # 3. Residual Block 2: Conv2a -> Conv2b -> Shortcut -> Pool (8x8)
+            x_2a = self.execute_conv1x1_dma("res2_conv1", res1_pool, self.model.weights["res2_conv1"],
+                                            self.model.biases["res2_conv1"], self.model.scales["res2_conv1"])
+            x_2b = self.execute_conv1x1_dma("res2_conv2", x_2a, self.model.weights["res2_conv2"],
+                                            self.model.biases["res2_conv2"], self.model.scales["res2_conv2"])
+            res2_out = np.clip((res1_pool.astype(int) + x_2b.astype(int)) // 2, 0, 255).astype(np.uint8)
+            res2_pool = self.model.max_pool_2x2(res2_out)
+
+            # 4. Global Average Pooling (GAP) & Dense Classifier Head
+            gap_features = np.mean(res2_pool, axis=(1, 2)).astype(np.uint8)
+            raw_logits = np.matmul(gap_features.astype(np.int32), self.model.weights["classifier"])
+            num_cls = len(self.model.CLASSES)
+            logits = (raw_logits[:num_cls] + self.model.biases["classifier"][:num_cls]).astype(np.int32)
+            pred_idx = int(np.argmax(logits))
+            pred_class = self.model.CLASSES[pred_idx]
 
         t_end = time.perf_counter()
         elapsed_sec = t_end - t_start
