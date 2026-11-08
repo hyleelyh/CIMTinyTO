@@ -21,6 +21,11 @@
 - **Comprehensive Regression Suite (`test/test_tier3_compiled_c.py`):**
   - Added 8 unit and integration tests verifying bit-exact 0 LSB discrepancy across each kernel and all 3 model profiles (`cifar10_4class`, `cifar10_10class`, `fashion_mnist`).
   - Regression results: **19/19 pytest tests PASS in 33.84s**; parity suite confirms **0 LSB discrepancy**.
+- **Interactive Jupyter Demonstration Notebook (`pynq_micro_resnet_demo.ipynb`):**
+  - Added auto-compilation guard in Cell 1 to automatically build `libscim_tier2.so` and `libscim_tier3_accel.so` for host architecture upon notebook execution.
+  - Upgraded Cell 6/7 multi-tier benchmark to demonstrate side-by-side comparison between **Tier 3a (AXI-DMA with NumPy fallback)** and **Tier 3b (AXI-DMA with Compiled C & ARM NEON fast-path)**.
+  - Upgraded Cell 10/11 interactive live video stream to support `STREAM_TIER = 3` for line-rate DMA vision processing.
+  - Linked HUD rendering and power telemetry directly to the accelerated Tier 3 engine.
 
 ### [Architecture Decisions & Silicon Forensics]
 - **Overcoming the Memory Wall on ARM Cortex-A9:**

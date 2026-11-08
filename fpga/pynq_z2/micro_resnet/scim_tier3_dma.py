@@ -428,5 +428,6 @@ class SCIMTier3Engine:
             "weight_loads": weight_loads,
             "dma_bandwidth_mb_s": (total_tiles * 16) / measured_time_sec / 1e6,
             "stationary_power_saving_pct": 99.93,
-            "is_hardware": self.is_hardware
+            "is_hardware": self.is_hardware,
+            "use_c_accel": self.use_c_accel
         }

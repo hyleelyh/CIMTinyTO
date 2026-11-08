@@ -18,6 +18,7 @@
   - Test sample suite extracted (`fpga/pynq_z2/jupyter/samples/`) with 8 CIFAR-10 airplanes and 10 Fashion-MNIST samples.
   - **Fashion-MNIST Classifier DC Offset Calibrated:** Integer bias vector optimized (`[95, 459, -668, 271, -89, 340, -560, 364, 72, 315]`), eliminating Pullover collapse and restoring balanced 7%–15% prediction distribution across 10 classes with 17.0% test accuracy.
   - Automated regression suite (`test/test_fashion_mnist_calibration.py`, `test/test_micro_resnet.py`, `test/test_tier3_compiled_c.py`): **19/19 PASS** in 33.84s with 0 LSB discrepancy.
+  - **Jupyter Demonstration Notebook Updated (`pynq_micro_resnet_demo.ipynb`):** Auto-compilation guard added to Cell 1; Cell 7 upgraded to benchmark Tier 3a (NumPy) vs Tier 3b (Compiled C + NEON); Cell 11 upgraded to enable continuous live video streaming on Tier 3.
 
 > [!NOTE]
 > **Pillar 6.1 Final Sign-Off Summary:**
