@@ -9,6 +9,7 @@ parsetab.py
 parser.out
 *.o
 *.so
+*.a
 
 # Cocotb / Simulation
 sim_build/

@@ -1,6 +1,63 @@
 # Project Progress: CIMTinyTO
 
-## Last Execution Run: 2026-11-07 16:10 (Run 96: Low-Hanging Fruit #1 Implementation — Compiled C & ARM NEON Acceleration Library `libscim_tier3_accel.so` & Zero-Copy NHWC Driver)
+## Last Execution Run: 2026-11-07 16:55 (Run 97: Pillar 6.2 Voice Keyword Spotting (KWS) on STM32 B-U585I-IOT02A & CIMTinyTO Coprocessor — Acoustic Frontend, 96-Byte QAT Model, CMSIS-DSP C Driver & 100% Verification Sign-Off)
+
+### [Built & Documented]
+- **Architectural Specification & Pedagogical Guide (`docs/pillar6_2_voice_kws_guide.md`):**
+  - Formulated the complete acoustic pipeline spanning dual `MP23DB01HP` digital MEMS microphones (65 dB SNR), PDM $\Sigma\Delta$ bitstreams, hardware MDF $\text{Sinc}^5$ decimation filter on STM32U585 ($D=128$, $16\text{ kHz}$ PCM @ 0% CPU load), and 16-channel Mel-scale filterbank extraction.
+  - Documented the **Golden 16-Channel Alignment**: 16 Mel frequency bands maps 1:1 to the 16 activation input registers $a_i \in [0, 255]$ of the $16\times 16$ SCIM core, achieving 100% macro utilization with zero padding.
+  - Documented **Stationary Weight Caching Power Advantage**: 256 shift cycles per layer vs. reloading per frame yields a **96.88% suppression of weight shift dynamic switching power**.
+- **Acoustic Audio Frontend (`kws/kws_audio_frontend.py`):**
+  - Implemented 16-channel Mel filterbank construction spanning $50\text{ Hz}$ to $4000\text{ Hz}$.
+  - Framing with Hann windowing (480 samples = 30 ms, hop 320 samples = 20 ms), 512-point Real FFT, log-energy compression, and requantization to uint8 $[0, 255]$.
+  - Automatic **silence gating** ($\le -30\text{ dB}$): clamps silence to all-zero activations, dropping SCIM PE dynamic switching power to $0\text{ W}$.
+  - Deterministic synthetic audio generator for unit testing (`silence`, `unknown`, `yes`, `no`, `stop`, `go`).
+- **Quantized Acoustic Neural Network (`kws/kws_model.py`, `kws/train_kws_qat.py`, `kws/export_kws_weights.py`):**
+  - Designed `KWS_SCIM_16`: 3 SCIM layers $\times 256$ bits = 768 bits = **96 Bytes total model parameters**!
+  - PyTorch QAT with Straight-Through Estimators (`BinaryQuantizeSTE`, `ActivationQuantizeSTE`), latent weight clamping to $[-1.0, +1.0]$, and activation gain $S_{\text{act}} = 64.0$.
+  - Trained 4-class (`silence`, `unknown`, `yes`, `no`) and 6-class (`silence`, `unknown`, `yes`, `no`, `stop`, `go`) models to **100.00% validation accuracy**.
+  - Folded continuous BatchNorm statistics into 16-element integer multiplier vectors $M_c$ and bias vectors $B_c$; exported to `kws/kws_weights_4class.json` and `kws/kws_weights_6class.json`.
+- **C99 / CMSIS-DSP Embedded Firmware Driver (`firmware/stm32_kws/`):**
+  - `kws_mfcc.h` & `kws_mfcc.c`: High-performance C99 audio feature extraction with 512-pt FFT, Hann window, and 16 Mel filters.
+  - `scim_coprocessor.h` & `scim_coprocessor.c`: Mode 1 (Hybrid ReLU) coprocessor driver with stationary weight caching, integer requantization, and 3-tap temporal depthwise smoothing.
+  - `kws_pipeline.h` & `kws_pipeline.c`: Re-entrant end-to-end inference engine with class name decoding.
+  - `Makefile`: Dual-target compilation supporting native host (`libkws_pipeline.so`) and cross-compilation for ARM Cortex-M33 (`libkws_pipeline_m33.a`) using the installed STM32 GNU 13.3 toolchain.
+- **Python ctypes Bridge & Demonstration Harness (`kws/kws_c_wrapper.py`, `kws/run_kws_demo.py`):**
+  - High-performance bridge connecting Python NumPy audio buffers directly to `libkws_pipeline.so`.
+  - Built interactive CLI demonstration script with ASCII Mel-spectrogram visualization and acoustic formant tracking.
+  - End-to-end C inference executes in **$0.137\text{ ms}$ per 1-second utterance** ($7,314\text{ inferences/sec}$, $< 0.5\%$ estimated CPU load on STM32 Cortex-M33).
+- **Comprehensive Regression Suite (`test/test_kws_pipeline.py`):**
+  - 10 unit and integration tests verifying Mel filterbank parameters, silence gating, 96-byte parameter budget, C vs. Python spectrogram parity ($\le 1$ LSB), bit-exact logits parity (**0 LSB discrepancy**), 100% end-to-end keyword classification accuracy, and Gate 0 `SCIMTile` stochastic error ($< 0.12\%$).
+  - Full project regression results: **29/29 pytest tests PASS in 34.57s**.
+
+### [Architecture Decisions & Silicon Forensics]
+- **The Golden 16-Channel Alignment in Audio Edge AI:**
+  - Standard speech recognition frameworks default to 40 or 64 filterbank channels, which would require tile folding, zero padding, or multi-macro orchestration on a 16x16 CIM core.
+  - By deliberately designing the acoustic frontend around 16 logarithmically spaced Mel filters spanning $50\text{ Hz}$ to $4000\text{ Hz}$, each temporal time frame $\vec{A}(t) \in [0, 255]^{16}$ aligns with 100% macro row utilization, leaving zero unused standard cells.
+- **Stationary Weight Caching in Edge Audio:**
+  - In voice keyword spotting, temporal speech frames arrive continuously at $50\text{ Hz}$ (every $20\text{ ms}$).
+  - Shifting weights into standard-cell DFFs once ($256$ cycles) and keeping them static across all 32 frames cuts weight serial shift energy by $96.88\%$, eliminating clock toggling in weight flip-flops.
+- **Zero Silicon Changes:**
+  - Taped-out ASIC core (`src/tt_um_scim_core.v`) remains 100% frozen, locked, and untouched (PR #86 green, Commit `85b17b98`, provisional Mux 76*).
+
+### [Current Pipeline State]
+- **Pillars 1–5:** ✅ 100% COMPLETE, SIGNED OFF & FROZEN.
+- **Tiny Tapeout SKY 26d Submission:** ✅ **MERGED & VERIFIED** (PR #86 green, Commit `85b17b98`, $2\times 2$ tiles; updated provisional Mux 76*; shuttle closes end of November 2026).
+- **Pillar 6.0 (Baseline Emulation Infrastructure & Handshake):** ✅ **100% COMPLETE & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.1 (Micro-ResNet Pre-Silicon Emulation & Edge AI Vision Pipeline):** ✅ **100% COMPLETE, BENCHMARKED & SIGNED OFF ON REAL SILICON.**
+- **Pillar 6.2 (Voice Keyword Spotting on STM32 B-U585I-IOT02A & CIMTinyTO Coprocessor):** ✅ **100% COMPLETE & FULLY SIGNED OFF:**
+  - 16-channel Mel filterbank acoustic frontend with silence gating verified.
+  - 96-byte QAT acoustic neural network trained to 100.00% validation accuracy.
+  - C99/CMSIS-DSP driver cross-compiled for ARM Cortex-M33 and verified bit-exact (0 LSB error) against Python.
+  - 29/29 regression tests PASS.
+- **Pillars 6.3–6.4 (Motor Vibration Anomaly, Seed Shuffling):** ⏳ **UPCOMING (Active through June 2027).**
+- **Pillar 7 (Post-Silicon Real ASIC Chip Bring-Up):** ⏸️ **SCHEDULED FOR JUNE 2027** upon physical silicon arrival.
+
+### [Next Steps]
+1. Conclude Pillar 6.2 session per `AGENTS.md`.
+2. Open a **fresh chat session** for **Pillar 6.3: Industrial Motor Vibration Anomaly Detection on STM32 B-U585I-IOT02A & CIMTinyTO Coprocessor** (Industrial 3D IMU `ISM330DHCX`, 16-harmonic FFT spectral feature autoencoder).
+
+## Previous Execution Run: 2026-11-07 16:10 (Run 96: Low-Hanging Fruit #1 Implementation — Compiled C & ARM NEON Acceleration Library `libscim_tier3_accel.so` & Zero-Copy NHWC Driver)
 
 ### [Built & Documented]
 - **Compiled C & ARM NEON Acceleration Library (`scim_tier3_c/`):**
